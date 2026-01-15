@@ -1,0 +1,658 @@
+export const title = "animate 与 animateTransform 的区别"
+export const icon = "Activity"
+
+# {title}
+
+SVG 中有两个常用的动画属性:`animate` 和 `animateTransform`。它们用途不同,选择正确的属性对实现动画效果至关重要。
+
+## 核心区别
+
+| 特性 | animate | animateTransform |
+|-----|---------|------------------|
+| **作用对象** | 普通属性(颜色、尺寸等) | transform 变换 |
+| **attributeName** | 具体属性名 | 固定为 "transform" |
+| **type** | 不需要 | 必需(translate/rotate/scale/skew) |
+| **累加方式** | additive="sum" | additive="sum" |
+| **典型用途** | 颜色渐变、位置变化 | 平移、旋转、缩放、倾斜 |
+
+## animate - 普通属性动画
+
+`animate` 用于动画化任何普通属性,如颜色、尺寸、位置等。
+
+### 基本语法
+
+```xml
+<animate attributeName="属性名" from="起始值" to="结束值" dur="持续时间" />
+```
+
+### 示例 1: 颜色动画
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <circle cx="50" cy="50" r="30" fill="blue">
+    <!-- 使用 animate 改变 fill 颜色 -->
+    <animate
+      attributeName="fill"
+      from="blue"
+      to="red"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg>
+```
+
+### 示例 2: 尺寸动画
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <circle cx="50" cy="50" r="20">
+    <!-- 使用 animate 改变 r 半径 -->
+    <animate
+      attributeName="r"
+      from="20"
+      to="40"
+      dur="1s"
+      repeatCount="indefinite"
+      values="20; 40; 20"
+    />
+  </circle>
+</svg>
+```
+
+### 示例 3: 位置动画(cx, cy)
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <circle r="15" fill="blue">
+    <!-- 使用 animate 改变 cx 和 cy -->
+    <animate
+      attributeName="cx"
+      from="30"
+      to="170"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+    <animate
+      attributeName="cy"
+      values="50; 20; 80; 50"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg>
+```
+
+### 示例 4: 透明度动画
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <rect x="50" y="30" width="100" height="40" fill="blue">
+    <!-- 使用 animate 改变 opacity -->
+    <animate
+      attributeName="opacity"
+      values="1; 0.2; 1"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </rect>
+</svg>
+```
+
+## animateTransform - 变换动画
+
+`animateTransform` 专门用于动画化 `transform` 属性,支持 translate、rotate、scale、skew。
+
+### 基本语法
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="变换类型"
+  from="起始值"
+  to="结束值"
+  dur="持续时间"
+/>
+```
+
+### 示例 1: 平移动画
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <rect x="20" y="40" width="40" height="20" fill="blue">
+    <!-- 使用 animateTransform 进行平移 -->
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      from="0 0"
+      to="140 0"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </rect>
+</svg>
+```
+
+### 示例 2: 旋转动画
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <rect x="-30" y="-30" width="60" height="60" fill="blue">
+      <!-- 使用 animateTransform 进行旋转 -->
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0"
+        to="360"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+### 示例 3: 缩放动画
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <rect x="-30" y="-30" width="60" height="60" fill="blue">
+      <!-- 使用 animateTransform 进行缩放 -->
+      <animateTransform
+        attributeName="transform"
+        type="scale"
+        values="0.5; 1.5; 0.5"
+        dur="2s"
+        repeatCount="indefinite"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+### 示例 4: 倾斜动画
+
+```xml
+<svg viewBox="0 0 200 150" width="200" height="150">
+  <g transform="translate(100 75)">
+    <rect x="-50" y="-25" width="100" height="50" fill="blue">
+      <!-- 使用 animateTransform 进行倾斜 -->
+      <animateTransform
+        attributeName="transform"
+        type="skewX"
+        values="-20; 20; -20"
+        dur="2s"
+        repeatCount="indefinite"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+## 对比示例
+
+### 场景 1: 移动圆形
+
+#### ❌ 错误:使用 animate 改变 transform
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <circle cx="50" cy="50" r="20" fill="blue">
+    <!-- 不推荐:animate 直接改 transform -->
+    <animate
+      attributeName="transform"
+      from="translate(0 0)"
+      to="translate(100 0)"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg>
+```
+
+**问题**: SVG 会将整个 transform 字符串作为值,可能不会正确解析。
+
+#### ✅ 正确:使用 animateTransform
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <circle cx="50" cy="50" r="20" fill="blue">
+    <!-- 正确:使用 animateTransform -->
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      from="0 0"
+      to="100 0"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg>
+```
+
+### 场景 2: 颜色渐变
+
+#### ❌ 错误:使用 animateTransform 改变颜色
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <circle cx="100" cy="50" r="30" fill="blue">
+    <!-- 错误:animateTransform 不能改变颜色 -->
+    <animateTransform
+      attributeName="fill"
+      type="rotate"
+      from="0"
+      to="360"
+      dur="2s"
+    />
+  </circle>
+</svg>
+```
+
+**问题**: animateTransform 只能用于 transform,不能用于其他属性。
+
+#### ✅ 正确:使用 animate
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <circle cx="100" cy="50" r="30" fill="blue">
+    <!-- 正确:使用 animate 改变颜色 -->
+    <animate
+      attributeName="fill"
+      from="blue"
+      to="red"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg>
+```
+
+## 多重动画
+
+### 使用 animate 添加多个动画
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="20" fill="blue">
+    <!-- 动画 1:改变半径 -->
+    <animate
+      attributeName="r"
+      values="20; 40; 20"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+
+    <!-- 动画 2:改变颜色 -->
+    <animate
+      attributeName="fill"
+      values="blue; red; green; blue"
+      dur="3s"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg>
+```
+
+### 使用 animateTransform 添加多个变换
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <rect x="-30" y="-30" width="60" height="60" fill="blue">
+      <!-- 变换 1:旋转 -->
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0"
+        to="360"
+        dur="4s"
+        repeatCount="indefinite"
+      />
+
+      <!-- 变换 2:缩放(累加) -->
+      <animateTransform
+        attributeName="transform"
+        type="scale"
+        values="0.8; 1.2; 0.8"
+        dur="2s"
+        repeatCount="indefinite"
+        additive="sum"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+## 复合动画
+
+### 同时使用 animate 和 animateTransform
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <rect x="-30" y="-30" width="60" height="60" fill="blue">
+      <!-- 颜色动画(使用 animate) -->
+      <animate
+        attributeName="fill"
+        values="blue; red; blue"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+
+      <!-- 旋转动画(使用 animateTransform) -->
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0"
+        to="360"
+        dur="4s"
+        repeatCount="indefinite"
+      />
+
+      <!-- 缩放动画(使用 animateTransform,累加) -->
+      <animateTransform
+        attributeName="transform"
+        type="scale"
+        values="1; 1.3; 1"
+        dur="2s"
+        repeatCount="indefinite"
+        additive="sum"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+## 常见属性对比
+
+两个动画标签共享以下常用属性:
+
+| 属性 | 说明 | 示例 |
+|-----|------|------|
+| `attributeName` | 目标属性名 | `fill`、`transform` |
+| `attributeType` | 属性类型 | `CSS`、`XML` |
+| `from` | 起始值 | `from="blue"` |
+| `to` | 结束值 | `to="red"` |
+| `values` | 多个值(分号分隔) | `values="10; 20; 10"` |
+| `dur` | 持续时间 | `dur="2s"` |
+| `begin` | 开始时间 | `begin="1s"`、`begin="click"` |
+| `repeatCount` | 重复次数 | `indefinite`(无限) |
+| `fill` | 动画结束状态 | `freeze`(保持)、`remove`(移除) |
+| `calcMode` | 插值模式 | `linear`、`spline`、`discrete` |
+| `keySplines` | 贝塞尔曲线控制点 | `0.4 0 0.2 1` |
+| `keyTimes` | 关键帧时间点 | `0; 0.5; 1` |
+| `additive` | 累加模式 | `sum`(累加) |
+
+### calcMode 示例
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <!-- 线性插值(默认) -->
+  <circle cx="50" cy="30" r="10" fill="blue">
+    <animate
+      attributeName="cx"
+      from="50"
+      to="150"
+      dur="2s"
+      calcMode="linear"
+      repeatCount="indefinite"
+    />
+  </circle>
+
+  <!-- 缓动效果 -->
+  <circle cx="50" cy="70" r="10" fill="red">
+    <animate
+      attributeName="cx"
+      from="50"
+      to="150"
+      dur="2s"
+      calcMode="spline"
+      keySplines="0.4 0 0.2 1"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg>
+```
+
+## 实际应用场景
+
+### 场景 1: 呼吸按钮
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <rect x="50" y="30" width="100" height="40" rx="10" fill="blue">
+    <!-- 缩放动画 -->
+    <animateTransform
+      attributeName="transform"
+      type="scale"
+      values="1; 1.05; 1"
+      dur="1.5s"
+      repeatCount="indefinite"
+      additive="sum"
+    />
+  </rect>
+  <text x="100" y="55" font-size="16" text-anchor="middle" fill="white">点击</text>
+</svg>
+```
+
+### 场景 2: 加载动画
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <circle cx="0" cy="-40" r="10" fill="blue">
+      <animate
+        attributeName="opacity"
+        values="0.2; 1; 0.2"
+        dur="1s"
+        repeatCount="indefinite"
+      />
+    </circle>
+    <circle cx="35" cy="-20" r="10" fill="blue">
+      <animate
+        attributeName="opacity"
+        values="0.2; 1; 0.2"
+        dur="1s"
+        begin="0.2s"
+        repeatCount="indefinite"
+      />
+    </circle>
+    <circle cx="35" cy="20" r="10" fill="blue">
+      <animate
+        attributeName="opacity"
+        values="0.2; 1; 0.2"
+        dur="1s"
+        begin="0.4s"
+        repeatCount="indefinite"
+      />
+    </circle>
+    <circle cx="0" cy="40" r="10" fill="blue">
+      <animate
+        attributeName="opacity"
+        values="0.2; 1; 0.2"
+        dur="1s"
+        begin="0.6s"
+        repeatCount="indefinite"
+      />
+    </circle>
+    <circle cx="-35" cy="20" r="10" fill="blue">
+      <animate
+        attributeName="opacity"
+        values="0.2; 1; 0.2"
+        dur="1s"
+        begin="0.8s"
+        repeatCount="indefinite"
+      />
+    </circle>
+    <circle cx="-35" cy="-20" r="10" fill="blue">
+      <animate
+        attributeName="opacity"
+        values="0.2; 1; 0.2"
+        dur="1s"
+        begin="1s"
+        repeatCount="indefinite"
+      />
+    </circle>
+  </g>
+</svg>
+```
+
+### 场景 3: 弹跳球
+
+```xml
+<svg viewBox="0 0 400 200" width="400" height="200">
+  <g>
+    <!-- 地面 -->
+    <line x1="20" y1="180" x2="380" y2="180" stroke="black" stroke-width="2" />
+
+    <!-- 球 -->
+    <circle cx="50" cy="50" r="20" fill="blue">
+      <!-- 水平移动 -->
+      <animate
+        attributeName="cx"
+        from="50"
+        to="350"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+
+      <!-- 垂直移动(模拟重力) -->
+      <animate
+        attributeName="cy"
+        values="50; 160; 50"
+        keyTimes="0; 0.5; 1"
+        calcMode="spline"
+        keySplines="0.4 0 1 1; 0 0 0.2 1"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+
+      <!-- 压扁效果(落地时) -->
+      <animateTransform
+        attributeName="transform"
+        type="scale"
+        values="1 1; 1.3 0.7; 1 1"
+        keyTimes="0; 0.5; 1"
+        dur="3s"
+        repeatCount="indefinite"
+        additive="sum"
+      />
+    </circle>
+  </g>
+</svg>
+```
+
+## 注意事项
+
+### 1. additive="sum" 的使用
+
+当有多个 animateTransform 时,需要使用 `additive="sum"` 累加效果:
+
+```xml
+<!-- ❌ 错误:没有 additive,后面的会覆盖前面的 -->
+<rect transform="rotate(45) scale(2)">
+  <animateTransform attributeName="transform" type="rotate" from="0" to="360" />
+  <animateTransform attributeName="transform" type="scale" values="1; 2; 1" />
+</rect>
+
+<!-- ✅ 正确:使用 additive 累加 -->
+<rect>
+  <animateTransform attributeName="transform" type="rotate" from="0" to="360" />
+  <animateTransform attributeName="transform" type="scale" values="1; 2; 1" additive="sum" />
+</rect>
+```
+
+### 2. type 属性是必需的
+
+`animateTransform` 必须指定 `type` 属性:
+
+```xml
+<!-- ❌ 错误:缺少 type -->
+<animateTransform attributeName="transform" from="0" to="360" />
+
+<!-- ✅ 正确:指定 type -->
+<animateTransform attributeName="transform" type="rotate" from="0" to="360" />
+```
+
+### 3. 变换中心点
+
+旋转和缩放时注意中心点:
+
+```xml
+<!-- ❌ 错误:围绕原点旋转 -->
+<rect x="50" y="50" width="60" height="60">
+  <animateTransform attributeName="transform" type="rotate" from="0" to="360" />
+</rect>
+
+<!-- ✅ 正确:围绕中心旋转 -->
+<g transform="translate(80 80)">
+  <rect x="-30" y="-30" width="60" height="60">
+    <animateTransform attributeName="transform" type="rotate" from="0" to="360" />
+  </rect>
+</g>
+```
+
+### 4. 微信公众号兼容性
+
+`animate` 和 `animateTransform` 在微信公众号中完全支持,可以放心使用。
+
+## 最佳实践
+
+### 1. 选择正确的动画类型
+
+```xml
+<!-- 颜色、透明度、尺寸等 → 使用 animate -->
+<animate attributeName="fill" ... />
+<animate attributeName="opacity" ... />
+<animate attributeName="r" ... />
+
+<!-- 平移、旋转、缩放、倾斜 → 使用 animateTransform -->
+<animateTransform attributeName="transform" type="translate" ... />
+<animateTransform attributeName="transform" type="rotate" ... />
+<animateTransform attributeName="transform" type="scale" ... />
+```
+
+### 2. 使用 values 替代 from/to
+
+```xml
+<!-- 简单动画 -->
+<animate attributeName="cx" from="50" to="150" dur="2s" />
+
+<!-- 复杂动画(推荐) -->
+<animate attributeName="cx" values="50; 150; 50" dur="2s" />
+```
+
+### 3. 合理使用 additive
+
+```xml
+<!-- 多个变换时,第一个不需要 additive -->
+<animateTransform attributeName="transform" type="rotate" ... />
+<animateTransform attributeName="transform" type="scale" ... additive="sum" />
+```
+
+### 4. 优化动画性能
+
+```xml
+<!-- ✅ 推荐:使用 transform 而非改变位置属性 -->
+<animateTransform attributeName="transform" type="translate" ... />
+
+<!-- ⚠️ 不推荐:改变 cx/cr 等属性性能较差 -->
+<animate attributeName="cx" ... />
+```
+
+## 总结
+
+| 需求 | 使用 | 示例 |
+|-----|------|------|
+| 颜色渐变 | animate | `attributeName="fill"` |
+| 尺寸变化 | animate | `attributeName="r"` |
+| 透明度 | animate | `attributeName="opacity"` |
+| 平移 | animateTransform | `type="translate"` |
+| 旋转 | animateTransform | `type="rotate"` |
+| 缩放 | animateTransform | `type="scale"` |
+| 倾斜 | animateTransform | `type="skewX"` |
+
+**记住**: `animate` 用于普通属性,`animateTransform` 专门用于 transform 变换。

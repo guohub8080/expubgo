@@ -1,0 +1,112 @@
+export const title = "往返旋转"
+
+import { ContinuousRotate, SwingRotate } from "./examples"
+
+# {title}
+
+往返旋转让元素在两个角度之间来回切换，创造循环动画效果。
+
+---
+
+## 连续旋转
+
+元素持续向一个方向旋转，无限循环。
+
+**代码示例：**
+
+```tsx
+genAnimateRotate({
+  timeline: [
+    { toValue: 360, durationSeconds: 1 }
+  ],
+  loopCount: 0  // 无限循环
+})
+```
+
+**效果预览：**
+
+<ContinuousRotate />
+
+**说明**：使用 `loopCount: 0` 实现无限循环旋转
+
+---
+
+## 摇摆旋转
+
+元素在两个角度之间左右摇摆。
+
+**代码示例：**
+
+```tsx
+genAnimateRotate({
+  initAngle: -30,
+  timeline: [
+    { toValue: 30, durationSeconds: 0.8 },
+    { toValue: -30, durationSeconds: 0.8 }
+  ],
+  loopCount: 0
+})
+```
+
+**效果预览：**
+
+<SwingRotate />
+
+**说明**：从 -30° 摇摆到 30°，然后返回，形成钟摆效果
+
+---
+
+## 使用辅助函数
+
+`genAnimateRotateSwing` 函数简化了摇摆动画的创建：
+
+```tsx
+import { genAnimateRotateSwing } from "@svg-anim/rotate";
+
+// 摇摆幅度 30°，完整周期 2 秒
+genAnimateRotateSwing(30, 2)
+```
+
+这等同于上面的手动配置，但代码更简洁。
+
+---
+
+## 应用场景
+
+### 加载动画
+
+```tsx
+genAnimateRotate({
+  timeline: [
+    { toValue: 360, durationSeconds: 0.8 }
+  ],
+  loopCount: 0
+})
+```
+
+### 提示动画
+
+```tsx
+genAnimateRotateSwing(15, 1)  // 小幅度摇摆
+```
+
+### 呼吸效果
+
+```tsx
+genAnimateRotate({
+  initAngle: -10,
+  timeline: [
+    { toValue: 10, durationSeconds: 1 },
+    { toValue: -10, durationSeconds: 1 }
+  ],
+  loopCount: 0
+})
+```
+
+---
+
+## 下一步
+
+- **旋转中心点** - 自定义旋转轴心
+- **多角度旋转** - 复杂旋转路径
+- **旋转时序控制** - 高级时间控制

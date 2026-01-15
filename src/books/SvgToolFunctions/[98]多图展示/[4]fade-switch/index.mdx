@@ -1,0 +1,192 @@
+export const title = "渐变切换 FadeSwitch"
+export const icon = "Layers"
+
+import { BasicExample, CustomDurationExample, QuickSwitchExample, GridExample } from "./examples"
+
+# {title}
+
+多张图片通过淡入淡出效果平滑切换，营造柔和的视觉过渡
+
+## 核心特点
+
+- ✅ 图片淡入淡出切换
+- ✅ 所有图片叠加在同一位置
+- ✅ 每张图片独立配置淡入时长和停留时长
+- ✅ 平滑的视觉过渡效果
+- ✅ 自动循环播放
+
+---
+
+## 原理说明
+
+### 核心机制
+
+`FadeSwitch` 基于 **SVG animate** 实现图片淡入淡出效果：
+
+1. **图片叠加**：所有图片通过 `<foreignObject>` 叠加在同一位置
+2. **透明度动画**：每张图片有独立的 `<animate attributeName="opacity">` 控制透明度
+3. **平滑过渡**：使用 ease-in-out 缓动曲线实现平滑的淡入淡出
+4. **时间分段**：通过计算每张图的开始时间，实现依次切换的效果
+
+### 动画时间线
+
+每张图片的完整周期：
+
+```
+保持 → 淡出(fadeDuration) → 等待（下一张图在这一段淡入）→ 淡入(fadeDuration) → 保持
+```
+
+- **保持阶段**：图片完全显示（stayDuration）
+- **淡出阶段**：透明度从 1 降到 0（fadeDuration）
+- **等待阶段**：透明度保持为 0
+- **淡入阶段**：透明度从 0 升到 1（fadeDuration）
+
+---
+
+## 参数说明
+
+### Props
+
+| 参数 | 类型 | 说明 | 示例 |
+|------|------|------|------|
+| `pics` | `Array<PicConfig>` | 图片配置数组 | 见下方表 |
+| `viewBoxW` | `number` | 画布宽度（可选）| `300` |
+| `viewBoxH` | `number` | 画布高度（可选）| `300` |
+| `mp` | `mpProps` | 边距样式 | `{ t: 0, r: 0, b: 0, l: 0 }` |
+
+### PicConfig
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `url` | `string` | 必填 | 图片地址 |
+| `fadeDuration` | `number` | `0.5` | 淡入淡出时长（秒，最小值 0.0001）|
+| `stayDuration` | `number` | `2` | 完全显示停留时长（秒）|
+
+---
+
+## 使用示例
+
+### 基本示例
+
+最简单的用法，使用默认的淡入淡出时长：
+
+```tsx
+import { FadeSwitch } from '@pub-svg/C3_MultiDisplay/FadeSwitch';
+
+<FadeSwitch
+    pics={[
+        { url: pic1 },
+        { url: pic2 },
+        { url: pic3 },
+    ]}
+/>
+```
+
+<BasicExample />
+
+---
+
+### 自定义时长
+
+每张图片可以设置不同的淡入时长和停留时长：
+
+```tsx
+<FadeSwitch
+    pics={[
+        { url: pic1, fadeDuration: 0.8, stayDuration: 1.5 },
+        { url: pic2, fadeDuration: 0.5, stayDuration: 2 },
+        { url: pic3, fadeDuration: 1, stayDuration: 1 },
+    ]}
+/>
+```
+
+<CustomDurationExample />
+
+---
+
+### 快速切换效果
+
+缩短淡入时长和停留时长，实现快速切换：
+
+```tsx
+<FadeSwitch
+    pics={[
+        { url: pic4, fadeDuration: 0.3, stayDuration: 0.5 },
+        { url: pic5, fadeDuration: 0.3, stayDuration: 0.5 },
+        { url: pic6, fadeDuration: 0.3, stayDuration: 0.5 },
+    ]}
+/>
+```
+
+<QuickSwitchExample />
+
+---
+
+### 田字格多画布组合
+
+四个画布组成田字格布局，各自使用不同的时长和图片数量：
+
+```tsx
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 0 }}>
+    {/* 左上：3张图 */}
+    <FadeSwitch pics={[
+        { url: pic1, fadeDuration: 0.5, stayDuration: 1 },
+        { url: pic2, fadeDuration: 0.7, stayDuration: 1.2 },
+        { url: pic3, fadeDuration: 0.4, stayDuration: 0.8 }
+    ]} />
+
+    {/* 右上：4张图 */}
+    <FadeSwitch pics={[
+        { url: pic4, fadeDuration: 0.6, stayDuration: 1.5 },
+        { url: pic5, fadeDuration: 0.9, stayDuration: 0.7 },
+        { url: pic6, fadeDuration: 0.5, stayDuration: 1.3 },
+        { url: pic1, fadeDuration: 0.8, stayDuration: 1 }
+    ]} />
+
+    {/* 左下：2张图 */}
+    <FadeSwitch pics={[
+        { url: pic2, fadeDuration: 1, stayDuration: 2 },
+        { url: pic3, fadeDuration: 0.4, stayDuration: 1.5 }
+    ]} />
+
+    {/* 右下：5张图 */}
+    <FadeSwitch pics={[
+        { url: pic4, fadeDuration: 0.3, stayDuration: 0.8 },
+        { url: pic5, fadeDuration: 0.8, stayDuration: 0.9 },
+        { url: pic6, fadeDuration: 0.6, stayDuration: 1.1 },
+        { url: pic1, fadeDuration: 0.9, stayDuration: 0.7 },
+        { url: pic2, fadeDuration: 0.5, stayDuration: 1.2 }
+    ]} />
+</div>
+```
+
+<GridExample />
+
+---
+
+## 使用技巧
+
+### 💡 推荐实践
+
+- **淡入时长**：建议 0.3-1 秒，过短会显得生硬，过长会显得拖沓
+- **停留时长**：根据内容调整，文字内容建议 1.5-3 秒，纯图建议 0.8-1.5 秒
+- **图片数量**：建议 3-5 张，过多会让循环时间过长
+- **循环衔接**：组件内置 Ghost 层，确保循环首尾无缝
+- **缓动效果**：内置 ease-in-out 曲线，提供平滑的渐变效果
+
+### ⚠️ 注意事项
+
+- 所有图片叠加在同一位置，通过 opacity 控制显示
+- 每张图的完整周期：保持 → 淡出 → 等待（下一张图在这一段淡入）
+- 淡入和淡出使用相同的时长（fadeDuration），内部最小值 0.0001
+- 如果只提供一张图片，会自动复制一份形成两张图的切换
+- 总循环时长 = 所有图片的 (fadeDuration + stayDuration) 之和
+
+---
+
+## 相关链接
+
+- [推入切换 AnyPush](./[1]any-push/index.mdx)
+- [遮罩切入 CoverIn](./[2]cover-in/index.mdx)
+- [遮罩切出 CoverOut](./[3]cover-out/index.mdx)
+- [硬切 HardCutSwitch](./[5]hard-cut-switch.mdx)

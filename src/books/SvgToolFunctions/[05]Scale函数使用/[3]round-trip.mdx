@@ -1,0 +1,161 @@
+export const title = "往返缩放"
+
+import { Loop, Swing, Comparison } from "./examples"
+
+# {title}
+
+往返缩放会让元素在两个缩放比例之间来回切换，创造呼吸般的动画效果。
+
+---
+
+## 循环缩放
+
+元素在两个缩放比例之间来回切换，无限循环。
+
+**代码示例：**
+
+```tsx
+genAnimateScale({
+  initScale: 1,
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.5, durationSeconds: 1 },
+    { toValue: 0.8, durationSeconds: 1 }
+  ],
+  loopCount: 0
+})
+```
+
+**效果预览：**
+
+<Loop />
+
+**说明**：圆形在 0.8 倍和 1.5 倍之间无限循环
+
+---
+
+## 摇摆缩放
+
+元素在小范围内来回缩放，创造摇摆效果。
+
+**代码示例：**
+
+```tsx
+genAnimateScale({
+  initScale: 1,
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.3, durationSeconds: 0.8 },
+    { toValue: 0.7, durationSeconds: 0.8 }
+  ],
+  loopCount: 0
+})
+```
+
+**效果预览：**
+
+<Swing />
+
+**说明**：方形在 0.7 倍和 1.3 倍之间摇摆
+
+---
+
+## 对比演示
+
+两种不同方式的往返缩放并排展示。
+
+**代码示例：**
+
+```tsx
+// 循环缩放：大幅度的完整缩放
+genAnimateScale({
+  initScale: 1,
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.8, durationSeconds: 1.5 },
+    { toValue: 0.5, durationSeconds: 1.5 }
+  ],
+  loopCount: 0
+})
+
+// 摇摆缩放：小范围快速摇摆
+genAnimateScale({
+  initScale: 1,
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.2, durationSeconds: 0.5 },
+    { toValue: 0.8, durationSeconds: 0.5 }
+  ],
+  loopCount: 0
+})
+```
+
+**效果预览：**
+
+<Comparison />
+
+**说明**：左侧大幅度往返，右侧小幅度摇摆
+
+---
+
+## 使用辅助函数
+
+`genAnimateScaleLoop` 函数简化了往返缩放的创建：
+
+```tsx
+import { genAnimateScaleLoop } from "@svg-anim/scale";
+
+// 0.8 倍 ↔ 1.2 倍，往返缩放
+genAnimateScaleLoop(0.8, 1.2, 1.5)
+```
+
+---
+
+## 应用场景
+
+### 呼吸效果
+
+```tsx
+genAnimateScale({
+  initScale: 1,
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.15, durationSeconds: 1 },
+    { toValue: 0.85, durationSeconds: 1 }
+  ],
+  loopCount: 0
+})
+```
+
+### 提示动画
+
+```tsx
+genAnimateScale({
+  initScale: 1,
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.3, durationSeconds: 0.8 },
+    { toValue: 1, durationSeconds: 0.8 },
+    { toValue: 1.3, durationSeconds: 0.8 },
+    { toValue: 1, durationSeconds: 0.8 }
+  ],
+  loopCount: 0
+})
+```
+
+---
+
+## 总结
+
+往返缩放是创建动态效果的重要方式，常用于：
+- **呼吸效果** - 元素周期性放大缩小
+- **提示动画** - 吸引用户注意
+- **弹跳效果** - 增加视觉趣味性
+
+---
+
+## 下一步
+
+- **缩放中心点** - 自定义缩放轴心位置
+- **相对缩放与绝对缩放** - 深入理解 isRelativeScale 参数
+- **缩放时序控制** - 延迟、循环、冻结

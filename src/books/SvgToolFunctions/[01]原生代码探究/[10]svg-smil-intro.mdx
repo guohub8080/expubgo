@@ -1,0 +1,313 @@
+export const title = "SVG SMIL 动画入门"
+export const icon = "Code"
+
+# {title}
+
+SVG SMIL（Synchronized Multimedia Integration Language）是一种原生 SVG 动画技术，无需任何 JavaScript 即可实现复杂的动画效果。它是微信公众号 SVG 动画的核心技术。
+
+## 什么是 SMIL？
+
+SMIL 是 W3C 标准的同步多媒体集成语言，允许在 SVG 内部直接声明动画。与 CSS 动画和 JavaScript 动画相比，SMIL 有以下特点：
+
+**优势：**
+- ✅ 无需 JavaScript，纯 XML/HTML 友好
+- ✅ 原生浏览器支持，性能优异
+- ✅ 代码简洁，易于维护
+- ✅ 支持复杂的时间线和路径动画
+
+**局限：**
+- ⚠️ 微信公众号有白名单限制
+- ⚠️ 某些高级属性可能被过滤
+- ⚠️ 调试相对困难
+
+## 三大核心元素
+
+SMIL 提供了三个核心动画元素：
+
+### 1. animate - 基础属性动画
+
+对 SVG 元素的任意属性进行动画。
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 圆形从左到右移动 -->
+  <circle cx="20" cy="100" r="20" fill="blue">
+    <animate
+      attributeName="cx"
+      from="20"
+      to="180"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg>
+```
+
+**常用属性：**
+- `attributeName` - 要动画的属性名
+- `from` - 起始值
+- `to` - 结束值
+- `dur` - 动画时长
+- `repeatCount` - 重复次数（`indefinite` 表示无限循环）
+
+### 2. animateTransform - 变换动画
+
+对 SVG 元素的 transform 属性进行动画，包括平移、旋转、缩放、斜切。
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 矩形旋转动画 -->
+  <rect x="75" y="75" width="50" height="50" fill="red">
+    <animateTransform
+      attributeName="transform"
+      type="rotate"
+      from="0 100 100"
+      to="360 100 100"
+      dur="3s"
+      repeatCount="indefinite"
+    />
+  </rect>
+</svg>
+```
+
+**变换类型：**
+- `translate` - 平移
+- `rotate` - 旋转
+- `scale` - 缩放
+- `skewX` / `skewY` - 斜切
+
+### 3. animateMotion - 路径动画
+
+让元素沿着指定路径移动。
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 圆形沿曲线路径移动 -->
+  <circle r="10" fill="green">
+    <animateMotion
+      dur="3s"
+      repeatCount="indefinite"
+      path="M 20 100 C 20 20, 180 20, 180 100 C 180 180, 20 180, 20 100"
+    />
+  </circle>
+</svg>
+```
+
+## 关键属性详解
+
+### 时间控制
+
+```xml
+<animate
+  attributeName="x"
+  from="0"
+  to="100"
+  dur="2s"              <!-- 动画持续 2 秒 -->
+  begin="0s"            <!-- 0 秒后开始（立即） -->
+  begin="1s"            <!-- 1 秒后开始 -->
+  begin="click"         <!-- 点击时开始 -->
+  fill="freeze"         <!-- 动画结束后保持最终状态 -->
+  fill="remove"         <!-- 动画结束后回到初始状态（默认） -->
+/>
+```
+
+### 缓动函数（keySplines）
+
+使用贝塞尔曲线控制动画速度变化。
+
+```xml
+<animate
+  attributeName="x"
+  values="0;100;0"
+  keyTimes="0;0.5;1"
+  keySplines="0.42 0 1 1;0 0 0.58 1"
+  dur="4s"
+  calcMode="spline"
+/>
+```
+
+- `calcMode="spline"` - 启用缓动
+- `keyTimes` - 时间点（0-1 之间）
+- `keySplines` - 对应的缓动曲线
+
+### 多段动画
+
+使用分号分隔多个值实现多段动画。
+
+```xml
+<animate
+  attributeName="cx"
+  values="20;180;100;20"
+  keyTimes="0;0.3;0.7;1"
+  dur="4s"
+  repeatCount="indefinite"
+/>
+```
+
+## 实战示例
+
+### 示例1：呼吸效果
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="30" fill="orange">
+    <animate
+      attributeName="r"
+      values="30;45;30"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg>
+```
+
+### 示例2：组合动画
+
+同时应用多个动画效果。
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <rect x="75" y="75" width="50" height="50" fill="purple">
+    <!-- 旋转 -->
+    <animateTransform
+      attributeName="transform"
+      type="rotate"
+      from="0 100 100"
+      to="360 100 100"
+      dur="4s"
+      repeatCount="indefinite"
+    />
+    <!-- 缩放 -->
+    <animateTransform
+      attributeName="transform"
+      type="scale"
+      values="1;1.5;1"
+      dur="2s"
+      repeatCount="indefinite"
+      additive="sum"
+    />
+  </rect>
+</svg>
+```
+
+**注意：** 使用 `additive="sum"` 让多个变换效果叠加。
+
+### 示例3：淡入淡出
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="40" fill="cyan">
+    <animate
+      attributeName="opacity"
+      values="1;0.2;1"
+      dur="3s"
+      repeatCount="indefinite"
+    />
+  </circle>
+</svg>
+```
+
+## 微信公众号兼容性
+
+### 支持的属性
+
+微信公众号对 SMIL 有白名单限制，以下属性通常被支持：
+
+**✅ 支持的元素：**
+- `<animate>`
+- `<animateTransform>`
+- `<animateMotion>`（部分支持）
+- `<set>`
+
+**✅ 支持的属性：**
+- `attributeName`
+- `from` / `to` / `values`
+- `dur` / `begin`
+- `repeatCount`
+- `fill` (freeze/remove)
+- `keyTimes` / `keySplines`
+- `calcMode`
+
+**❌ 不支持的特性：**
+- `id` 属性（无法通过 JavaScript 控制）
+- 某些 `begin` 值（如 `id.begin`）
+- 复杂的路径动画
+
+### 微信最佳实践
+
+1. **避免使用 id**
+   ```xml
+   <!-- ❌ 不推荐 -->
+   <animate id="myAnim" ... />
+
+   <!-- ✅ 推荐 -->
+   <animate ... />
+   ```
+
+2. **使用 begin="click" 触发**
+   ```xml
+   <animate
+     attributeName="opacity"
+     values="0;1"
+     dur="1s"
+     begin="click"
+     fill="freeze"
+   />
+   ```
+
+3. **简化路径动画**
+   ```xml
+   <!-- 简单路径 -->
+   <animateMotion
+     path="M 0 0 L 100 100"
+     dur="2s"
+   />
+   ```
+
+## 调试技巧
+
+### 1. 使用浏览器开发工具
+
+在 Chrome/Edge 中直接打开 SVG 文件查看效果。
+
+### 2. 逐步添加动画
+
+从最简单的动画开始，逐步添加复杂效果。
+
+```xml
+<!-- 第一步：基础移动 -->
+<animate attributeName="x" from="0" to="100" dur="1s" />
+
+<!-- 第二步：添加缓动 -->
+<animate attributeName="x" from="0" to="100" dur="1s"
+  keySplines="0.42 0 1 1" calcMode="spline" />
+
+<!-- 第三步：添加循环 -->
+<animate attributeName="x" from="0" to="100" dur="1s"
+  keySplines="0.42 0 1 1" calcMode="spline"
+  repeatCount="indefinite" />
+```
+
+### 3. 使用注释记录
+
+```xml
+<!-- 入场动画：从左侧滑入，缓动 0.6s -->
+<animate
+  attributeName="x"
+  from="-50"
+  to="0"
+  dur="0.6s"
+  keySplines="0.42 0 1 1"
+  calcMode="spline"
+  fill="freeze"
+/>
+```
+
+## 参考资源
+
+- [MDN - 使用 SMIL 的 SVG 动画](https://developer.mozilla.org/zh-CN/docs/Web/SVG/Guides/SVG_animation_with_SMIL)
+- [MDN - animateTransform 元素](https://developer.mozilla.org/zh-CN/docs/Web/SVG/Reference/Element/animateTransform)
+- [张鑫旭 - SVG SMIL animation 动画详解](https://www.zhangxinxu.com/wordpress/2014/08/so-powerful-svg-smil-animation/)
+- [微信公众号 SVG 动画教程](https://developers.weixin.qq.com/community/develop/article/doc/0000e8f0ba8a88b7522926d9251813)
+- [详细教你微信公众号正文页 SVG 交互开发](https://zhuanlan.zhihu.com/p/75023148)
+

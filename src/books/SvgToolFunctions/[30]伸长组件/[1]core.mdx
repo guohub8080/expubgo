@@ -1,0 +1,340 @@
+export const title = "核心概念"
+export const icon = "BookOpen"
+
+# {title}
+
+## 什么是挤出动画（Extrude Animation）
+
+**挤出动画**是一种特殊的 SVG 动画技术，通过**零高容器**和**viewBox 裁剪**，让一张完整的图片"从某个方向逐渐露出"的视觉效果。
+
+---
+
+## 📊 核心结构（三层）
+
+```
+外层容器（overflow: hidden）
+├─ 零高容器（height: 0）
+│  ├─ 图片1（SVG背景）
+│  └─ 图片2（SVG背景）
+└─ 动画层（透明SVG + animate）
+```
+
+**结构说明**：
+- **外层容器**：控制整体裁剪区域，`overflow: hidden`
+- **零高容器**：不占文档流空间，让内容层和动画层在同一Y轴位置堆叠
+- **动画层**：透明SVG，通过尺寸变化撑开外层容器
+
+---
+
+## ExtrudeContainer 组件
+
+在实际开发中，我们封装了 `ExtrudeContainer` 组件来简化挤出动画的实现。
+
+### 函数签名
+
+```tsx
+import { ExtrudeContainer } from '@pubSVG/C2_Containers'
+
+<ExtrudeContainer mp?: mpProps>
+  {children}
+</ExtrudeContainer>
+```
+
+### 参数说明
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `children` | `ReactNode` | - | **必填**。要在容器中渲染的内容 |
+| `mp` | `mpProps` | - | 可选。用于快速设置 margin/padding 的样式输入对象 |
+
+### 设计原理
+
+`ExtrudeContainer` 是挤出动画的**外层容器**，它提供了：
+
+```tsx
+<SectionEx style={{ overflow: 'hidden', ... }}>
+  <section style={{ lineHeight: 0, display: 'block', overflow: 'hidden' }}>
+    {children}
+  </section>
+</SectionEx>
+```
+
+**关键样式**：
+- `overflow: hidden` - 裁剪溢出内容，实现"露出"效果
+- `lineHeight: 0` - 消除垂直方向的意外间距
+- `display: block` - 块级显示，占据文档流
+- `userSelect: 'none'` - 禁止文本选择，避免拖拽干扰
+
+### 典型用法
+
+```tsx
+import { ExtrudeContainer } from '@pubSVG/C2_Containers'
+import { OverlayContainer } from '@pubSVG/C2_Containers'
+import { genAnimateExtrude } from '@pub-utils/genSvgAnimate/extrude'
+
+// 挤出动画的标准结构
+<ExtrudeContainer>
+  <OverlayContainer
+    backgroundNode={
+      // 背景层：完整的背景图片
+      <svg viewBox="0 0 300 295">
+        <image href="background.png" />
+      </svg>
+    }
+    overlayNode={
+      // 覆盖层：透明SVG动画，撑开容器
+      genAnimateExtrude({
+        canvasWidth: 300,
+        initHeight: 295,
+        timeline: [
+          { toHeight: 590, durationSeconds: 10 }
+        ],
+        delay: 0.5,
+      })
+    }
+  />
+</ExtrudeContainer>
+```
+
+### 组件配合关系
+
+```
+ExtrudeContainer (外层裁剪容器)
+└─ OverlayContainer (背景 + 覆盖层)
+   ├─ ZeroHeightContainer (背景层，height: 0)
+   │  └─ backgroundNode (你的背景内容/SVG)
+   └─ overlayNode (覆盖层，动画SVG)
+```
+
+| 组件 | 作用 | 关键属性 |
+|------|------|----------|
+| `ExtrudeContainer` | 外层裁剪容器，控制可见区域 | `overflow: hidden` |
+| `OverlayContainer` | 背景 + 覆盖层的语义化包装 | `backgroundNode` + `overlayNode` |
+| `ZeroHeightContainer` | 内部零高容器，实现元素堆叠 | `height: 0` (由 OverlayContainer 内部使用) |
+
+**配合使用**：
+1. `ExtrudeContainer` 负责裁剪溢出（窗帘）
+2. `OverlayContainer` 内部用 `ZeroHeightContainer` 包裹 `backgroundNode`（画作在窗帘后）
+3. `overlayNode` 直接渲染在最上层（拉开窗帘的动作）
+
+---
+
+## 🔑 关键机制
+
+### 1. 零高容器
+
+```css
+height: 0;
+overflow: visible;
+```
+
+**作用**：
+- `height: 0` 不占文档流空间
+- 子元素完整渲染，向下溢出
+- 让内容层和动画层在同一Y轴位置堆叠
+
+### 2. 动画层
+
+```xml
+<svg viewBox="0 0 300 295" style="opacity: 0;">
+  <animate attributeName="width"
+           from="100%" to="199.9%"
+           begin="0.5s" dur="10s" />
+</svg>
+```
+
+**关键点**：
+- 透明SVG，`viewBox="0 0 300 295"`
+- width动画：100% → 199.9%
+- height自动跟随（viewBox计算）
+- `begin="0.5s"` 延迟0.5秒自动触发
+
+### 3. 挤出原理
+
+```
+动画SVG变大 → 撑开外层容器
+→ overflow裁剪线下移 → 图片"露出来"
+```
+
+---
+
+## 📈 工作流程
+
+```
+t=0s:    图片完整存在，部分被裁剪
+         ↓
+t=0.5s:  动画触发
+         ↓
+t=10s:   容器撑开，图片完全显示
+```
+
+**详细过程**：
+1. **初始状态**：外层容器高度固定，图片底部被裁剪
+2. **动画触发**：透明SVG的width开始增加
+3. **容器撑开**：外层容器被动画SVG撑大
+4. **裁剪线下移**：overflow:hidden的裁剪边界下移
+5. **图片露出**：原本被遮挡的图片部分逐渐显示
+
+---
+
+## ⚡ 核心认知
+
+### ❌ 错误理解
+
+```
+错误：图片在"伸长"
+┌────────┐
+│  😐    │  ← 图片宽度从 50% 变成 100%
+└────────┘
+```
+
+### ✅ 正确理解
+
+```
+正确：容器被撑开，裁剪线下移，图片"露出来"
+
+初始状态：
+┌────────┐ ← 裁剪线
+│  😐    │
+│        │
+└────────┘ ← 裁剪线
+  ↑ 被遮挡
+
+动画过程：
+┌────────┐
+│  😐    │
+│        │ ← 容器被撑开
+├────────┤ ← 裁剪线下移
+│        │
+└────────┘
+  ↑ 逐渐露出
+
+最终状态：
+┌────────┐
+│  😐    │
+│        │
+├────────┤ ← 裁剪线移到底部
+│        │
+└────────┘
+  ↑ 完全显示
+```
+
+**关键认知**：**不是图片在"伸长"，而是容器被撑开，裁剪线下移，原本被挡住的内容"露出来"**
+
+---
+
+## 🎯 三个核心要素
+
+| 要素 | 作用 | 关键属性 |
+|------|------|----------|
+| 零高容器 | 不占文档流，实现层叠 | `height: 0` + `overflow: visible` |
+| 完整图片 | 始终完整存在 | 完整渲染，未被变形 |
+| 动画层 | 撑开外层容器 | 透明SVG + width动画 |
+
+---
+
+## 💡 正确的类比
+
+### ❌ 植物（错误类比）
+
+```
+植物在生长：
+┌────────┐
+│  🌱    │  ← 植物本身在变大
+│  🌿    │
+│  🌳    │
+└────────┘
+```
+
+### ✅ 窗帘（正确类比）
+
+```
+拉开窗帘：
+┌────────┐
+│  🖼️   │  ← 画一直都在
+├────────┤ ← 窗帘向上拉开
+│  🖼️   │     露出更多
+└────────┘
+```
+
+**挤出动画 = 拉开窗帘**
+
+- 图片完整存在（画作一直在）
+- 被外层容器遮挡（被窗帘遮挡）
+- 动画撑开容器（拉开窗帘）
+- 图片逐渐露出（画作逐渐显示）
+
+---
+
+## 🔍 视觉 vs 实际
+
+### 视觉效果
+
+用户看到：图片"从上到下逐渐伸长"
+
+```
+t=0s:   ┌─────┐
+        │  😐 │
+
+t=5s:   ┌─────┐
+        │  😐 │
+        │     │
+
+t=10s:  ┌─────┐
+        │  😐 │
+        │     │
+        └─────┘
+```
+
+### 实际机制
+
+实际发生：容器被撑开，裁剪边界变化
+
+```
+图片始终完整：
+┌─────────┐
+│   😐    │
+│         │
+└─────────┘
+
+容器高度变化：
+t=0s:   height: 50px  (只显示顶部)
+t=5s:   height: 100px (显示一半)
+t=10s:  height: 150px (全部显示)
+```
+
+---
+
+## 📝 总结
+
+### 核心概念
+
+1. **三层结构**：外层容器 + 零高容器 + 动画层
+2. **关键机制**：动画层撑开容器 → 裁剪线下移 → 图片露出
+3. **正确认知**：不是伸长，而是露出
+
+### 记忆要点
+
+```
+挤出动画 = 窗帘机制
+
+图片 = 画作（完整存在）
+容器 = 窗帘（遮挡视线）
+动画 = 拉开动作（逐渐露出）
+```
+
+---
+
+## 下一步
+
+在接下来的章节中，我们将深入探讨：
+
+- **第2章**：零高容器详解
+- **第3章**：动画本质（视觉 vs 实际）
+- **第4章**：挤压机制详解
+- **第5章**：一次性触发器
+
+理解这些核心概念后，你将能够：
+- 正确理解挤出动画的工作原理
+- 避免常见的设计误区
+- 创建更复杂的多层挤出效果

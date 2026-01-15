@@ -1,0 +1,27 @@
+/* MDX 代码块滚动条美化 */
+
+.mdx-code-scroll {
+  /* Firefox 滚动条样式 */
+  scrollbar-width: thin;
+  scrollbar-color: rgb(71 85 105) rgb(15 23 42);
+}
+
+/* Webkit 浏览器滚动条样式（Chrome、Safari、Edge） */
+.mdx-code-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.mdx-code-scroll::-webkit-scrollbar-track {
+  background: rgb(15 23 42);
+  border-radius: 4px;
+}
+
+.mdx-code-scroll::-webkit-scrollbar-thumb {
+  background: rgb(71 85 105);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.mdx-code-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(100 116 139);
+}

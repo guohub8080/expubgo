@@ -1,0 +1,129 @@
+export const title = "硬切切换 HardCutSwitch"
+export const icon = "Layers"
+
+import { BasicExample, FrameAnimationExample } from "./examples"
+
+# {title}
+
+通过不透明度的离散跳变（无过渡）实现图片快速切换，合理配置可模拟 GIF 式逐帧动画
+
+## 核心特点
+
+- ✅ 无过渡、瞬时切换（硬切）
+- ✅ 仅需设置每张图的 `stayDuration`
+- ✅ 支持任意张数、自动循环
+- ✅ 易于实现"逐帧"播放效果
+
+---
+
+## 原理说明
+
+### 核心机制
+
+`HardCutSwitch` 基于 **SVG animate** 使用离散模式（calcMode="discrete"）实现硬切效果：
+
+1. **图片叠加**：所有图片通过 `<foreignObject>` 叠加在同一位置
+2. **离散跳变**：使用 `calcMode="discrete"`，透明度无过渡直接跳变
+3. **瞬时切换**：无需缓动，根据 `keyTimes` 瞬时切换图片
+4. **时间分段**：通过计算每张图的 `stayDuration`，实现依次切换
+
+### 动画时间线
+
+每张图片的完整周期：
+
+```
+完全显示(stayDuration) → 瞬时隐藏 → 等待 → 瞬时显示 → 完全显示
+```
+
+- **显示阶段**：图片完全可见
+- **切换时刻**：透明度瞬时从 1 跳变到 0
+- **等待阶段**：等待下一轮显示
+
+---
+
+## 参数说明
+
+### Props
+
+| 参数 | 类型 | 说明 | 示例 |
+|------|------|------|------|
+| `pics` | `Array<PicConfig>` | 图片配置数组 | 见下方表 |
+| `viewBoxW` | `number` | 画布宽度（可选）| `300` |
+| `viewBoxH` | `number` | 画布高度（可选）| `300` |
+| `mp` | `mpProps` | 边距样式 | `{ t: 0, r: 0, b: 0, l: 0 }` |
+
+### PicConfig
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `url` | `string` | 必填 | 图片地址 |
+| `stayDuration` | `number` | `2` | 完全显示停留时长（秒）|
+
+---
+
+## 使用示例
+
+### 基本示例
+
+三张图片按顺序瞬时切换，形成硬切轮播：
+
+```tsx
+import { HardCutSwitch } from '@pub-svg/C3_MultiDisplay/HardCutSwitch';
+
+<HardCutSwitch
+    pics={[
+        { url: pic1, stayDuration: 1.2 },
+        { url: pic2, stayDuration: 1.2 },
+        { url: pic3, stayDuration: 1.2 },
+    ]}
+/>
+```
+
+<BasicExample />
+
+---
+
+### 模拟 GIF 式逐帧效果
+
+将多张序列帧图片（或关键帧）依次硬切显示，可以形成类似 GIF 的逐帧播放效果。合理设置 `stayDuration` 与图片数量，可控制"帧率"和循环节奏。
+
+```tsx
+// 以 0.2s 每帧模拟 GIF（稍慢）
+<HardCutSwitch
+    pics={[
+        { url: pic1, stayDuration: 0.2 },
+        { url: pic2, stayDuration: 0.2 },
+        { url: pic3, stayDuration: 0.2 },
+    ]}
+/>
+```
+
+<FrameAnimationExample />
+
+
+**建议：**
+ - 帧越多、每帧时长越短，越接近 GIF 的流畅感
+ - 使用同尺寸、同构图的序列帧图片，视觉更稳定
+ - 结合网格布局可并行展示多个"逐帧动画"画布
+
+---
+
+## 使用技巧
+
+### 💡 推荐实践
+
+- **帧率控制**：将 `stayDuration` 设为 0.05–0.2 秒可模拟 5–20 FPS 效果
+- **节奏设计**：混合不同的 `stayDuration` 可表现"停顿—闪动—停顿"等节奏
+- **一致尺寸**：序列帧尺寸一致，避免切换时抖动
+- **循环时长**：总时长 = 所有 `stayDuration` 之和
+- **自动循环**：组件会自动循环播放，无需额外配置
+
+### ⚠️ 注意事项
+
+- 使用 `calcMode="discrete"` 实现无过渡的瞬时切换
+- 图片按数组顺序依次显示，每张图片显示 `stayDuration` 秒
+- 硬切效果适合展示序列帧、节奏感强的内容
+- 不适合需要平滑过渡的场景
+
+
+

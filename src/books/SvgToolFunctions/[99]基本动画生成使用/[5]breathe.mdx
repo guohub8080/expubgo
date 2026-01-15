@@ -1,0 +1,323 @@
+export const title = "呼吸动画 breathe"
+export const icon = "Activity"
+
+# {title}
+
+`genAnimateBreathe` 是专门用于创建呼吸效果的预设动画工具。呼吸动画是一种自动循环的缩放效果，常用于吸引注意力或表示"活跃"状态。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimateBreathe, getCenterBreatheStyle } from '@svg-anim/breathe';
+
+genAnimateBreathe({
+  fromScale?: number,                       // 默认 1：初始缩放比例
+  toScale?: number,                         // 默认 1.1：目标缩放比例
+  duration?: number,                         // 默认 2：单次呼吸时长（秒）
+  keySplines?: string | string[],           // 默认 '0.42 0 0.58 1'：缓动曲线
+  repeatCount?: number,                      // 默认 0：循环次数（0 = 无限）
+  delay?: number,                            // 默认 0：初始延迟（秒）
+  transformOrigin?: 'center' | 'origin' | string,  // 默认 'center'：变换原点
+  additive?: boolean,                        // 默认 true：是否累加变换
+  beginType?: SvgBeginEventType,                // 默认 undefined：动画开始事件类型
+})
+```
+
+---
+
+## 使用示例
+
+### 简单的呼吸效果
+
+```tsx
+<svg width="200" height="200">
+  <g style={getCenterBreatheStyle()}>
+    <circle cx="100" cy="100" r="30" fill="blue">
+      {genAnimateBreathe()}
+    </circle>
+  </g>
+</svg>
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1; 1.1; 1"
+  dur="2s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+/>
+```
+
+**CSS 样式：**
+```css
+transform-origin: center;
+transform-box: fill-box;
+```
+
+**效果**：圆形在 1.0 到 1.1 倍之间循环缩放，产生呼吸效果
+
+---
+
+### 快速呼吸
+
+```tsx
+{genAnimateBreathe({
+  duration: 1,
+  toScale: 1.15
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1; 1.15; 1"
+  dur="1s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+/>
+```
+
+---
+
+### 慢速呼吸
+
+```tsx
+{genAnimateBreathe({
+  duration: 3,
+  toScale: 1.08,
+  keySplines: '0.37 0 0.63 1'
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1; 1.08; 1"
+  dur="3s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.37 0 0.63 1; 0.37 0 0.63 1"
+/>
+```
+
+---
+
+### 轻微呼吸
+
+```tsx
+{genAnimateBreathe({
+  duration: 2.5,
+  toScale: 1.05
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1; 1.05; 1"
+  dur="2.5s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+/>
+```
+
+---
+
+### 强烈呼吸
+
+```tsx
+{genAnimateBreathe({
+  duration: 1.5,
+  toScale: 1.2
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1; 1.2; 1"
+  dur="1.5s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+/>
+```
+
+---
+
+### 自定义缓动（放大和缩小不同）
+
+```tsx
+{genAnimateBreathe({
+  keySplines: ['0.42 0 1 1', '0 0 0.58 1']  // ease-out 放大，ease-in 缩小
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1; 1.1; 1"
+  dur="2s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.42 0 1 1; 0 0 0.58 1"
+/>
+```
+
+---
+
+### 点击触发呼吸
+
+```tsx
+{genAnimateBreathe({
+  beginType: 'click'
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1; 1.1; 1"
+  dur="2s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+  begin="click"
+/>
+```
+
+---
+
+### 延迟呼吸
+
+```tsx
+{genAnimateBreathe({
+  delay: 1  // 延迟 1 秒后开始
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1; 1.1; 1"
+  dur="2s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+  begin="1s"
+/>
+```
+
+---
+
+## 预设效果
+
+### breathePresets
+
+```tsx
+import { breathePresets } from '@svg-anim/breathe';
+
+// 标准呼吸（2秒）
+breathePresets.normal()
+
+// 快速呼吸（1秒）
+breathePresets.fast()
+
+// 慢速呼吸（3秒）
+breathePresets.slow()
+
+// 轻微呼吸（2.5秒，小幅度）
+breathePresets.gentle()
+
+// 强烈呼吸（1.5秒，大幅度）
+breathePresets.strong()
+
+// 延迟呼吸（延迟1秒后开始）
+breathePresets.delayed()
+```
+
+---
+
+## 注意事项
+
+### transformOrigin 属性
+
+- **`'center'`**（默认）：以图形中心为原点（推荐）
+- **`'origin'`**：以坐标原点 (0,0) 为原点
+- **自定义**：如 `'50% 50%'` 或 `'100 100'`
+
+### additive 属性
+
+- **`true`**（默认）：与其他动画叠加（推荐）
+- **`false`**：替换其他变换
+
+---
+
+## 完整示例：呼吸的心形
+
+```tsx
+import { genAnimateBreathe, getCenterBreatheStyle } from '@svg-anim/breathe';
+
+const BreathingHeart = () => {
+  return (
+    <svg width="100" height="100" viewBox="0 0 100 100">
+      <g style={getCenterBreatheStyle()}>
+        <path
+          d="M50 30 C50 30 20 10 20 30 C20 45 35 55 50 70 C65 55 80 45 80 30 C80 10 50 30 50 30"
+          fill="#ef4444"
+        >
+          {genAnimateBreathe({
+            duration: 1.2,
+            toScale: 1.15,
+            keySplines: '0.42 0 1 1'
+          })}
+        </path>
+      </g>
+    </svg>
+  );
+};
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1; 1.15; 1"
+  dur="1.2s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.42 0 1 1; 0.42 0 1 1"
+/>
+```

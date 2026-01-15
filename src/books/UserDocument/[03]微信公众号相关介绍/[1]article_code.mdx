@@ -1,0 +1,359 @@
+export const title = "微信代码编辑"
+
+# {title}
+
+
+## 概述
+
+微信公众号文章编辑本质上是 HTML + CSS 的受限环境。理解这一本质，就能掌握在公众号中实现丰富内容的关键。
+
+微信公众号的文章内容由以下组成：
+- **HTML 标签白名单** - 只支持部分安全的 HTML 标签
+- **CSS 属性白名单** - 只支持部分 CSS 样式属性
+- **内联样式** - 所有样式必须通过 `style` 属性内联
+- **受限的 JavaScript** - 基本不支持 JavaScript 交互
+
+## HTML 标签白名单
+
+微信公众号支持的 HTML 标签有限，主要包括：
+
+### 文本标签
+- `<section>` - 通用容器（推荐替代 `<div>`）
+- `<span>` - 行内容器
+- `<p>` - 段落
+- `<h1>` ~ `<h6>` - 标题
+- `<strong>` / `<b>` - 加粗
+- `<em>` / `<i>` - 斜体
+
+### 媒体标签
+- `<img>` - 图片
+- `<video>` - 视频（部分支持）
+- `<audio>` - 音频（部分支持）
+
+### 表格标签
+- `<table>` - 表格
+- `<tr>` - 行
+- `<td>` / `<th>` - 单元格
+
+### 其他标签
+- `<ul>` / `<ol>` / `<li>` - 列表
+- `<blockquote>` - 引用
+- `<hr>` - 分隔线
+
+### ❌ 不支持的标签
+- `<div>` - 被 `<section>` 替代
+- `<a>` - 链接功能被移除
+- `<button>` - 交互元素被移除
+- `<script>` - JavaScript 被过滤
+- `<style>` - 外部样式被过滤
+- `<link>` - 外部资源被过滤
+
+## CSS 属性白名单
+
+微信公众号只支持部分 CSS 属性，以下是常用属性：
+
+### ✅ 支持的属性
+
+**布局**
+- `display` - ✅ 支持 `flex`, `block`, `inline-block` 等
+- `flex-direction` - ✅ 支持方向设置
+- `align-items` - ✅ 支持对齐
+- `justify-content` - ✅ 支持对齐
+- `gap` - ✅ 支持间距
+- `flex-grow`, `flex-shrink`, `flex-basis` - ✅ 支持 flex 相关属性
+
+**尺寸**
+- `width` / `height` - ✅ 支持固定值和百分比
+- `min-width` / `max-width` - ✅ 支持
+- `padding` / `margin` - ✅ 支持内边距和外边距
+
+**文字**
+- `font-size` - ✅ 支持字体大小
+- `font-weight` - ✅ 支持加粗（推荐使用 `bold` 或 `700`）
+- `line-height` - ✅ 支持行高
+- `color` - ✅ 支持文字颜色
+- `text-align` - ✅ 支持对齐
+
+**颜色和背景**
+- `background-color` - ✅ 支持背景色
+- `background-image` - ✅ 支持背景图
+- `opacity` - ✅ 支持透明度
+
+**边框**
+- `border` - ✅ 支持边框
+- `border-radius` - ✅ 支持圆角
+- `overflow` - ✅ 支持溢出处理
+
+**其他**
+- `aspect-ratio` - ✅ 支持宽高比
+- `object-fit` - ✅ 支持图片适应
+- `box-sizing` - ✅ 支持盒模型
+
+### ❌ 不支持的属性
+
+- `position` - ❌ 所有定位属性（`relative`, `absolute`, `fixed`, `sticky`）都被过滤
+- `calc()` - ❌ 计算函数被过滤
+- `transform` - ❌ 变换属性被过滤（部分场景可用）
+- `animation` / `transition` - ❌ 动画属性被过滤
+- `:hover` / `:active` - ❌ 伪类被过滤
+
+## CSS 样式层级的处理
+
+在微信公众号中，样式可能有多个来源，需要按以下顺序处理：
+
+1. **普通 CSS 类组合** - 按顺序合并，后面的覆盖前面的
+2. **内联样式** - 最高优先级，覆盖所有类样式
+
+### 示例：处理多个 CSS 类
+
+```html
+<!-- 原始 HTML -->
+<div class="css-175oi2r r-18u37iz r-136ojw6">内容</div>
+
+<!-- CSS 类定义（按顺序） -->
+<style>
+.css-175oi2r {
+    flex-direction: column;  /* 第一个类 */
+    display: flex;
+}
+
+.r-18u37iz {
+    flex-direction: row;     /* 第二个类，覆盖上面的 */
+}
+
+.r-136ojw6 {
+    z-index: 2;              /* 第三个类 */
+}
+</style>
+
+<!-- 转换步骤：按顺序合并所有类 -->
+<section style="display: flex; flex-direction: row; z-index: 2;">
+  内容
+</section>
+```
+
+## 颜色值格式
+
+保持原始 HTML 中的颜色值格式：
+
+```css
+color: rgb(15, 20, 25);        /* 原始是 rgb() 就用 rgb() */
+color: #0F1419;                /* 原始是十六进制就用十六进制 */
+color: hsl(210 25% 8%);        /* 原始是 hsl() 就用 hsl() */
+color: rgba(0, 0, 0, 0.5);     /* 原始是 rgba() 就用 rgba() */
+```
+
+**原则**：原始 HTML 是什么格式，就用什么格式，不需要转换。
+
+## 单位使用规范
+
+```css
+/* 数字形式（无单位属性） */
+padding: 16;
+margin: 8;
+border-width: 1;
+
+/* 字符串形式（有单位属性） */
+width: "100%";
+height: "40px";
+font-size: "15px";
+line-height: "20px";
+border-radius: "9999px";  /* 圆形 */
+```
+
+## 替代方案
+
+由于某些属性被过滤，需要使用替代方案：
+
+### 用负 margin 替代 position 定位
+
+如果需要实现元素叠加效果（如右上角图标），可以使用负 margin：
+
+```css
+/* ❌ 错误：使用 position absolute（会被过滤） */
+.logo {
+  position: absolute;
+  top: 12;
+  right: 12;
+}
+
+/* ✅ 正确：使用负 margin 实现 */
+.logoWrapper {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12;
+  padding-right: 12;
+  height: 32;  /* 固定高度 */
+}
+
+.content {
+  margin-top: -32;  /* 负 margin，向上偏移 */
+  padding: 12;
+}
+```
+
+### 用 flex 布局替代 position
+
+```css
+/* ❌ 错误：使用 absolute 居中 */
+.center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* ✅ 正确：使用 flex 居中 */
+.parent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+```
+
+### 用百分比替代 calc()
+
+```css
+/* ❌ 错误：使用 calc()（会被过滤） */
+.width {
+  width: calc(100% - 20px);
+}
+
+/* ✅ 正确：使用百分比或固定值 */
+.parent {
+  padding: 10px;
+}
+
+.child {
+  width: 100%;  /* 百分比自动计算 */
+}
+```
+
+## 图片处理
+
+### 头像圆形裁剪
+
+```css
+.avatarWrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: "50%";  /* 圆形 */
+  overflow: "hidden";
+}
+
+.avatarImg {
+  width: "100%";
+  height: "100%";
+  object-fit: "cover";
+}
+```
+
+### 图片占位符
+
+```html
+<section style="aspect-ratio: 16 / 9; background-color: rgb(239, 243, 244);">
+  <!-- 占位区域 -->
+</section>
+```
+
+## 实用技巧
+
+### 1. 语义化标签
+
+使用语义化的 HTML5 标签：
+
+```html
+<!-- ✅ 推荐：使用语义化标签 -->
+<section>替代 <div>
+
+<!-- ❌ 避免：使用非语义化标签 -->
+<div>...</div>
+```
+
+### 2. 去除交互元素
+
+将交互元素转换为静态展示：
+
+```html
+<!-- 原始 HTML -->
+<a href="/user">用户名</a>
+<button onclick="handleClick()">点击</button>
+
+<!-- 转换后 -->
+<section aria-label="用户链接">用户名</section>
+<section aria-label="点击按钮">点击</section>
+```
+
+### 3. 提取语义化注释
+
+将有语义的属性提取到注释中：
+
+```html
+<!-- data-testid="User-Name" -->
+<section aria-label="用户链接">用户名</section>
+
+<!-- data-testid="Tweet-User-Avatar" -->
+<section style={avatarStyle}>...</section>
+```
+
+## 测试方法
+
+在开发服务器中测试，然后：
+
+1. 使用 PubEditor 预览效果
+2. 点击"复制 HTML"
+3. 粘贴到微信公众号编辑器
+4. 查看实际效果
+5. 右键查看源代码，检查哪些样式被过滤
+
+## 注意事项
+
+1. **保持原有视觉效果**：所有间距、颜色、字体大小必须与设计一致
+2. **使用内联样式**：所有样式必须通过 `style` 属性内联
+3. **避免使用被过滤的属性**：如 `position`, `calc()`, `transform` 等
+4. **测试兼容性**：在不同设备上测试显示效果
+5. **优化代码大小**：微信对文章大小有限制，尽量精简代码
+
+## 总结
+
+微信公众号代码编辑的核心是：
+
+1. **理解白名单限制** - 只使用支持的标签和属性
+2. **使用内联样式** - 所有样式必须内联
+3. **寻找替代方案** - 用 flex、负 margin 等替代被过滤的属性
+4. **测试验证** - 在实际环境中测试效果
+
+掌握了这些原则，就能在微信公众号中实现丰富多样的内容效果。
+
+## 参考资源
+
+本文档内容基于以下权威资料整理：
+
+### 官方规范
+
+1. **[中华人民共和国融媒体SVG交互设计技术规范](https://www.fudan.design/svg.html)** - 制定时间：2016年，制定方：复旦大学新媒体研究机构与微信团队，已被收录为国家标准
+
+2. **[微信公众号图文的HTML/CSS 支持概览](https://www.axtonliu.ai/newsletters/ai-2/posts/wechat-article-html-css-support)** - 提供者：Axton Liu，内容：微信公众号 HTML/CSS 白名单详细说明
+
+### 技术文章
+
+3. **[SVG 交互图文设计开发必读入门规则](https://zhuanlan.zhihu.com/p/29151913974)** - 平台：知乎，内容：SVG 在微信公众号中的应用规范
+
+4. **[微信SVG AttributeName白名单（2023版）](https://www.sohu.com/a/745340968_121759104)** - 来源：搜狐，内容：2023年最新 SVG 属性白名单
+
+### 实践指南
+
+5. **[用CSS样式为微信公众号排版](https://zhuanlan.zhihu.com/p/23809384)** - 平台：知乎，内容：CSS 排版实践经验
+
+6. **[H5移动端font-weight兼容性](https://juejin.cn/post/7538422858331013130)** - 平台：掘金，内容：字体加粗在不同设备的兼容性问题
+
+### 工具资源
+
+7. **[Model Context Protocol Official Examples](https://modelcontextprotocol.io/examples)** - 官方示例和参考实现
+
+8. **[Awesome MCP Servers](https://mcpservers.org/)** - MCP 服务器资源目录
+
+---
+
+**说明**：本文档整合了上述资源的核心内容，并结合实际开发经验进行了整理和补充。建议读者在实际开发中参考原始资源获取最新信息。
+

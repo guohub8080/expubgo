@@ -1,0 +1,185 @@
+export const title = "getImgSizeByDefault"
+
+# {title}
+
+`getImgSizeByDefault` 是一个带默认值的图片尺寸获取函数，基于 `getImgSizeAsync` 封装，支持手动指定尺寸的降级策略。
+
+## 函数签名
+
+```typescript
+function getImgSizeByDefault(
+    url: string,
+    w?: number,
+    h?: number
+): {
+    w: number,  // 图片宽度
+    h: number   // 图片高度
+}
+```
+
+## 参数说明
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `url` | `string` | ✅ | 图片的 URL 地址 |
+| `w` | `number` | ❌ | 手动指定的宽度（可选） |
+| `h` | `number` | ❌ | 手动指定的高度（可选） |
+
+## 返回值
+
+返回一个包含图片尺寸的对象：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `w` | `number` | 图片宽度（优先使用手动值，否则使用自动获取的值） |
+| `h` | `number` | 图片高度（优先使用手动值，否则使用自动获取的值） |
+
+## 工作原理
+
+该函数实现了智能的尺寸降级策略：
+
+```typescript
+import { useMemo } from "react"
+import defaultTo from "@utils/common/defaultTo"
+import getImgSizeAsync from "./getImgSizeAsync.ts"
+
+const getImgSizeByDefault = (url: string, w?: number, h?: number) => {
+    const imgSizeAutoGet = getImgSizeAsync(url)
+
+    const imgSize = useMemo(() => {
+        // 1. 处理手动指定的尺寸（null/undefined 转为 0）
+        const imgW = defaultTo(w, 0)
+        const imgH = defaultTo(h, 0)
+
+        // 2. 优先级 1：如果有手动指定且大于 0，直接使用
+        if (imgW + imgH > 0)
+            return { w: imgW, h: imgH }
+
+        // 3. 优先级 2：如果自动获取成功，使用自动获取的值
+        if (imgSizeAutoGet.isSuccess)
+            return { w: imgSizeAutoGet.w, h: imgSizeAutoGet.h }
+
+        // 4. 优先级 3：降级为手动值（可能是 0）
+        return { w: imgW, h: imgH }
+    }, [imgSizeAutoGet, w, h])
+
+    return imgSize
+}
+```
+
+**尺寸优先级**：
+1. **手动指定且有效** (w > 0 或 h > 0)
+2. **自动获取成功** (isSuccess === true)
+3. **降级为默认值** (0 或手动指定的值)
+
+## 使用示例
+
+### 基础用法（自动获取）
+
+```typescript
+import getImgSizeByDefault from '@pub-utils/common/getImgSizeByDefault';
+
+const MyComponent = () => {
+    // 完全依赖自动获取
+    const imgSize = getImgSizeByDefault('/images/pic1.jpg');
+
+    return (
+        <svg viewBox={`0 0 ${imgSize.w} ${imgSize.h}`}>
+            <image href="/images/pic1.jpg" width={imgSize.w} height={imgSize.h} />
+        </svg>
+    );
+};
+```
+
+### 指定默认尺寸
+
+```typescript
+const MyComponent = () => {
+    // 图片加载前使用 800x600 作为占位尺寸
+    const imgSize = getImgSizeByDefault('/images/pic1.jpg', 800, 600);
+
+    return (
+        <svg viewBox={`0 0 ${imgSize.w} ${imgSize.h}`}>
+            <image href="/images/pic1.jpg" width={imgSize.w} height={imgSize.h} />
+        </svg>
+    );
+};
+```
+
+### 只指定宽度
+
+```typescript
+const MyComponent = () => {
+    // 只指定宽度，高度自动获取（等比例缩放）
+    const imgSize = getImgSizeByDefault('/images/pic1.jpg', 800);
+
+    return (
+        <svg viewBox={`0 0 ${imgSize.w} ${imgSize.h}`}>
+            <image href="/images/pic1.jpg" width={imgSize.w} height={imgSize.h} />
+        </svg>
+    );
+};
+```
+
+### 响应式尺寸切换
+
+```typescript
+const MyComponent = ({ imgUrl, useAutoSize }) => {
+    // 根据条件切换是否使用自动尺寸
+    const imgSize = useAutoSize
+        ? getImgSizeByDefault(imgUrl)
+        : getImgSizeByDefault(imgUrl, 1920, 1080);
+
+    return (
+        <svg viewBox={`0 0 ${imgSize.w} ${imgSize.h}`}>
+            <image href={imgUrl} width={imgSize.w} height={imgSize.h} />
+        </svg>
+    );
+};
+```
+
+## 应用场景
+
+- **预设尺寸占位** - 在图片加载前使用预设尺寸，避免布局抖动
+- **响应式图片** - 根据屏幕尺寸动态切换固定尺寸或自动尺寸
+- **图片裁剪** - 使用固定宽高比，配合自动获取的尺寸计算裁剪区域
+- **批量处理** - 为一批图片指定统一默认尺寸，个别图片可以覆盖
+
+## 与 getImgSizeAsync 的区别
+
+| 特性 | `getImgSizeAsync` | `getImgSizeByDefault` |
+|------|-------------------|----------------------|
+| 返回状态信息 | ✅ (status, isSuccess) | ❌ (只返回尺寸) |
+| 支持手动指定 | ❌ | ✅ |
+| 降级策略 | 无 | 三级降级 |
+| 返回宽度 | 0 (加载中/失败) | 手动值或自动值 |
+| 适用场景 | 需要加载状态 | 只需要尺寸值 |
+
+## 注意事项
+
+⚠️ **这是 Hook 函数**
+- 必须在 React 组件内调用
+- 内部使用了 `useMemo` 进行性能优化
+
+⚠️ **默认值为 0**
+- 手动指定的 `null`/`undefined` 会被转为 `0`
+- `0` 会被视为"未指定"，触发自动获取
+
+⚠️ **部分指定**
+- 可以只指定 `w` 或 `h`，未指定的维度会自动获取
+- 只要 `w + h > 0`，就会使用手动值而非自动值
+
+⚠️ **响应式更新**
+- 尺寸会随着 `url`、`w`、`h` 的变化自动更新
+- 使用 `useMemo` 避免不必要的重新计算
+
+## 相关函数
+
+- [`getImgSizeAsync`](./getImgSizeAsync.mdx) - 底层的异步尺寸获取函数
+- [`defaultTo`](@utils/common/defaultTo.ts) - 默认值处理函数
+
+## 性能优化
+
+- 使用 `useMemo` 缓存计算结果
+- 只有依赖项变化时才重新计算
+- 避免在每次渲染时都创建新的尺寸对象

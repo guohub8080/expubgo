@@ -1,0 +1,541 @@
+export const title = "旋转动画 rotate"
+
+# {title}
+
+`genAnimateRotate` 是 SVG 旋转动画的生成工具，可以创建 `<animateTransform type="rotate">` 元素。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimateRotate } from '@svg-anim/rotate';
+
+genAnimateRotate({
+  initAngle?: number,                      // 默认 0：初始角度（度）
+  timeline: RotateTimelineSegment[],       // 必填：时间线段数组
+  delay?: number,                          // 默认 0：初始延迟（秒）
+  additive?: boolean,                      // 默认 true：是否累加变换
+  beginType?: SvgBeginEventType,              // 默认 undefined：动画开始事件类型
+  calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 自动：动画计算模式
+  freeze?: boolean,                        // 默认 false：是否保持最终状态
+  loopCount?: number,                      // 默认 1：循环次数（0 = 无限）
+  isRelativeRotate?: boolean,              // 默认 true：是否使用相对旋转
+  origin?: RotateOrigin,                   // 默认 'center'：旋转中心点
+  elementBounds?: { x?, y?, w, h },        // 必填*：元素边界信息
+})
+```
+
+### RotateTimelineSegment 类型
+
+```tsx
+interface RotateTimelineSegment {
+  toAngle?: number,                        // 默认上一段角度：目标角度（度）
+  durationSeconds: number,                 // 必填：该段持续时间（秒）
+  keySplines?: string,                     // 默认 "0 0 1 1"：贝塞尔缓动参数
+}
+```
+
+### RotateOrigin 类型
+
+```tsx
+type RotateOrigin =
+  | 'center'       // 中心点 [x+w/2, y+h/2]
+  | 'topCenter'    // 顶部中心 [x+w/2, y]
+  | 'topLeft'      // 左上角 [x, y]
+  | 'topRight'     // 右上角 [x+w, y]
+  | 'bottomCenter' // 底部中心 [x+w/2, y+h]
+  | 'bottomLeft'   // 左下角 [x, y+h]
+  | 'bottomRight'  // 右下角 [x+w, y+h]
+  | 'leftCenter'   // 左侧中心 [x, y+h/2]
+  | 'rightCenter'  // 右侧中心 [x+w, y+h/2]
+  | 'origin'       // SVG 坐标原点 [0, 0]
+  | [number, number]; // 自定义坐标 [cx, cy]
+```
+
+---
+
+## 使用示例
+
+### 简单的 360 度旋转
+
+```tsx
+<svg width="200" height="200">
+  <rect x="75" y="75" width="50" height="50" fill="blue">
+    {genAnimateRotate({
+      initAngle: 0,
+      timeline: [
+        { toAngle: 360, durationSeconds: 2 }
+      ]
+    })}
+  </rect>
+</svg>
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="0 100 100; 360 100 100"
+  keyTimes="0; 1"
+  keySplines="0 0 1 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+**效果**：正方形围绕自身中心 (100, 100) 旋转一圈
+
+---
+
+### 2. 中心旋转（推荐配合 CSS）
+
+```tsx
+import { getCenterRotateStyle } from '@svg-anim/rotate';
+
+<rect
+  x="75" y="75" width="50" height="50"
+  fill="blue"
+  style={getCenterRotateStyle()}
+>
+  {genAnimateRotate({
+    origin: 'center',
+    timeline: [
+      { toAngle: 360, durationSeconds: 2 }
+    ]
+  })}
+</rect>
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="0 0 0; 360 0 0"
+  keyTimes="0; 1"
+  keySplines="0 0 1 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+**CSS 样式：**
+```css
+transform-origin: center;
+transform-box: fill-box;
+```
+
+---
+
+### 3. 顶部中心旋转（使用 elementBounds）
+
+```tsx
+{genAnimateRotate({
+  origin: 'topCenter',
+  elementBounds: { x: 75, y: 75, w: 50, h: 50 },
+  timeline: [
+    { toAngle: 360, durationSeconds: 2 }
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="0 100 75; 360 100 75"
+  keyTimes="0; 1"
+  keySplines="0 0 1 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+**说明**：topCenter = [x + w/2, y] = [75 + 25, 75] = [100, 75]
+
+---
+
+### 4. 自定义坐标旋转
+
+```tsx
+{genAnimateRotate({
+  origin: [100, 100],  // 自定义中心点
+  timeline: [
+    { toAngle: 360, durationSeconds: 2 }
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="0 100 100; 360 100 100"
+  keyTimes="0; 1"
+  keySplines="0 0 1 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 5. 原点旋转（围绕 SVG 坐标原点）
+
+```tsx
+{genAnimateRotate({
+  origin: 'origin',  // 围绕 SVG 坐标原点 (0, 0)
+  timeline: [
+    { toAngle: 360, durationSeconds: 2 }
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="0 0 0; 360 0 0"
+  keyTimes="0; 1"
+  keySplines="0 0 1 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 6. 无限旋转
+
+```tsx
+{genAnimateRotate({
+  initAngle: 0,
+  timeline: [
+    { toAngle: 360, durationSeconds: 2 }
+  ],
+  loopCount: 0  // 无限循环
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="0 100 100; 360 100 100"
+  keyTimes="0; 1"
+  keySplines="0 0 1 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 7. 来回旋转（摆动）
+
+```tsx
+{genAnimateRotate({
+  initAngle: -45,
+  timeline: [
+    { toAngle: 45, durationSeconds: 1 },   // 向右摆
+    { toAngle: -45, durationSeconds: 1 }   // 向左摆
+  ],
+  loopCount: 0
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="-45 100 100; 45 100 100; -45 100 100"
+  keyTimes="0; 0.5; 1"
+  keySplines="0 0 1 1; 0 0 1 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 8. 弹性旋转（先快后慢）
+
+```tsx
+import { getEaseBezier } from '@pub-utils/getBezier';
+
+{genAnimateRotate({
+  initAngle: 0,
+  timeline: [
+    {
+      toAngle: 180,
+      keySplines: getEaseBezier({ isIn: true, isOut: false }),  // ease-out
+      durationSeconds: 0.5
+    }
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="0 100 100; 180 100 100"
+  keyTimes="0; 1"
+  keySplines="0.42 0 1 1"
+  dur="0.5s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 9. 多段旋转
+
+```tsx
+{genAnimateRotate({
+  initAngle: 0,
+  timeline: [
+    { toAngle: 90, durationSeconds: 0.5 },   // 转 90 度
+    { toAngle: 180, durationSeconds: 0.5 },  // 再转 90 度
+    { toAngle: 360, durationSeconds: 1 }      // 转 180 度回到起点
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="0 100 100; 90 100 100; 180 100 100; 360 100 100"
+  keyTimes="0; 0.25; 0.5; 1"
+  keySplines="0 0 1 1; 0 0 1 1; 0 0 1 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 10. 相对旋转模式（isRelativeRotate: true，默认）
+
+每个阶段的 `toAngle` 是相对于**上一阶段**的增量角度：
+
+```tsx
+{genAnimateRotate({
+  initAngle: 0,
+  isRelativeRotate: true,
+  timeline: [
+    { toAngle: 90, durationSeconds: 1 },   // 旋转到 90 度
+    { toAngle: 0, durationSeconds: 1 },    // 保持在 90 度
+    { toAngle: 45, durationSeconds: 1 }    // 旋转到 135 度（增量 45 度）
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="0 100 100; 90 100 100; 90 100 100; 135 100 100"
+  keyTimes="0; 0.333; 0.667; 1"
+  keySplines="0 0 1 1; 0 0 1 1; 0 0 1 1"
+  dur="3s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 11. 绝对旋转模式（isRelativeRotate: false）
+
+每个阶段的 `toAngle` 是**绝对角度**：
+
+```tsx
+{genAnimateRotate({
+  initAngle: 0,
+  isRelativeRotate: false,
+  timeline: [
+    { toAngle: 90, durationSeconds: 1 },   // 旋转到 90 度
+    { toAngle: 90, durationSeconds: 1 },   // 保持在 90 度
+    { toAngle: 135, durationSeconds: 1 }   // 旋转到 135 度（绝对角度）
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="0 100 100; 90 100 100; 90 100 100; 135 100 100"
+  keyTimes="0; 0.333; 0.667; 1"
+  keySplines="0 0 1 1; 0 0 1 1; 0 0 1 1"
+  dur="3s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 12. 超过 360 度（旋转两圈）
+
+```tsx
+{genAnimateRotate({
+  initAngle: 0,
+  timeline: [
+    { toAngle: 720, durationSeconds: 4 }  // 360 × 2 = 720
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="0 100 100; 720 100 100"
+  keyTimes="0; 1"
+  keySplines="0 0 1 1"
+  dur="4s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 13. 逆时针旋转（负角度）
+
+```tsx
+{genAnimateRotate({
+  initAngle: 0,
+  timeline: [
+    { toAngle: -360, durationSeconds: 2 }  // 逆时针旋转
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="rotate"
+  values="0 100 100; -360 100 100"
+  keyTimes="0; 1"
+  keySplines="0 0 1 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+## elementBounds 详解
+
+`elementBounds` 提供元素的位置和尺寸，用于自动计算旋转中心：
+
+```tsx
+// 元素位于 (100, 50)，尺寸 200x150
+elementBounds: {
+  x: 100,  // 元素左上角 X 坐标（可选，默认 0）
+  y: 50,   // 元素左上角 Y 坐标（可选，默认 0）
+  w: 200,  // 元素宽度（必填）
+  h: 150   // 元素高度（必填）
+}
+```
+
+**快捷位置对应的坐标：**
+
+| origin | 计算方式 | 示例值 |
+|--------|----------|--------|
+| `'center'` | `[x + w/2, y + h/2]` | `[200, 125]` |
+| `'topCenter'` | `[x + w/2, y]` | `[200, 50]` |
+| `'bottomRight'` | `[x + w, y + h]` | `[300, 200]` |
+| `'topLeft'` | `[x, y]` | `[100, 50]` |
+
+**何时需要 elementBounds：**
+- ✅ `origin` 使用快捷位置（`topCenter`、`bottomLeft` 等）时**必须提供**
+- ✅ `origin` 为 `'center'` 时**推荐提供**（纯 SVG 实现）
+- ⭕ `origin` 为 `'origin'` 时可以省略（固定原点）
+- ⭕ `origin` 为 `[x, y]` 数组时可以省略（已手动指定）
+
+---
+
+## 注意事项
+
+### additive 属性
+
+- **推荐使用 `additive: true`**（默认）：动画会与其他变换叠加
+- 使用 `additive: false`：动画会替换其他变换
+
+### 旋转方向
+
+- **正角度**：顺时针旋转（0 → 90 → 180 → 270 → 360）
+- **负角度**：逆时针旋转（0 → -90 → -180 → -270 → -360）
+
+### freeze 属性
+
+- **`freeze: false`**（默认）：动画结束后回到原始状态
+- **`freeze: true`**：动画结束后停留在最后一帧
+

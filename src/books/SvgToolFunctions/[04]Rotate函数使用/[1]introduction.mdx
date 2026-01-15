@@ -1,0 +1,157 @@
+export const title = "Rotate 函数概览"
+
+import { BasicRotate } from "./examples"
+
+# {title}
+
+`genAnimateRotate` 是 SVG 旋转动画的核心函数，可以让元素围绕指定点进行旋转运动。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimateRotate } from "@svg-anim/rotate";
+
+genAnimateRotate({
+  // ===== 必填参数 =====
+  timeline: RotateTimelineSegment[],         // 必填：时间线段数组
+
+  // ===== 可选参数 =====
+  initAngle?: number,                        // 初始角度，默认 0
+  delay?: number,                            // 初始延迟（秒），默认 0
+  additive?: boolean,                        // 是否累加变换，默认 true
+  beginType?: SvgBeginEventType,              // 默认 undefined：动画开始事件类型
+  calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 动画计算模式，自动
+  freeze?: boolean,                          // 是否保持最终状态，默认 false
+  loopCount?: number,                        // 循环次数（0 = 无限），默认 1
+  isRelativeRotate?: boolean,                // 是否相对旋转，默认 true
+  origin?: RotateOrigin,                     // 旋转中心点，默认 'center'
+  elementBounds?: ElementBoundsType,         // 元素边界信息（用于快捷位置）
+})
+```
+
+---
+
+## 核心参数
+
+创建一个 360° 顺时针旋转的方块。
+
+**代码示例：**
+
+```tsx
+import { genAnimateRotate } from "@svg-anim/rotate";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <rect x="75" y="75" width="50" height="50" fill="blue">
+    {genAnimateRotate({
+      timeline: [
+        { toValue: 360, durationSeconds: 2 }
+      ],
+      loopCount: 0
+    })}
+  </rect>
+</svg>
+```
+
+**效果预览：**
+
+<BasicRotate />
+
+**说明**：蓝色方块围绕中心点顺时针无限旋转
+
+---
+
+## 核心参数
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `timeline` | `TimelineSegment[]` | **必填** | 动画时间线配置 |
+| `timeline[].toValue` | `number` | - | 目标旋转角度（度） |
+| `timeline[].durationSeconds` | `number` | - | 该阶段时长（秒） |
+| `initAngle` | `number` | `0` | 初始角度 |
+| `origin` | `{ x: string; y: string }` | `'center'` | 旋转中心点 |
+
+---
+
+## 旋转方向
+
+**正值** = 顺时针旋转
+**负值** = 逆时针旋转
+
+```tsx
+// 顺时针 360°
+{ toValue: 360, durationSeconds: 2 }
+
+// 逆时针 360°
+{ toValue: -360, durationSeconds: 2 }
+
+// 顺时针 180°
+{ toValue: 180, durationSeconds: 1 }
+```
+
+---
+
+## 常见使用场景
+
+### 1. 加载动画
+
+无限旋转的圆形或箭头。
+
+```tsx
+genAnimateRotate({
+  timeline: [
+    { toValue: 360, durationSeconds: 1 }
+  ],
+  loopCount: 0  // 无限循环
+})
+```
+
+### 2. 摇摆效果
+
+左右摇摆的元素。
+
+```tsx
+genAnimateRotate({
+  initAngle: -20,
+  timeline: [
+    { toValue: 20, durationSeconds: 0.5 },
+    { toValue: -20, durationSeconds: 0.5 }
+  ],
+  loopCount: 0
+})
+```
+
+### 3. 翻转效果
+
+180° 翻转动画。
+
+```tsx
+genAnimateRotate({
+  timeline: [
+    { toValue: 180, durationSeconds: 0.8 }
+  ],
+  freeze: true
+})
+```
+
+---
+
+## 辅助函数
+
+`genAnimateRotate` 提供了多个辅助函数，简化常见场景：
+
+| 函数 | 说明 | 示例 |
+|------|------|------|
+| `genAnimateRotateByAngle` | 指定角度旋转 | `genAnimateRotateByAngle(360, 2)` |
+| `genAnimateRotateLoop` | 往返旋转 | `genAnimateRotateLoop(180, 1.5)` |
+| `genAnimateRotateSwing` | 左右摇摆 | `genAnimateRotateSwing(30, 2)` |
+| `genAnimateRotatePath` | 多角度序列 | `genAnimateRotatePath([90, 180, 270], 3)` |
+
+---
+
+## 下一步
+
+- **旋转方向** - 顺时针、逆时针旋转
+- **旋转中心点** - 自定义旋转轴心
+- **旋转时序控制** - 延迟、循环、冻结

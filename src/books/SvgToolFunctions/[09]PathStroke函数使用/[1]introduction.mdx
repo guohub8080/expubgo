@@ -1,0 +1,580 @@
+export const title = "PathStroke 函数概览"
+
+import { BasicDraw } from "./examples"
+
+# {title}
+
+`genAnimatePathStroke` 是 SVG 路径描边动画的核心生成工具。它可以让路径产生"手绘"般的绘制效果，通过动画控制 `stroke-dashoffset` 属性实现从无到有、从有到无的动态描边。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimatePathStroke } from '@svg-anim/pathStroke';
+
+genAnimatePathStroke({
+  // ===== 必填参数 =====
+  pathLength: number,                        // 路径长度（必填）
+  timeline: PathStrokeTimelineSegment[],     // 必填：时间线段数组
+  element: React.ReactNode,                  // SVG 路径元素（必填）
+
+  // ===== 可选参数 =====
+  initOffset?: number,                       // 初始偏移量，默认 pathLength
+  delay?: number,                            // 初始延迟（秒），默认 0
+  freeze?: boolean,                          // 是否保持最终状态，默认 true
+  loopCount?: number,                        // 循环次数（0 = 无限），默认 1
+  beginType?: SvgBeginEventType,                // 默认 undefined：动画开始事件类型
+  restart?: 'always' | 'whenNotActive' | 'never',  // 重启模式，默认 'always'
+  calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 计算模式，自动判断
+  clickableAreaSize?: {                      // 点击区域尺寸（beginType: 'click' 时使用）
+    width: number;
+    height: number;
+  };
+})
+```
+
+**时间线段类型：**
+
+```tsx
+interface PathStrokeTimelineSegment {
+  toValue: number;           // 目标偏移量
+  durationSeconds: number;   // 该阶段时长（秒）
+  keySplines?: string;       // 贝塞尔缓动参数，默认 "0 0 1 1"
+}
+```
+
+---
+
+## 参数说明
+
+### 点击触发（beginType）
+
+设置为 `'click'` 时，动画需要点击才会开始播放。
+
+```tsx
+genAnimatePathStroke({
+  pathLength: 600,
+  beginType: 'click',    // 点击触发
+  restart: 'never',          // 防止重复点击
+  timeline: [
+    { durationSeconds: 2, toValue: 0 }
+  ],
+  element: <path ... />,
+  clickableAreaSize: { width: 200, height: 200 }
+})
+```
+
+### 重启模式（restart）
+
+控制动画是否可以重新开始，仅在 `beginType: 'click'` 时有意义。
+
+| 值 | 行为 |
+|-----|------|
+| `'always'` | 默认值，每次点击都重新开始 |
+| `'whenNotActive'` | 只在动画未播放时才能重新开始 |
+| `'never'` | 动画一旦开始就不再重新开始（推荐）|
+
+动画的插值计算方式，默认根据是否使用 `keySplines` 自动判断。
+
+| 值 | 说明 |
+|-----|------|
+| `'spline'` | 使用贝塞尔缓动曲线（需配合 keySplines）|
+| `'linear'` | 线性插值（默认）|
+| `'discrete'` | 跳跃式变化 |
+| `'paced'` | 等速运动 |
+
+### 点击区域尺寸（clickableAreaSize）
+
+定义可点击区域的矩形范围。如果不设置，只有路径本身可以点击（很难点到）。
+
+```tsx
+clickableAreaSize: {
+  width: 200,   // 可点击区域宽度
+  height: 200   // 可点击区域高度
+}
+```
+
+---
+
+## 核心概念
+
+### 路径长度（pathLength）
+
+路径的总长度，必填参数。用于设置 `stroke-dasharray` 和计算动画偏移量。
+
+**如何获取路径长度？**
+
+推荐使用专业矢量绘图软件直接查看：
+
+| 软件 | 操作步骤 |
+|------|----------|
+| **Adobe Illustrator** | 选中路径 → 窗口 → 文档信息 → 几何 → 长度 |
+| **Figma** | 选中路径 → 右侧面板 → Design → 填充/描边下方显示长度 |
+| **Inkscape** | 选中路径 → 路径 → 路径效果 → 路径长度编辑器 |
+
+**如果没有工具，可以参考以下估算值：**
+
+| 路径类型 | 建议长度 |
+|----------|----------|
+| 简单图形（圆形、三角形）| 300-500 |
+| 中等复杂（五角星、心形）| 600-800 |
+| 复杂图形（文字、复杂图案）| 800-1500 |
+
+**⚠️ 注意：** pathLength 必须**大于或等于**路径真实长度，否则动画会"画不完"。
+
+### 初始偏移量（initOffset）
+
+控制路径的初始显示状态。
+
+| 值 | 状态 |
+|-----|------|
+| `pathLength` | 完全隐藏（默认）|
+| `0` | 完全显示 |
+| 中间值 | 部分显示 |
+
+```tsx
+// 从隐藏开始绘制（默认）
+{genAnimatePathStroke({
+  pathLength: 500,
+  // initOffset: 500,  // 默认值，可省略
+  timeline: [
+    { durationSeconds: 2, toValue: 0 }
+  ],
+  element: <path d="..." stroke="..." />
+})}
+
+// 从完全显示开始擦除
+{genAnimatePathStroke({
+  pathLength: 500,
+  initOffset: 0,    // 从显示开始
+  timeline: [
+    { durationSeconds: 2, toValue: 500 }  // 擦除到隐藏
+  ],
+  element: <path d="..." stroke="..." />
+})}
+```
+
+### 时间线（timeline）
+
+时间线是一个数组，每个元素定义动画的一个阶段。
+
+**参数说明：**
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `durationSeconds` | 该段的持续时间（秒）| - |
+| `toValue` | 目标偏移量 | 上一段的偏移量 |
+| `keySplines` | 贝塞尔缓动参数 | `"0 0 1 1"` (线性) |
+
+**单段动画（最简单）：**
+
+```tsx
+timeline: [
+  { durationSeconds: 2, toValue: 0 }    // 从初始值画到0
+]
+```
+
+**多段动画：**
+
+```tsx
+timeline: [
+  { durationSeconds: 2, toValue: 0 },      // 第1段：画到完全显示
+  { durationSeconds: 1, toValue: 500 },    // 第2段：擦除到500
+  { durationSeconds: 1.5, toValue: 0 }      // 第3段：再画到完全显示
+]
+```
+
+---
+
+## 核心原理：这个函数到底在做什么？
+
+### 它操作的是什么属性？
+
+这个函数只操作 SVG 路径元素的 **两个属性**：
+
+1. **`stroke-dasharray`** - 把实线变成虚线
+2. **`stroke-dashoffset`** - 控制虚线的偏移位置
+
+通过动画改变 `stroke-dashoffset` 的值，让路径"画出来"或"擦除"。
+
+---
+
+### 原理分步详解
+
+#### 第一步：理解 SVG 的 stroke（描边）
+
+SVG 的 `<path>` 元素有一个 `stroke` 属性，它就是路径的"边框线条"：
+
+```tsx
+<svg width="200" height="100">
+  {/* 一条简单的曲线路径 */}
+  <path
+    d="M 20 50 Q 100 10 180 50"
+    stroke="#3b82f6"     // 蓝色描边
+    strokeWidth="3"      // 线条粗细3px
+    fill="none"          // 不填充
+  />
+</svg>
+```
+
+**显示效果：** 一条蓝色的曲线
+
+```
+起点 20,50 ~~~~~~~~ 终点 180,50
+```
+
+这就是普通的实线路径，没有任何动画。
+
+---
+
+#### 第二步：stroke-dasharray 把实线变成虚线
+
+`stroke-dasharray` 属性可以把实线变成"虚线-间隔"的模式：
+
+```tsx
+<path
+  d="M 20 50 Q 100 10 180 50"
+  stroke="#3b82f6"
+  strokeWidth="3"
+  fill="none"
+  strokeDasharray="20 10"  // 20px实线，10px空白
+/>
+```
+
+**显示效果：**
+
+```
+━━━━  ━━━━  ━━━━  ━━━━  ← 20px实线，10px空白，循环
+```
+
+**`stroke-dasharray` 的格式：**
+
+```tsx
+strokeDasharray="实线长度 间隔长度"
+
+// 示例：
+"20 10"  → 20px实线，10px间隔
+"10 5"   → 10px实线，5px间隔
+"50 20"  → 50px实线，20px间隔
+```
+
+---
+
+#### 第三步：stroke-dasharray 的特殊用法 - 把路径变成"一条虚线"
+
+**关键技巧：** 把 `stroke-dasharray` 设置为 `路径长度 路径长度`
+
+```tsx
+// 假设路径总长度是 200px
+<path
+  d="M 20 50 Q 100 10 180 50"
+  stroke="#3b82f6"
+  strokeWidth="3"
+  fill="none"
+  strokeDasharray="200 200"  // 实线200px（整个路径），间隔200px
+/>
+```
+
+**显示效果：** 看起来还是一条实线，因为"实线部分"刚好覆盖整个路径
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ← 200px实线（整个路径）
+                                ← 200px间隔（看不见）
+```
+
+**为什么要这样做？**
+
+这样整条路径就变成了"一条长虚线"，我们可以通过偏移来控制它显示多少。
+
+---
+
+#### 第四步：stroke-dashoffset 控制虚线的"起始位置"
+
+`stroke-dashoffset` 决定了虚线从哪里开始"画"：
+
+```tsx
+// 继续上面的例子
+<path
+  strokeDasharray="200 200"
+  strokeDashoffset="0"     // 偏移0，从起点开始
+/>
+```
+
+**显示效果（offset = 0）：** 完全显示
+
+```
+起点 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 终点
+      ↑ 实线部分（200px）
+```
+
+```tsx
+<path
+  strokeDasharray="200 200"
+  strokeDashoffset="100"   // 偏移100px
+/>
+```
+
+**显示效果（offset = 100）：** 显示一半
+
+```
+起点 ━━━━━━━━━━━━━━━      ━━━━━━━━━━━━━━━ 终点
+      ↑ 间隔偏移了100px        ↑ 实线被推到后面
+      只能看到后半100px
+```
+
+```tsx
+<path
+  strokeDasharray="200 200"
+  strokeDashoffset="200"   // 偏移200px
+/>
+```
+
+**显示效果（offset = 200）：** 完全隐藏
+
+```
+起点                               终点
+      ↑ 间隔偏移了200px
+      整个实线部分被推到看不见的地方
+```
+
+---
+
+#### 第五步：动画改变 offset，产生"绘制"效果
+
+现在我们用 `<animate>` 标签让 `stroke-dashoffset` 从 `200` 变到 `0`：
+
+```tsx
+<svg width="200" height="100">
+  <path
+    d="M 20 50 Q 100 10 180 50"
+    stroke="#3b82f6"
+    strokeWidth="3"
+    fill="none"
+    strokeDasharray="200 200"     // 整条路径变成一条虚线
+  >
+    <animate
+      attributeName="stroke-dashoffset"  // 动画属性：虚线偏移量
+      from="200"                          // 从200（完全隐藏）
+      to="0"                              // 变到0（完全显示）
+      dur="2s"                            // 持续2秒
+      fill="freeze"                       // 保持最终状态
+    />
+  </path>
+</svg>
+```
+
+**动画过程：**
+
+```
+时间 0s:   offset=200   →   完全隐藏
+时间 0.5s: offset=150   →   显示25%
+时间 1s:   offset=100   →   显示50%
+时间 1.5s: offset=50    →   显示75%
+时间 2s:   offset=0     →   完全显示
+```
+
+**视觉效果：** 路径从起点到终点，逐渐"画"出来！
+
+---
+
+## genAnimatePathStroke 函数做什么？
+
+这个函数就是自动生成上面的 `<path>` + `<animate>` 组合：
+
+**你写的代码：**
+
+```tsx
+{genAnimatePathStroke({
+  pathLength: 200,        // 路径长度
+  timeline: [
+    { durationSeconds: 2, toValue: 0 }  // 2秒内画到完全显示
+  ],
+  element: (
+    <path
+      d="M 20 50 Q 100 10 180 50"
+      stroke="#3b82f6"
+      strokeWidth="3"
+      fill="none"
+    />
+  )
+})}
+```
+
+**函数生成的代码：**
+
+```tsx
+<>
+  <path
+    d="M 20 50 Q 100 10 180 50"
+    stroke="#3b82f6"
+    strokeWidth="3"
+    fill="none"
+    strokeDasharray="200 200"     // ← 函数自动添加
+  >
+    <animate
+      attributeName="stroke-dashoffset"
+      from="200"                  // ← 初始值（默认 pathLength）
+      to="0"                      // ← 来自 timeline 的 toValue
+      dur="2s"                    // ← 来自 timeline 的 durationSeconds
+      fill="freeze"               // ← 函数自动添加
+    />
+  </path>
+</>
+```
+
+**函数的作用：**
+1. 给你的 `<path>` 添加 `stroke-dasharray="pathLength pathLength"`
+2. 在 `<path>` 内部插入 `<animate>` 标签
+3. 配置动画的 `from`、`to`、`dur` 等参数
+
+---
+
+## 与 path 元素的配合
+
+### path 元素的必需属性
+
+要让动画正常工作，`<path>` 元素需要这些属性：
+
+```tsx
+<path
+  d="..."                    // ✓ 必需：路径形状数据
+  stroke="#3b82f6"          // ✓ 必需：描边颜色
+  strokeWidth="3"           // ✓ 必需：描边粗细
+  fill="none"               // ✓ 推荐：不填充（只显示线条）
+  strokeLinecap="round"     // 可选：线条端点圆角
+  strokeLinejoin="round"    // 可选：线条连接处圆角
+/>
+```
+
+**常见错误：**
+
+```tsx
+// ❌ 错误：没有设置 stroke
+<path d="..." fill="none" />
+// 结果：看不到任何东西，因为没有描边
+
+// ❌ 错误：fill 不是 none
+<path d="..." stroke="#3b82f6" fill="red" />
+// 结果：填充的红色会遮挡描边动画
+
+// ✅ 正确
+<path d="..." stroke="#3b82f6" strokeWidth="3" fill="none" />
+```
+
+---
+
+### 支持的路径元素
+
+`genAnimatePathStroke` 不仅支持 `<path>`，还支持所有描边类元素：
+
+| 元素 | 示例 | 适用场景 |
+|------|------|----------|
+| `<path>` | `<path d="M..." />` | 任意形状路径 |
+| `<line>` | `<line x1="0" y1="0" x2="100" y2="100" />` | 直线 |
+| `<polyline>` | `<polyline points="0,0 50,50 100,0" />` | 折线 |
+| `<rect>` | `<rect width="100" height="50" />` | 矩形边框 |
+| `<circle>` | `<circle r="50" />` | 圆形边框 |
+| `<ellipse>` | `<ellipse rx="50" ry="30" />` | 椭圆边框 |
+
+**示例：使用 line 元素**
+
+```tsx
+{genAnimatePathStroke({
+  pathLength: 300,
+  timeline: [
+    { durationSeconds: 1.5, toValue: 0 }
+  ],
+  element: (
+    <line
+      x1="50"
+      y1="50"
+      x2="350"
+      y2="50"
+      stroke="#10b981"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+  )
+})}
+```
+
+**示例：使用 rect 元素**
+
+```tsx
+{genAnimatePathStroke({
+  pathLength: 400,  // 周长：100+100+100+100
+  timeline: [
+    { durationSeconds: 2, toValue: 0 }
+  ],
+  element: (
+    <rect
+      x="50"
+      y="50"
+      width="100"
+      height="100"
+      stroke="#f59e0b"
+      strokeWidth="3"
+      fill="none"
+    />
+  )
+})}
+```
+
+---
+
+## 基本示例：自动绘制五角星
+
+最基础的绘制动画，自动播放并保持最终状态。
+
+**代码示例：**
+
+```tsx
+import { genAnimatePathStroke } from "@svg-anim/pathStroke";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  {genAnimatePathStroke({
+    pathLength: 600,
+    timeline: [
+      { durationSeconds: 2, toValue: 0 }
+    ],
+    element: (
+      <path
+        d="M 100 20 L 123 75 L 182 78 L 138 115 L 151 175 L 100 140 L 49 175 L 62 115 L 18 78 L 77 75 Z"
+        stroke="#3b82f6"
+        strokeWidth="3"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    )
+  })}
+</svg>
+```
+
+**效果预览：**
+
+<BasicDraw />
+
+**说明：**
+- `pathLength: 600` - 五角星路径长度
+- `timeline: [{ durationSeconds: 2, toValue: 0 }]` - 2秒内从隐藏画到完全显示
+- 五角星在2秒内从无到有绘制完成
+- 绘制完成后保持显示（`freeze: true` 默认）
+- 只播放一次（`loopCount: 1` 默认）
+
+---
+
+## 总结：核心要点
+
+1. **函数操作的是 `stroke-dasharray` 和 `stroke-dashoffset` 两个属性**
+
+2. **`stroke-dasharray="pathLength pathLength"`** 把整条路径变成"一条虚线"
+
+3. **`stroke-dashoffset`** 控制虚线的偏移位置：
+   - `offset = 0` → 完全显示
+   - `offset = pathLength` → 完全隐藏
+
+4. **动画改变 offset** 从 `pathLength` 到 `0`，产生"绘制"效果
+
+5. **path 元素必须设置** `stroke`、`strokeWidth`、`fill="none"`

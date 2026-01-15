@@ -1,0 +1,126 @@
+export const title = "单向移动"
+
+import { HorizontalRight, VerticalDown, HorizontalLeft, VerticalUp } from "./examples"
+
+# {title}
+
+单向移动是最常见的位移动画类型，包括向左、向右、向上、向下四个方向。
+
+---
+
+## 水平向右移动
+
+从当前位置向右移动指定距离。
+
+```tsx
+// 相对移动模式（isRelativeMove: true，默认）
+<svg width="300" height="100" viewBox="0 0 300 100">
+  <circle cx="50" cy="50" r="20" fill="blue">
+    {genAnimateTranslate({
+      initValue: { x: 0, y: 0 },
+      timeline: [
+        { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+      ]
+    })}
+  </circle>
+</svg>
+```
+
+**效果预览：**
+
+<HorizontalRight />
+
+**说明**：圆形从左侧 (50, 50) 向右移动 200px
+
+---
+
+## 垂直向下移动
+
+从当前位置向下移动指定距离。
+
+```tsx
+// 相对移动模式（isRelativeMove: true，默认）
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <rect x="80" y="20" width="40" height="40" fill="green">
+    {genAnimateTranslate({
+      initValue: { x: 0, y: 0 },
+      timeline: [
+        { toValue: { x: 0, y: 120 }, durationSeconds: 2 }
+      ]
+    })}
+  </rect>
+</svg>
+```
+
+**效果预览：**
+
+<VerticalDown />
+
+**说明**：绿色方块从顶部向下移动 120px
+
+---
+
+## 水平向左移动
+
+从当前位置向左移动指定距离。
+
+```tsx
+// 相对移动模式（isRelativeMove: true，默认）
+<svg width="300" height="100" viewBox="0 0 300 100">
+  <circle cx="250" cy="50" r="20" fill="purple">
+    {genAnimateTranslate({
+      initValue: { x: 0, y: 0 },
+      timeline: [
+        { toValue: { x: -150, y: 0 }, durationSeconds: 2 }
+      ]
+    })}
+  </circle>
+</svg>
+```
+
+**效果预览：**
+
+<HorizontalLeft />
+
+**说明**：紫色圆形从右侧向左移动 150px
+
+---
+
+## 向上移动
+
+从当前位置向上移动指定距离。
+
+```tsx
+// 相对移动模式（isRelativeMove: true，默认）
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <rect x="80" y="140" width="40" height="40" fill="orange">
+    {genAnimateTranslate({
+      initValue: { x: 0, y: 0 },
+      timeline: [
+        { toValue: { x: 0, y: -100 }, durationSeconds: 2 }
+      ]
+    })}
+  </rect>
+</svg>
+```
+
+**效果预览：**
+
+<VerticalUp />
+
+**说明**：橙色方块从底部向上移动 100px
+
+---
+
+## 总结
+
+单向移动是最简单的位移类型，只需一个阶段即可完成，适合单次移动的场景。
+
+---
+
+## 下一步
+
+- **往返运动** - 左右往返、上下往返运动
+- **多段路径** - 矩形路径、对角线往返、L形路径
+- **速度对比与特殊效果** - 速度对比、缓动效果
+- **动画时序控制** - 剩余的动画控制功能

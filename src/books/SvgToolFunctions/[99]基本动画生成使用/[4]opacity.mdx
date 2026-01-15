@@ -1,0 +1,396 @@
+export const title = "透明度动画 opacity"
+export const icon = "Eye"
+
+# {title}
+
+`genAnimateOpacity` 是 SVG 透明度动画的生成工具，可以创建 `<animate attributeName="opacity">` 元素。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimateOpacity } from '@svg-anim/opacity';
+
+genAnimateOpacity({
+  initOpacity?: number,                      // 默认 1：初始不透明度（0-1）
+  timeline: OpacityTimelineSegment[],        // 必填：时间线段数组
+  delay?: number,                            // 默认 0：初始延迟（秒）
+  beginType?: SvgBeginEventType,                // 默认 undefined：动画开始事件类型
+  calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 自动：动画计算模式
+  freeze?: boolean,                          // 默认 false：是否保持最终状态
+  loopCount?: number,                        // 默认 1：循环次数（0 = 无限）
+})
+```
+
+### OpacityTimelineSegment 类型
+
+```tsx
+interface OpacityTimelineSegment {
+  toOpacity?: number,                        // 默认上一段透明度：目标不透明度（0-1）
+  durationSeconds: number,                   // 必填：该段持续时间（秒）
+  keySplines?: string,                       // 默认 "0.42 0 0.58 1"：贝塞尔缓动参数
+}
+```
+
+---
+
+## 不透明度值说明
+
+| 值 | 效果 | 说明 |
+|------|------|------|
+| `0` | 完全透明 | 元素不可见 |
+| `0.3` | 半透明 | 元素略微可见 |
+| `0.5` | 半透明 | 元素半可见 |
+| `0.7` | 微透明 | 元素大部分可见 |
+| `1` | 完全不透明 | 元素完全可见（默认） |
+
+---
+
+## 使用示例
+
+### 简单的淡入淡出
+
+```tsx
+<svg width="200" height="200">
+  <circle cx="100" cy="100" r="30" fill="blue">
+    {genAnimateOpacity({
+      initOpacity: 1,
+      timeline: [
+        { toOpacity: 0, durationSeconds: 1 },  // 淡出
+        { toOpacity: 1, durationSeconds: 1 }    // 淡入
+      ]
+    })}
+  </circle>
+</svg>
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0; 1"
+  keyTimes="0; 0.5; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+/>
+```
+
+**效果**：圆形从完全不透明逐渐消失，然后逐渐显现
+
+---
+
+### 淡入效果（从无到有）
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 0,
+  timeline: [
+    { toOpacity: 1, durationSeconds: 1 }
+  ],
+  freeze: true  // 保持最终状态
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="0; 1"
+  keyTimes="0; 1"
+  keySplines="0.42 0 0.58 1"
+  dur="1s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="freeze"
+/>
+```
+
+---
+
+### 淡出效果（从有到无）
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 1,
+  timeline: [
+    { toOpacity: 0, durationSeconds: 1 }
+  ],
+  freeze: true  // 保持最终状态
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0"
+  keyTimes="0; 1"
+  keySplines="0.42 0 0.58 1"
+  dur="1s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="freeze"
+/>
+```
+
+---
+
+### 闪烁效果（无限循环）
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 1,
+  timeline: [
+    { toOpacity: 0.2, durationSeconds: 0.5 },
+    { toOpacity: 1, durationSeconds: 0.5 }
+  ],
+  loopCount: 0  // 无限循环
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0.2; 1"
+  keyTimes="0; 0.5; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="1s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+/>
+```
+
+---
+
+### 呼吸闪烁（缓慢闪烁）
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 0.3,
+  timeline: [
+    { toOpacity: 1, durationSeconds: 2 },
+    { toOpacity: 0.3, durationSeconds: 2 }
+  ],
+  loopCount: 0
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="0.3; 1; 0.3"
+  keyTimes="0; 0.5; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="4s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+/>
+```
+
+---
+
+### 快速闪烁（报警效果）
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 1,
+  timeline: [
+    { toOpacity: 0, durationSeconds: 0.1 },
+    { toOpacity: 1, durationSeconds: 0.1 },
+    { toOpacity: 0, durationSeconds: 0.1 },
+    { toOpacity: 1, durationSeconds: 0.7 }
+  ],
+  loopCount: 0
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0; 1; 0; 1"
+  keyTimes="0; 0.1; 0.2; 0.3; 1"
+  keySplines="0 0 1 1; 0 0 1 1; 0 0 1 1; 0.42 0 0.58 1"
+  dur="1s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+/>
+```
+
+---
+
+### 渐变消失（缓慢淡出）
+
+```tsx
+import { getEaseBezier } from '@pub-utils/getBezier';
+
+{genAnimateOpacity({
+  initOpacity: 1,
+  timeline: [
+    {
+      toOpacity: 0,
+      keySplines: getEaseBezier({ isIn: true, isOut: false }),  // ease-out
+      durationSeconds: 2
+    }
+  ],
+  freeze: true
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0"
+  keyTimes="0; 1"
+  keySplines="0.42 0 1 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="freeze"
+/>
+```
+
+---
+
+### 点击淡出
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 1,
+  timeline: [
+    { toOpacity: 0, durationSeconds: 0.3 }
+  ],
+  beginType: 'click',  // 点击触发
+  freeze: true             // 保持淡出状态
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0"
+  keyTimes="0; 1"
+  keySplines="0.42 0 0.58 1"
+  dur="0.3s"
+  calcMode="spline"
+  begin="click"
+  repeatCount="1"
+  fill="freeze"
+/>
+```
+
+---
+
+### 多段透明度变化
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 1,
+  timeline: [
+    { toOpacity: 0.5, durationSeconds: 1 },
+    { toOpacity: 0.2, durationSeconds: 1 },
+    { toOpacity: 0.8, durationSeconds: 1 },
+    { toOpacity: 1, durationSeconds: 1 }
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0.5; 0.2; 0.8; 1"
+  keyTimes="0; 0.25; 0.5; 0.75; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="4s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+/>
+```
+
+---
+
+## 注意事项
+
+### freeze 属性
+
+- **`freeze: false`**（默认）：动画结束后回到原始状态
+- **`freeze: true`**：动画结束后停留在最后一帧
+
+### 不透明度范围
+
+- 不透明度值必须在 `0` 到 `1` 之间
+- 超出范围的值会被裁剪（如 `1.5` 变为 `1`，`-0.5` 变为 `0`）
+
+### 性能考虑
+
+- 透明度动画通常性能较好，适合频繁使用
+- 无限循环的闪烁效果可能会影响用户体验，谨慎使用
+
+---
+
+## 完整示例：闪烁的星星
+
+```tsx
+import { genAnimateOpacity } from '@svg-anim/opacity';
+
+const TwinklingStar = () => {
+  return (
+    <svg width="100" height="100" viewBox="0 0 100 100">
+      {/* 星星形状 */}
+      <path
+        d="M50 10 L60 40 L90 50 L60 60 L50 90 L40 60 L10 50 L40 40 Z"
+        fill="#FFD700"
+      >
+        {/* 闪烁动画 */}
+        {genAnimateOpacity({
+          initOpacity: 1,
+          timeline: [
+            { toOpacity: 0.3, durationSeconds: 0.8 },
+            { toOpacity: 1, durationSeconds: 0.8 },
+            { toOpacity: 0.5, durationSeconds: 0.6 },
+            { toOpacity: 1, durationSeconds: 0.6 }
+          ],
+          loopCount: 0
+        })}
+      </path>
+    </svg>
+  );
+};
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0.3; 1; 0.5; 1"
+  keyTimes="0; 0.286; 0.571; 0.857; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="2.8s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+/>
+```

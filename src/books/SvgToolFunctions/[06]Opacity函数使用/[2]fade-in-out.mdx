@@ -1,0 +1,166 @@
+export const title = "淡入与淡出"
+
+import { FadeIn, FadeOut } from "./examples"
+
+# {title}
+
+淡入（Fade In）和淡出（Fade Out）是最基础的透明度动画效果。本文介绍如何使用 `genAnimateOpacity` 创建这两种效果。
+
+---
+
+## 淡入（Fade In）
+
+淡入是指元素从透明逐渐变为不透明。
+
+### 基本用法
+
+**代码示例：**
+
+```tsx
+import { genAnimateOpacity } from "@svg-anim/opacity";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="40" fill="blue">
+    {genAnimateOpacity({
+      initOpacity: 0,        // 从完全透明开始
+      timeline: [
+        { toValue: 1, durationSeconds: 2 }  // 2秒淡入到不透明
+      ],
+      freeze: true           // 保持最终状态
+    })}
+  </circle>
+</svg>
+```
+
+**效果预览：**
+
+<FadeIn />
+
+**说明**：圆形从完全透明淡入到完全不透明
+
+### 使用预设
+
+```tsx
+import { opacityPresets } from '@svg-anim/opacity';
+
+// 淡入（默认1秒）
+opacityPresets.fadeIn()
+
+// 自定义时长（2秒）
+opacityPresets.fadeIn(2)
+```
+
+---
+
+## 淡出（Fade Out）
+
+淡出是指元素从不透明逐渐变为透明。
+
+### 基本用法
+
+**代码示例：**
+
+```tsx
+import { genAnimateOpacity } from "@svg-anim/opacity";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="40" fill="blue">
+    {genAnimateOpacity({
+      initOpacity: 1,        // 从不透明开始
+      timeline: [
+        { toValue: 0, durationSeconds: 2 }  // 2秒淡出到透明
+      ],
+      freeze: true           // 保持最终状态
+    })}
+  </circle>
+</svg>
+```
+
+**效果预览：**
+
+<FadeOut />
+
+**说明**：圆形从完全不透明淡出到完全透明
+
+### 使用预设
+
+```tsx
+import { opacityPresets } from '@svg-anim/opacity';
+
+// 淡出（默认1秒）
+opacityPresets.fadeOut()
+
+// 自定义时长（2秒）
+opacityPresets.fadeOut(2)
+```
+
+---
+
+## freeze 参数说明
+
+| 值 | 效果 |
+|------|------|
+| `true` | 动画结束后保持最终状态 |
+| `false` | 动画结束后恢复初始状态 |
+
+**淡入动画通常使用 `freeze: true`**，让元素保持可见状态。
+
+---
+
+## 常见时长
+
+| 效果 | 推荐时长 |
+|------|----------|
+| 快速 | 0.3 - 0.5 秒 |
+| 正常 | 1 - 1.5 秒 |
+| 缓慢 | 2 - 3 秒 |
+
+---
+
+## 实用技巧
+
+### 渐显效果（延迟后淡入）
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 0,
+  timeline: [
+    { toValue: 1, durationSeconds: 1 }
+  ],
+  delay: 0.5,       // 延迟0.5秒后开始
+  freeze: true
+})}
+```
+
+### 线性淡入（匀速）
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 0,
+  timeline: [
+    {
+      toValue: 1,
+      durationSeconds: 2,
+      keySplines: '0 0 1 1'  // 线性缓动
+    }
+  ],
+  freeze: true
+})}
+```
+
+### 快速淡入淡出
+
+```tsx
+// 快速淡入（0.3秒）
+opacityPresets.quickFadeIn()
+
+// 快速淡出（0.3秒）
+opacityPresets.quickFadeOut()
+```
+
+---
+
+## 下一步
+
+- **呼吸与闪烁** - 循环透明度效果
+- **时序控制** - 延迟、循环、冻结详解

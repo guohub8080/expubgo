@@ -1,0 +1,278 @@
+export const title = "高级用法"
+
+import { ClickDraw } from "./examples"
+
+# {title}
+
+本章节介绍 `genAnimatePathStroke` 的高级用法，包括点击触发、缓动效果、支持的路径元素等。
+
+---
+
+## 点击触发（beginType）
+
+用户点击后动画才开始，适合交互式场景。
+
+**代码示例：**
+
+```tsx
+import { genAnimatePathStroke } from "@svg-anim/pathStroke";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  {genAnimatePathStroke({
+    pathLength: 400,
+    beginType: 'click',
+    restart: 'never',
+    timeline: [
+      { durationSeconds: 0.001, toValue: 400 },  // 保持隐藏
+      { durationSeconds: 1.5, toValue: 0 }          // 点击后绘制
+    ],
+    element: (
+      <path
+        d="M 100 40 C 100 40, 60 60, 60 90 C 60 130, 100 160, 100 160 C 100 160, 140 130, 140 90 C 140 60, 100 40, 100 40"
+        stroke="#ef4444"
+        strokeWidth="3"
+        fill="none"
+        strokeLinecap="round"
+      />
+    )
+  })}
+  <text x="100" y="190" fontSize="12" fill="#9ca3af" textAnchor="middle">
+    点击心形开始绘制
+  </text>
+</svg>
+```
+
+**效果预览：**
+
+<ClickDraw />
+
+**说明：**
+- `beginType: 'click'` - 点击触发
+- `restart: 'never'` - 避免重复点击重新开始
+- 第一段极短时间（0.001秒）保持隐藏状态
+- 第二段（1.5秒）才真正绘制
+
+---
+
+## 点击触发 + 延迟
+
+点击后等待指定时间再开始。
+
+**代码示例：**
+
+```tsx
+{genAnimatePathStroke({
+  pathLength: 500,
+  beginType: 'click',
+  restart: 'never',
+  delay: 0.5,      // 点击后延迟0.5秒
+  timeline: [
+    { durationSeconds: 0.5, toValue: 500 },
+    { durationSeconds: 2, toValue: 0 }
+  ],
+  element: (
+    <path d="..." stroke="blue" strokeWidth="2" fill="none" />
+  )
+})}
+```
+
+---
+
+## 缓动效果（keySplines）
+
+使用贝塞尔曲线控制动画速度变化。
+
+**常用缓动参数：**
+
+| 名称 | keySplines | 效果 |
+|------|------------|------|
+| linear | `0 0 1 1` | 匀速（默认）|
+| ease | `0.25 0.1 0.25 1` | 慢-快-慢 |
+| ease-in | `0.42 0 1 1` | 慢启动 |
+| ease-out | `0 0 0.58 1` | 慢结束 |
+| ease-in-out | `0.42 0 0.58 1` | 慢启动和结束 |
+
+**代码示例：**
+
+```tsx
+{genAnimatePathStroke({
+  pathLength: 500,
+  calcMode: 'spline',  // 使用缓动时必须设置
+  timeline: [
+    {
+      durationSeconds: 2,
+      toValue: 0,
+      keySplines: "0.42 0 0.58 1"  // ease-in-out
+    }
+  ],
+  element: (
+    <path d="..." stroke="currentColor" strokeWidth="2" fill="none" />
+  )
+})}
+```
+
+**注意：** 使用 `keySplines` 时必须设置 `calcMode='spline'`
+
+---
+
+## 计算模式（calcMode）
+
+| 模式 | 说明 |
+|------|------|
+| `'linear'` | 时间上均匀（默认）|
+| `'spline'` | 使用贝塞尔缓动（需要 keySplines）|
+| `'paced'` | 等速运动 |
+| `'discrete'` | 跳跃，无过渡 |
+
+---
+
+## 支持的路径元素
+
+`genAnimatePathStroke` 支持所有 SVG 路径类元素：
+
+| 元素 | 说明 | pathLength 估算 |
+|------|------|-------------------|
+| `<path>` | 任意路径（推荐）| 根据复杂度 |
+| `<line>` | 直线 | 等于直线长度 |
+| `<polyline>` | 折线 | 各段长度之和 |
+| `<polygon>` | 多边形 | 各边长度之和 |
+| `<circle>` / `<ellipse>` | 圆形/椭圆 | 2πr 或 周长公式 |
+| `<rect>` | 矩形 | 2×(宽+高) |
+
+**示例：直线绘制**
+
+```tsx
+<svg width="300" height="100" viewBox="0 0 300 100">
+  {genAnimatePathStroke({
+    pathLength: 300,
+    timeline: [{ durationSeconds: 1.5, toValue: 0 }],
+    element: (
+      <line x1="20" y1="50" x2="280" y2="50" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
+    )
+  })}
+</svg>
+```
+
+**示例：圆圈绘制**
+
+```tsx
+<svg width="200" height="200" viewBox="0 0 200 200">
+  {genAnimatePathStroke({
+    pathLength: 471,
+    timeline: [{ durationSeconds: 2, toValue: 0 }],
+    element: (
+      <circle cx="100" cy="100" r="75" stroke="#8b5cf6" strokeWidth="3" fill="none" />
+    )
+  })}
+</svg>
+```
+
+---
+
+## 常见应用场景
+
+### 场景1：绘制图标
+
+图标路径通常较简单，pathLength 设为 300-500：
+
+```tsx
+{genAnimatePathStroke({
+  pathLength: 400,
+  timeline: [{ durationSeconds: 1, toValue: 0 }],
+  element: (
+    <path d={iconPath} stroke="currentColor" strokeWidth="2" fill="none" />
+  )
+})}
+```
+
+---
+
+### 场景2：手写效果
+
+使用缓动效果模拟手写节奏：
+
+```tsx
+{genAnimatePathStroke({
+  pathLength: 600,
+  calcMode: 'spline',
+  timeline: [
+    {
+      durationSeconds: 1.5,
+      toValue: 0,
+      keySplines: "0.25 0.1 0.25 1"  // ease
+    }
+  ],
+  element: (
+    <path d={handwritingPath} stroke="#2563eb" strokeWidth="2" fill="none" strokeLinecap="round" />
+  )
+})}
+```
+
+---
+
+### 场景3：箭头引导线
+
+绘制箭头引导用户视线：
+
+```tsx
+<svg width="400" height="100" viewBox="0 0 400 100">
+  {genAnimatePathStroke({
+    pathLength: 350,
+    delay: 1,
+    timeline: [{ durationSeconds: 1, toValue: 0 }],
+    element: (
+      <g>
+        <path d="M 50 50 L 300 50" stroke="#f59e0b" strokeWidth="2" fill="none" />
+        <path d="M 290 40 L 300 50 L 290 60" stroke="#f59e0b" strokeWidth="2" fill="none" />
+      </g>
+    )
+  })}
+</svg>
+```
+
+---
+
+## 参数速查表
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `pathLength` | number | - | 路径总长度（必填）|
+| `initOffset` | number | pathLength | 初始偏移量 |
+| `timeline` | array | - | 时间线配置（必填）|
+| `delay` | number | 0 | 初始延迟（秒）|
+| `beginType` | SvgBeginEventType | false | 是否点击触发 |
+| `calcMode` | string | 'linear' | 计算模式 |
+| `freeze` | boolean | true | 是否保持最终状态 |
+| `loopCount` | number | 1 | 循环次数（0=无限）|
+| `restart` | string | 'always' | 重启模式 |
+
+---
+
+## 注意事项
+
+⚠️ **pathLength 必须足够大**
+
+确保 `pathLength` 大于等于路径的真实长度，否则会"画不完"。
+
+⚠️ **stroke-linecap 和 stroke-linejoin**
+
+建议设置这两个属性，让路径端点和连接处更美观：
+- `strokeLinecap="round"` - 圆形端点
+- `strokeLinejoin="round"` - 圆形连接
+
+⚠️ **点击触发的 restart 参数**
+
+点击触发时推荐设置 `restart: 'never'`，避免重复点击重新开始动画。
+
+⚠️ **fill 属性**
+
+绘制动画时通常设置 `fill="none"`，否则填充区域会一直显示。如果需要填充，可以在动画结束后通过另一个动画添加。
+
+⚠️ **calcMode 与 keySplines**
+
+- 使用 `keySplines` 时必须设置 `calcMode='spline'`
+- 默认 `calcMode='linear'`，忽略缓动参数
+
+⚠️ **复杂路径的 pathLength**
+
+对于复杂路径（如文字），建议使用 Adobe Illustrator 或 Figma 获取精确长度，避免估算偏差。

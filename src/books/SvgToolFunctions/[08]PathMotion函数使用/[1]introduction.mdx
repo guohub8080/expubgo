@@ -1,0 +1,145 @@
+export const title = "函数介绍与基础示例"
+
+import { BasicPaperPlane, SlidingBox } from "./examples"
+
+# {title}
+
+`genAnimatePathMotion` 是 SVG 路径运动动画的核心生成工具。它可以让元素沿着任意 SVG 路径移动，并自动控制旋转方向。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimatePathMotion } from '@svg-anim/pathMotion';
+
+genAnimatePathMotion({
+  // ===== 必填参数 =====
+  path: string,                              // 运动路径（SVG 路径语法，必填）
+
+  // ===== 可选参数 =====
+  durationSeconds?: number,                   // 动画时长（秒），默认 6
+  rotate?: 'auto' | 'auto-reverse' | number, // 旋转模式，默认 'auto'
+  delay?: number,                            // 初始延迟（秒），默认 0
+  beginType?: SvgBeginEventType,                // 默认 false：是否点击触发
+  calcMode?: 'spline' | 'linear' | 'paced',  // 动画计算模式，默认 'linear'
+  keySplines?: string,                       // 缓动参数（可选）
+  freeze?: boolean,                          // 是否保持最终状态，默认 false
+  loopCount?: number,                        // 循环次数（0 = 无限），默认 0
+})
+```
+
+---
+
+## 核心概念
+
+### 运动路径（path）
+
+必填参数，使用 SVG 路径语法定义运动轨迹。
+
+**常用路径命令：**
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `M x y` | 移动到（起点） | `M 100 100` |
+| `L x y` | 直线到 | `L 200 100` |
+| `Q cx cy x y` | 二次贝塞尔曲线 | `Q 150 50 200 100` |
+| `C cx1 cy1 cx2 cy2 x y` | 三次贝塞尔曲线 | `C 100 50 200 50 300 100` |
+
+---
+
+**💡 路径绘制工具**
+
+手写复杂路径很困难，推荐使用专业矢量绘图软件：
+
+- **Adobe Illustrator** - 专业矢量绘图工具
+- **Figma** - 在线设计工具，支持 SVG 导出
+- **Inkscape** - 免费开源的矢量编辑器
+- **Sketch** - macOS 设计工具
+
+**操作步骤：**
+
+1. 在软件中绘制路径
+2. 导出为 SVG 格式
+3. 打开 SVG 文件，复制 `<path>` 标签的 `d` 属性值
+4. 粘贴到 `genAnimatePathMotion` 的 `path` 参数中
+
+### 旋转模式（rotate）
+
+控制元素沿路径运动时的旋转行为，支持三种模式：
+
+| 模式 | 说明 |
+|------|------|
+| `'auto'` | 自动旋转，朝向运动方向（默认）|
+| `'auto-reverse'` | 自动反向旋转 |
+| `0` 或数字 | 固定角度，不旋转 |
+
+---
+
+## 基本用法
+
+### 示例1：纸飞机沿8字形路径飞行
+
+**代码示例：**
+
+```tsx
+import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+
+<svg width="400" height="200" viewBox="0 0 400 200">
+  <g>
+    {/* 纸飞机图形 */}
+    <g transform="scale(0.8)">
+      <path d="M 60 0 L -40 -5 L -50 -35 Z" fill="#94a3b8" />
+      <path d="M 55 0 L -25 5 L -15 28 Z" fill="#334155" />
+      <path d="M 60 0 L -40 -5 L -55 20 Z" fill="#bfdbfe" />
+      <path d="M 60 0 L -40 -5 L -30 -2 Z" fill="#e2e8f0" />
+    </g>
+    {/* 8字形往返运动，自动旋转 */}
+    {genAnimatePathMotion({
+      path: "M 50 100 C 120 40 280 160 350 100 C 280 40 120 160 50 100",
+      durationSeconds: 6,
+      rotate: 'auto'
+    })}
+  </g>
+</svg>
+```
+
+**效果预览：**
+
+<BasicPaperPlane />
+
+**说明**：纸飞机沿着8字形路径飞行，自动旋转朝向运动方向
+
+---
+
+### 示例2：滑动的箭头（不旋转）
+
+**代码示例：**
+
+```tsx
+import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+
+<svg width="400" height="150" viewBox="0 0 400 150">
+  <g>
+    {/* 箭头图形 */}
+    <g transform="scale(1.2)">
+      <circle r="12" fill="#3b82f6" />
+      <path d="M -4 -4 L 4 0 L -4 4" stroke="white" strokeWidth="2.5" fill="none" />
+    </g>
+    {/* 沿曲线滑动，不旋转，保持最终状态 */}
+    {genAnimatePathMotion({
+      path: "M 30 75 Q 200 20 370 75",
+      durationSeconds: 3,
+      rotate: 0,
+      freeze: true,
+      loopCount: 1
+    })}
+  </g>
+</svg>
+```
+
+**效果预览：**
+
+<SlidingBox />
+
+**说明**：蓝色箭头沿曲线滑动，不旋转，最终停在终点

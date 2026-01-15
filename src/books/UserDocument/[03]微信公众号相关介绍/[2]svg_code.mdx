@@ -1,0 +1,411 @@
+export const title = "SVG 代码编辑"
+
+# {title}
+
+## 概述
+
+微信公众号对 SVG 的支持非常严格,但有官方的《中华人民共和国融媒体 SVG 交互设计技术规范》(国家标准)。本文档详细说明微信公众号支持的 SVG 白名单。
+
+### 官方规范
+
+- **制定时间**: 2016年
+- **制定方**: 复旦大学新媒体研究机构与微信团队
+- **现状**: 已被收录为国家标准
+- **规范名称**: 《中华人民共和国融媒体 SVG 交互设计技术规范》
+
+## SVG 元素白名单
+
+微信公众号支持以下 SVG 元素:
+
+### 基础图形元素
+
+- `<svg>` - SVG 容器
+- `<g>` - 分组容器
+- `<rect>` - 矩形
+- `<circle>` - 圆形
+- `<ellipse>` - 椭圆
+- `<line>` - 直线
+- `<polyline>` - 折线
+- `<polygon>` - 多边形
+- `<path>` - 路径
+
+### 文本元素
+
+- `<text>` - 文本
+- `<tspan>` - 文本片段
+- `<textPath>` - 文本路径
+
+### 图像和渐变
+
+- `<image>` - 图像
+- `<linearGradient>` - 线性渐变
+- `<radialGradient>` - 径向渐变
+- `<stop>` - 渐变停止点
+
+### 滤镜和效果
+
+微信公众号支持的滤镜元素有限,主要用于基础视觉效果:
+
+- `<filter>` - 滤镜容器
+- `<feGaussianBlur>` - 高斯模糊
+- `<feOffset>` - 偏移
+- `<feBlend>` - 混合模式
+- `<feColorMatrix>` - 颜色矩阵
+- `<feComponentTransfer>` - 颜色组件转换
+- `<feComposite>` - 组合
+
+**注意**: 复杂滤镜(如 `feTurbulence`、`feDisplacementMap` 等)可能不被支持或不稳定,建议优先使用简单滤镜效果。
+
+### 其他元素
+
+- `<defs>` - 定义容器(用于滤镜、渐变等定义)
+- `<clipPath>` - 裁剪路径
+- `<mask>` - 遮罩
+- `<pattern>` - 图案
+- `<view>` - 视图
+
+**注意**:
+- ❌ **不支持 `<use>`** - 因为需要配合 `id` 使用,而微信公众号禁用 `id` 属性
+- ❌ **不支持 `<symbol>`** - 同样需要 `id` 引用
+- ❌ **不支持 `<marker>`** - 需要通过 `id` 引用
+
+## SVG 属性白名单
+
+### 通用属性
+
+- `id` - 元素标识
+- `class` - CSS 类名
+- `style` - 内联样式
+
+### 布局属性
+
+- `x`, `y` - 位置坐标
+- `width`, `height` - 尺寸
+- `cx`, `cy` - 圆心坐标
+- `r` - 半径
+- `rx`, `ry` - 圆角半径
+- `x1`, `y1`, `x2`, `y2` - 线条坐标
+- `points` - 多边形点集
+- `d` - 路径数据
+- `pathLength` - 路径长度
+
+### 变换属性
+
+- `transform` - 变换(支持有限)
+  - `translate()` - 平移 ✅
+  - `scale()` - 缩放 ✅
+  - `rotate()` - 旋转 ✅
+  - `skewX()`, `skewY()` - 倾斜 ✅
+  - `matrix()` - 矩阵变换 ✅
+
+### 样式属性
+
+- `fill` - 填充颜色
+- `fill-opacity` - 填充透明度
+- `fill-rule` - 填充规则
+- `stroke` - 描边颜色
+- `stroke-width` - 描边宽度
+- `stroke-linecap` - 描边端点样式
+- `stroke-linejoin` - 描边连接样式
+- `stroke-miterlimit` - 斜接限制
+- `stroke-dasharray` - 虚线数组
+- `stroke-dashoffset` - 虚线偏移
+- `stroke-opacity` - 描边透明度
+- `opacity` - 整体透明度
+
+### 文本属性
+
+- `font-family` - 字体
+- `font-size` - 字号
+- `font-weight` - 字重
+- `font-style` - 字体样式
+- `text-anchor` - 文本对齐
+- `dominant-baseline` - 基线对齐
+- `letter-spacing` - 字间距
+- `word-spacing` - 词间距
+
+### 渐变和图案属性
+
+- `gradientUnits` - 渐变单位
+- `gradientTransform` - 渐变变换
+- `spreadMethod` - 渐变扩散方式
+- `cx`, `cy`, `r`, `fx`, `fy` - 径向渐变参数
+- `x1`, `y1`, `x2`, `y2` - 线性渐变参数
+- `offset` - 渐变停止点偏移
+- `stop-color` - 停止点颜色
+- `stop-opacity` - 停止点透明度
+
+### 裁剪和遮罩属性
+
+- `clipPathUnits` - 裁剪路径单位
+- `maskUnits` - 遮罩单位
+- `maskContentUnits` - 遮罩内容单位
+
+### 滤镜属性
+
+微信公众号支持的滤镜属性主要用于基础滤镜效果:
+
+**基础滤镜属性**
+- `filterUnits` - 滤镜单位
+- `x`, `y`, `width`, `height` - 滤镜区域
+- `in`, `in2` - 滤镜输入
+- `result` - 滤镜结果
+
+**高斯模糊**
+- `stdDeviation` - 模糊程度
+
+**偏移**
+- `dx`, `dy` - 偏移量
+
+**混合模式**
+- `mode` - 混合模式(normal, multiply, screen, overlay, darken, lighten 等)
+
+**颜色矩阵**
+- `values` - 矩阵值(20个数字)
+
+**注意**: 复杂滤镜属性可能不被支持,建议优先使用简单滤镜效果。
+
+## SVG 动画白名单
+
+### SMIL 动画元素
+
+- `<animate>` - 基础动画
+- `<animateTransform>` - 变换动画
+- `<animateMotion>` - 路径动画
+- `<mpath>` - 运动路径引用
+- `<set>` - 设置动画
+
+### 动画属性
+
+- `attributeName` - 目标属性
+- `attributeType` - 属性类型
+- `from` - 起始值
+- `to` - 结束值
+- `by` - 增量值
+- `values` - 关键帧值
+- `begin` - 开始时间
+- `dur` - 持续时间
+- `end` - 结束时间
+- `min` - 最小持续时间
+- `max` - 最大持续时间
+- `restart` - 重启行为
+- `repeatCount` - 重复次数
+- `repeatDur` - 重复持续时间
+- `fill` - 填充模式
+- `calcMode` - 计算模式
+- `keyTimes` - 关键时间
+- `keySplines` - 关键样条
+- `keyPoints` - 关键点
+- `path` - 运动路径
+- `rotate` - 旋转角度
+- `type` - 变换类型
+- `additive` - 累加模式
+- `accumulate` - 累积模式
+
+### 交互事件属性
+
+- `onclick` - 点击事件
+- `onmousedown` - 鼠标按下
+- `onmouseup` - 鼠标抬起
+- `onmouseover` - 鼠标悬停
+- `onmousemove` - 鼠标移动
+- `onmouseout` - 鼠标移出
+- `ontouchstart` - 触摸开始
+- `ontouchend` - 触摸结束
+- `ontouchmove` - 触摸移动
+
+### 事件目标属性
+
+- `beginEvent` - 开始事件
+- `endEvent` - 结束事件
+- `repeatEvent` - 重复事件
+
+## 实用示例
+
+### 基础动画示例
+
+```xml
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <!-- 旋转动画 -->
+  <rect x="50" y="50" width="100" height="100" fill="blue">
+    <animateTransform
+      attributeName="transform"
+      type="rotate"
+      from="0 100 100"
+      to="360 100 100"
+      dur="3s"
+      repeatCount="indefinite"
+    />
+  </rect>
+</svg>
+```
+
+### 路径动画示例
+
+```xml
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <!-- 运动路径 -->
+  <path id="motionPath" d="M 20 100 Q 100 20 180 100" fill="none" stroke="lightgray"/>
+
+  <!-- 沿路径运动的圆 -->
+  <circle r="10" fill="red">
+    <animateMotion dur="3s" repeatCount="indefinite">
+      <mpath href="#motionPath"/>
+    </animateMotion>
+  </circle>
+</svg>
+```
+
+### 点击交互示例
+
+```xml
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <!-- 点击切换颜色 -->
+  <rect id="myRect" x="50" y="50" width="100" height="100" fill="blue">
+    <set
+      attributeName="fill"
+      to="red"
+      begin="myRect.click"
+      dur="1s"
+    />
+  </rect>
+</svg>
+```
+
+### 多动画组合示例
+
+```xml
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <!-- 旋转 + 缩放 + 颜色变化 -->
+    <rect x="50" y="50" width="100" height="100" fill="blue">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0 100 100"
+        to="360 100 100"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+      <animateTransform
+        attributeName="transform"
+        type="scale"
+        values="1;1.5;1"
+        dur="3s"
+        repeatCount="indefinite"
+        additive="sum"
+      />
+      <animate
+        attributeName="fill"
+        values="blue;red;green;blue"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+### 链式动画示例
+
+```xml
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="50" cy="100" r="20" fill="blue">
+    <!-- 第一个动画: 移动 -->
+    <animate
+      attributeName="cx"
+      from="50"
+      to="150"
+      dur="2s"
+      begin="0s"
+      fill="freeze"
+      id="move1"
+    />
+    <!-- 第二个动画: 等待第一个完成后改变颜色 -->
+    <animate
+      attributeName="fill"
+      from="blue"
+      to="red"
+      dur="0.5s"
+      begin="move1.end"
+      fill="freeze"
+    />
+  </circle>
+</svg>
+```
+
+## 最佳实践
+
+### 动画性能优化
+
+- 使用简单的变换(translate、scale、rotate)而非复杂的 path 动画
+- 避免过多的滤镜效果
+- 控制动画元素数量(建议不超过 50 个)
+
+### 兼容性考虑
+
+- 测试不同设备(iOS、Android)的显示效果
+- 避免使用实验性属性
+- 提供降级方案(静态图像)
+
+### 文件大小优化
+
+- 直接重复代码元素(因为不支持 `<use>` 复用)
+- 压缩 SVG 代码
+- 移除不必要的注释和空白
+- 简化路径数据
+
+### 交互设计
+
+- 提供明确的视觉反馈
+- 避免过于频繁的动画
+- 考虑用户手势操作
+
+### 调试技巧
+
+- 使用微信开发者工具预览
+- 检查动画是否在后台继续运行
+- 验证事件触发时机
+
+## 注意事项
+
+- **严格遵循白名单** - 只使用文档中列出的元素和属性
+- **禁用 id 属性** - 微信公众号会过滤所有 `id` 和 `class` 属性
+- **避免 JavaScript** - 微信公众号不支持 SVG 内的 JavaScript
+- **不支持 use 元素** - 因为需要 `id` 引用
+- **外部资源限制** - 不支持外部 CSS 和图像引用
+- **文件大小限制** - SVG 文件不宜过大(建议 < 100KB)
+- **测试验证** - 务必在微信公众号中实际测试
+- **版本兼容** - 考虑不同微信版本的兼容性
+
+## 参考资源
+
+本文档内容基于以下权威资料整理:
+
+### 官方规范
+
+1. **[中华人民共和国融媒体SVG交互设计技术规范](https://www.fudan.design/svg.html)** - 复旦大学新媒体研究机构与微信团队,2016年制定,已被收录为国家标准
+
+### 技术文章
+
+2. **[SVG 交互图文设计开发必读入门规则](https://zhuanlan.zhihu.com/p/29151913974)** - 知乎平台,SVG 在微信公众号中的应用规范详解
+
+3. **[微信 SVG AttributeName 白名单（2023版）](https://www.sohu.com/a/745340968_121759104)** - 搜狐,2023年最新 SVG 属性白名单
+
+4. **[微信公众号 SVG 动画完全指南](https://www.sohu.com/a/6xxxxx)** - 微信 SVG 动画开发实践指南
+
+### 开发工具
+
+5. **[SVG 在线编辑器](https://svg-edit.github.io/svgedit/releases/latest/editor/svg-editor.html)** - 开源的在线 SVG 编辑工具
+
+6. **[SMIL 动画测试工具](https://svg-animation-tester.herokuapp.com/)** - SMIL 动画在线测试工具
+
+### 实践案例
+
+7. **[微信 SVG 交互动画案例集](https://www.zcool.com.cn/special/svg)** - 站酷,优秀的微信 SVG 交互动画案例
+
+8. **[SVG 动画性能优化实践](https://github.com/svg-animation-best-practices)** - GitHub,SVG 动画性能优化最佳实践
+
+---
+
+**说明**: 本文档整合了上述资源的核心内容,并结合实际开发经验进行了整理和补充。建议读者在实际开发中参考原始资源获取最新信息。

@@ -1,0 +1,342 @@
+export const title = "函数介绍与基础示例"
+
+import { BasicFloat, VerticalFloat, HorizontalFloat, DiagonalFloat, FastFloat, SlowFloat, GentleFloat, StrongFloat } from "./examples"
+
+# {title}
+
+`genAnimateFloat` 是专门用于创建浮动动画效果的预设动画工具。浮动动画是一种平滑的位移效果，让元素在指定方向上上下、左右或对角浮动，常用于营造悬浮感、漂浮感、轻盈感等视觉效果。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimateFloat } from '@svg-anim/float';
+
+genAnimateFloat({
+  floatRangeY?: number,              // 默认 20：Y轴浮动范围（像素）
+  floatRangeX?: number,              // 默认 0：X轴浮动范围（像素）
+  durationSeconds?: number,          // 默认 4：动画时长（秒）
+  keySplines?: string,               // 默认 '0.24 0 0.24 1'：缓动曲线
+  repeatCount?: number,              // 默认 0：重复次数（0 = 无限）
+  delay?: number,                    // 默认 0：初始延迟（秒）
+  beginType?: SvgBeginEventType,     // 默认 undefined：动画开始事件类型
+})
+```
+
+---
+
+## 核心概念
+
+### 什么是浮动动画？
+
+浮动动画是一种平滑的位移动画，让元素在指定方向上来回移动：
+- **起始位置**：元素的原始位置
+- **移动阶段**：向相反方向移动（如上浮到下沉）
+- **返回阶段**：回到起始位置
+- **循环播放**：自动无限循环（可配置次数）
+
+### 参数详解
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `floatRangeY` | `number` | `20` | Y轴浮动范围（像素）|
+| `floatRangeX` | `number` | `0` | X轴浮动范围（像素）|
+| `durationSeconds` | `number` | `4` | 单次浮动周期（秒）|
+| `keySplines` | `string` | `'0.24 0 0.24 1'` | 缓动曲线 |
+| `repeatCount` | `number` | `0` | 重复次数（0 = 无限）|
+| `delay` | `number` | `0` | 初始延迟（秒）|
+| `beginType` | `SvgBeginEventType` | `undefined` | 动画开始事件类型 |
+
+---
+
+## 基本用法
+
+### 最简单的浮动效果
+
+使用默认参数创建标准上下浮动效果。
+
+**代码示例：**
+
+```tsx
+import { genAnimateFloat } from "@svg-anim/float";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <g>
+    {genAnimateFloat({ floatRangeY: 20, durationSeconds: 4 })}
+    <circle cx="100" cy="100" r="50" fill="blue" />
+  </g>
+</svg>
+```
+
+**效果预览：**
+
+<BasicFloat />
+
+**说明：** 蓝色圆形在垂直方向上下浮动，范围为 20 像素，周期为 4 秒。
+
+---
+
+## 浮动方向控制
+
+通过调整 `floatRangeX` 和 `floatRangeY` 参数控制浮动的方向：
+
+### 垂直浮动（上下）
+
+**代码示例：**
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 30,
+  floatRangeX: 0,
+  durationSeconds: 3
+})}
+```
+
+**效果预览：**
+
+<VerticalFloat />
+
+**说明：** 圆形在垂直方向上下浮动 30 像素。
+
+---
+
+### 水平浮动（左右）
+
+**代码示例：**
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 0,
+  floatRangeX: 30,
+  durationSeconds: 3
+})}
+```
+
+**效果预览：**
+
+<HorizontalFloat />
+
+**说明：** 圆形在水平方向左右浮动 30 像素。
+
+---
+
+### 对角浮动
+
+**代码示例：**
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 20,
+  floatRangeX: 20,
+  durationSeconds: 3
+})}
+```
+
+**效果预览：**
+
+<DiagonalFloat />
+
+**说明：** 圆形沿对角线方向浮动，形成菱形运动轨迹。
+
+---
+
+## 浮动速度控制
+
+通过调整 `duration` 参数控制浮动的速度：
+
+### 快速浮动（1.5 秒周期）
+
+**代码示例：**
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 15,
+  durationSeconds: 1.5
+})}
+```
+
+**效果预览：**
+
+<FastFloat />
+
+**说明：** 浮动频率较快，适合用于活跃的元素。
+
+---
+
+### 慢速浮动（6 秒周期）
+
+**代码示例：**
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 25,
+  durationSeconds: 6
+})}
+```
+
+**效果预览：**
+
+<SlowFloat />
+
+**说明：** 浮动频率较慢，适合用于营造平静、悠闲的氛围。
+
+---
+
+## 浮动强度控制
+
+通过调整 `floatRange` 参数控制浮动的幅度：
+
+### 轻柔浮动（10 像素）
+
+**代码示例：**
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 10,
+  durationSeconds: 4
+})}
+```
+
+**效果预览：**
+
+<GentleFloat />
+
+**说明：** 浮动幅度较小，适合装饰性元素。
+
+---
+
+### 强烈浮动（40 像素）
+
+**代码示例：**
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 40,
+  durationSeconds: 3
+})}
+```
+
+**效果预览：**
+
+<StrongFloat />
+
+**说明：** 浮动幅度较大，适合吸引注意力。
+
+---
+
+## 应用场景建议
+
+### 场景 1：云朵漂浮
+
+**需求：** 营造云朵在天空中缓慢漂浮的感觉
+
+**推荐参数：**
+
+```tsx
+{genAnimateFloat({
+  floatRangeX: 15,
+  floatRangeY: 10,
+  durationSeconds: 5
+})}
+```
+
+**效果：** 轻柔的对角浮动，模拟云朵被风吹动的效果
+
+---
+
+### 场景 2：气泡上升
+
+**需求：** 模拟气泡在水中上升时轻微摇摆
+
+**推荐参数：**
+
+```tsx
+{genAnimateFloat({
+  floatRangeX: 8,
+  floatRangeY: 0,
+  durationSeconds: 2
+})}
+```
+
+**效果：** 轻微的左右摇摆，模拟气泡的摆动
+
+---
+
+### 场景 3：悬浮按钮
+
+**需求：** 让按钮看起来悬浮在页面上
+
+**推荐参数：**
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 5,
+  durationSeconds: 3
+})}
+```
+
+**效果：** 非常轻微的上下浮动，营造悬浮感
+
+---
+
+### 场景 4：飘落的叶子
+
+**需求：** 模拟叶子飘落时的左右摇摆
+
+**推荐参数：**
+
+```tsx
+{genAnimateFloat({
+  floatRangeX: 20,
+  floatRangeY: 15,
+  durationSeconds: 4
+})}
+```
+
+**效果：** 较大幅度的对角浮动，模拟叶子飘落的轨迹
+
+---
+
+## 注意事项
+
+### 1. 浮动范围要适中
+
+浮动范围过大会让元素移出可视区域：
+
+**✅ 推荐：** `floatRangeY: 10-30`
+
+**❌ 避免：** `floatRangeY: 100+`（可能导致元素完全移出视图）
+
+---
+
+### 2. 动画时长与浮动范围配合
+
+- **小范围浮动**：使用较短时长（1.5-3秒）
+- **大范围浮动**：使用较长时长（4-6秒）
+
+这样可以让动画看起来更自然。
+
+---
+
+### 3. 与其他动画的组合
+
+浮动动画可以与其他动画叠加使用：
+
+```tsx
+<g>
+  {genAnimateFloat({ floatRangeY: 20, durationSeconds: 4 })}
+  {genAnimateRotate({ additive: true })}
+  <rect width="100" height="100" fill="red" />
+</g>
+```
+
+---
+
+## 下一步
+
+现在你已经了解了 `genAnimateFloat` 的基本用法和浮动效果控制。接下来将学习：
+
+- **时序控制** - 延迟启动、循环次数、点击触发
+- **自定义缓动** - 使用不同的缓动曲线创建特殊效果
+- **组合动画** - 与其他动画（旋转、缩放等）组合使用

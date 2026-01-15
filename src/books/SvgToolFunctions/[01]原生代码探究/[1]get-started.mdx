@@ -1,0 +1,233 @@
+export const title = "SVG 坐标系统与 rect 元素"
+export const icon = "Play"
+
+# {title}
+
+学习 SVG 动画前，需要先理解 SVG 的坐标系统和基础元素。本文介绍 SVG 坐标系统和 `<rect>` 矩形元素。
+
+## SVG 坐标系统
+
+### 坐标系概念
+
+SVG 使用笛卡尔坐标系，原点 `(0, 0)` 在**左上角**：
+
+- **X 轴**：从左到右，值增大
+- **Y 轴**：从上到下，值增大
+
+```
+(0,0) ───────────────► X
+  │
+  │    (100, 50)
+  │         ●
+  │
+  ▼
+  Y
+```
+
+### viewBox 属性
+
+`viewBox` 定义 SVG 的可视区域和坐标系：
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <!-- viewBox="x y width height" -->
+  <!-- x, y: 左上角坐标 -->
+  <!-- width, height: 可视区域大小 -->
+</svg>
+```
+
+| 参数 | 说明 | 示例 |
+|-----|------|------|
+| `x` | 左上角 X 坐标 | `0` |
+| `y` | 左上角 Y 坐标 | `0` |
+| `width` | 可视区域宽度 | `200` |
+| `height` | 可视区域高度 | `100` |
+
+### 坐标示例
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 左上角矩形 -->
+  <rect x="10" y="10" width="50" height="50" fill="blue" />
+
+  <!-- 右下角矩形 -->
+  <rect x="140" y="140" width="50" height="50" fill="red" />
+
+  <!-- 中心矩形 -->
+  <rect x="75" y="75" width="50" height="50" fill="green" />
+</svg>
+```
+
+## rect 元素详解
+
+### 基本语法
+
+`<rect>` 是 SVG 的矩形元素，包含定位、尺寸、圆角和样式属性：
+
+```xml
+<rect
+  x="10"
+  y="10"
+  width="100"
+  height="50"
+  rx="5"
+  ry="5"
+  fill="blue"
+/>
+```
+
+### 属性说明
+
+| 属性 | 必填 | 说明 | 示例 |
+|-----|------|------|------|
+| `x` | 否 | 左上角 X 坐标，默认 0 | `x="50"` |
+| `y` | 否 | 左上角 Y 坐标，默认 0 | `y="50"` |
+| `width` | 是 | 矩形宽度 | `width="100"` |
+| `height` | 是 | 矩形高度 | `height="50"` |
+| `rx` | 否 | X 方向圆角半径 | `rx="10"` |
+| `ry` | 否 | Y 方向圆角半径 | `ry="10"` |
+| `fill` | 否 | 填充颜色 | `fill="blue"` |
+| `stroke` | 否 | 描边颜色 | `stroke="black"` |
+| `stroke-width` | 否 | 描边宽度 | `stroke-width="2"` |
+
+### 圆角矩形
+
+当 `rx` 或 `ry` 只设置一个时，另一个会自动使用相同值：
+
+```xml
+<!-- 等价：rx 和 ry 都是 10 -->
+<rect x="10" y="10" width="100" height="50" rx="10" fill="blue" />
+
+<!-- 等价：rx 和 ry 都是 10 -->
+<rect x="10" y="10" width="100" height="50" ry="10" fill="blue" />
+
+<!-- 不同圆角：rx=20, ry=10 -->
+<rect x="10" y="10" width="100" height="50" rx="20" ry="10" fill="blue" />
+```
+
+**圆角限制**：圆角半径不能超过宽度或高度的一半。
+
+```xml
+<!-- ❌ 错误：圆角过大 -->
+<rect width="100" height="50" rx="30" />
+
+<!-- ✅ 正确：圆角最大为 25（高度的一半） -->
+<rect width="100" height="50" rx="25" />
+```
+
+## 实用示例
+
+### 居中矩形
+
+在 200x200 的画布中绘制 100x100 的居中矩形：
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- x = (200 - 100) / 2 = 50 -->
+  <!-- y = (200 - 100) / 2 = 50 -->
+  <rect x="50" y="50" width="100" height="100" fill="blue" />
+</svg>
+```
+
+### 带描边的矩形
+
+```xml
+<rect
+  x="25" y="25"
+  width="150" height="150"
+  fill="lightblue"
+  stroke="darkblue"
+  stroke-width="4"
+  rx="10"
+/>
+```
+
+### 半透明矩形
+
+使用 `opacity` 或 `fill-opacity` 控制透明度：
+
+```xml
+<!-- 整体透明度 -->
+<rect x="10" y="10" width="100" height="100" fill="blue" opacity="0.5" />
+
+<!-- 仅填充透明度 -->
+<rect x="10" y="10" width="100" height="100" fill="blue" fill-opacity="0.5" stroke="black" />
+```
+
+### 无填充矩形
+
+```xml
+<rect
+  x="10" y="10"
+  width="100" height="100"
+  fill="none"
+  stroke="red"
+  stroke-width="2"
+/>
+```
+
+## 常见错误
+
+### 错误 1：忘记宽高
+
+```xml
+<!-- ❌ 错误：缺少 width 和 height -->
+<rect x="10" y="10" fill="blue" />
+
+<!-- ✅ 正确 -->
+<rect x="10" y="10" width="100" height="50" fill="blue" />
+```
+
+### 错误 2：圆角过大
+
+```xml
+<!-- ❌ 错误：圆角超过高度的一半 -->
+<rect width="100" height="50" rx="30" fill="blue" />
+
+<!-- ✅ 正确 -->
+<rect width="100" height="50" rx="25" fill="blue" />
+```
+
+### 错误 3：坐标超出 viewBox
+
+```xml
+<!-- viewBox 只有 200x200 -->
+<svg viewBox="0 0 200 200">
+  <!-- ❌ 矩形部分在可视区域外 -->
+  <rect x="150" y="150" width="100" height="100" fill="blue" />
+
+  <!-- ✅ 完全在可视区域内 -->
+  <rect x="50" y="50" width="100" height="100" fill="blue" />
+</svg>
+```
+
+## 坐标计算技巧
+
+### 计算居中位置
+
+```
+x = (viewBox宽度 - 矩形宽度) / 2
+y = (viewBox高度 - 矩形高度) / 2
+```
+
+示例：在 300x200 画布中居中 100x60 的矩形
+
+```
+x = (300 - 100) / 2 = 100
+y = (200 - 60) / 2 = 70
+```
+
+### 计算右下角位置
+
+```
+x = viewBox宽度 - 矩形宽度 - 间距
+y = viewBox高度 - 矩形高度 - 间距
+```
+
+示例：在 200x200 画布中放置 50x50 的矩形，距离边缘 10px
+
+```
+x = 200 - 50 - 10 = 140
+y = 200 - 50 - 10 = 140
+```
+

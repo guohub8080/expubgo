@@ -1,0 +1,222 @@
+export const title = "时序控制"
+
+import { DelayDemo, LoopDemo, FreezeDemo } from "./examples"
+
+# {title}
+
+时序控制参数让你精确控制透明度动画的播放时机、循环次数和结束状态。
+
+---
+
+## 延迟开始（delay）
+
+`delay` 参数让动画在指定时间后才开始播放。
+
+### 基本用法
+
+**代码示例：**
+
+```tsx
+import { genAnimateOpacity } from "@svg-anim/opacity";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="40" fill="blue">
+    {genAnimateOpacity({
+      initOpacity: 1,
+      timeline: [
+        { toValue: 0, durationSeconds: 1 }
+      ],
+      delay: 1  // 延迟1秒后开始
+    })}
+  </circle>
+</svg>
+```
+
+**效果预览：**
+
+<DelayDemo />
+
+**说明**：圆形等待1秒后才开始淡出
+
+### 使用预设
+
+```tsx
+import { opacityPresets } from '@svg-anim/opacity';
+
+// 延迟0.5秒后淡入（默认）
+opacityPresets.delayedFadeIn()
+
+// 自定义延迟和时长
+opacityPresets.delayedFadeIn(1, 2)  // 延迟1秒，淡入2秒
+```
+
+---
+
+## 循环播放（loopCount）
+
+`loopCount` 参数控制动画循环播放的次数。
+
+### 参数说明
+
+| 值 | 效果 |
+|------|------|
+| `1` | 播放一次（默认）|
+| `2` | 播放两次 |
+| `0` | 无限循环 |
+
+### 循环示例
+
+**代码示例：**
+
+```tsx
+import { genAnimateOpacity } from "@svg-anim/opacity";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="40" fill="blue">
+    {genAnimateOpacity({
+      timeline: [
+        { toValue: 0, durationSeconds: 1 },
+        { toValue: 1, durationSeconds: 1 }
+      ],
+      loopCount: 0  // 无限循环
+    })}
+  </circle>
+</svg>
+```
+
+**效果预览：**
+
+<LoopDemo />
+
+**说明**：圆形持续循环淡入淡出
+
+### 使用辅助函数
+
+```tsx
+import { genAnimateOpacityLoop } from '@svg-anim/opacity';
+
+// 创建往返循环（0.3 ↔ 1，单程2秒）
+genAnimateOpacityLoop(0.3, 1, 2)
+```
+
+---
+
+## 保持状态（freeze）
+
+`freeze` 参数控制动画结束后是否保持最终状态。
+
+### 参数说明
+
+| 值 | 效果 |
+|------|------|
+| `true` | 保持最终状态 |
+| `false` | 恢复初始状态（默认）|
+
+### 冻结示例
+
+**代码示例：**
+
+```tsx
+import { genAnimateOpacity } from "@svg-anim/opacity";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="40" fill="blue">
+    {genAnimateOpacity({
+      initOpacity: 1,
+      timeline: [
+        { toValue: 0, durationSeconds: 2 }
+      ],
+      freeze: true  // 保持透明状态
+    })}
+  </circle>
+</svg>
+```
+
+**效果预览：**
+
+<FreezeDemo />
+
+**说明**：圆形淡出后保持透明，不会恢复
+
+### 何时使用 freeze
+
+**需要 freeze：**
+- 淡入后保持显示
+- 淡出后隐藏
+- 单次过渡效果
+
+**不需要 freeze：**
+- 循环动画
+- 提示性动画
+
+---
+
+## 保持透明度
+
+通过在时间线中添加无 `toValue` 的段，可以保持当前透明度一段时间。
+
+**代码示例：**
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 1,
+  timeline: [
+    { toValue: 0, durationSeconds: 1 },    // 淡出
+    { durationSeconds: 2 },                // 保持透明2秒
+    { toValue: 1, durationSeconds: 1 }     // 淡入
+  ],
+  loopCount: 0
+})}
+```
+
+**说明**：淡出 -> 停留2秒 -> 淡入，循环
+
+---
+
+## 参数组合示例
+
+### 延迟 + 循环
+
+```tsx
+{genAnimateOpacity({
+  timeline: [
+    { toValue: 0.3, durationSeconds: 1.5 },
+    { toValue: 1, durationSeconds: 1.5 }
+  ],
+  delay: 1,         // 延迟1秒开始
+  loopCount: 0      // 无限循环
+})}
+```
+
+### 延迟 + 冻结
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 0,
+  timeline: [
+    { toValue: 1, durationSeconds: 1 }
+  ],
+  delay: 0.5,       // 延迟0.5秒
+  freeze: true      // 保持不透明
+})}
+```
+
+### 多次循环 + 冻结
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 1,
+  timeline: [
+    { toValue: 0.2, durationSeconds: 0.5 },
+    { toValue: 1, durationSeconds: 0.5 }
+  ],
+  loopCount: 3,     // 循环3次
+  freeze: true      // 保持最终状态
+})}
+```
+
+---
+
+## 下一步
+
+- **点击触发** - 交互式透明度动画

@@ -1,0 +1,306 @@
+export const title = "SVG 其他基本图形"
+export const icon = "Shapes"
+
+# {title}
+
+除了 `<rect>` 矩形元素外，SVG 还提供了圆形、椭圆、多边形、路径等基本图形元素。
+
+## circle - 圆形
+
+`<circle>` 是 SVG 的圆形元素，通过圆心坐标和半径定义：
+
+```xml
+<circle
+  cx="100"
+  cy="100"
+  r="50"
+  fill="blue"
+/>
+```
+
+| 属性 | 必填 | 说明 | 示例 |
+|-----|------|------|------|
+| `cx` | 否 | 圆心 X 坐标，默认 0 | `cx="100"` |
+| `cy` | 否 | 圆心 Y 坐标，默认 0 | `cy="100"` |
+| `r` | 是 | 半径 | `r="50"` |
+| `fill` | 否 | 填充颜色 | `fill="blue"` |
+
+### 示例：同心圆
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 外圆 -->
+  <circle cx="100" cy="100" r="80" fill="lightblue" />
+
+  <!-- 中圆 -->
+  <circle cx="100" cy="100" r="50" fill="blue" />
+
+  <!-- 内圆 -->
+  <circle cx="100" cy="100" r="20" fill="darkblue" />
+</svg>
+```
+
+## ellipse - 椭圆
+
+`<ellipse>` 是 SVG 的椭圆元素，支持不同的 X 和 Y 方向半径：
+
+```xml
+<ellipse
+  cx="100"
+  cy="100"
+  rx="80"
+  ry="40"
+  fill="green"
+/>
+```
+
+| 属性 | 必填 | 说明 | 示例 |
+|-----|------|------|------|
+| `cx` | 否 | 圆心 X 坐标，默认 0 | `cx="100"` |
+| `cy` | 否 | 圆心 Y 坐标，默认 0 | `cy="100"` |
+| `rx` | 是 | X 方向半径 | `rx="80"` |
+| `ry` | 是 | Y 方向半径 | `ry="40"` |
+
+### 圆形 vs 椭圆
+
+当 `rx` 和 `ry` 相等时，椭圆就是圆形：
+
+```xml
+<!-- 等价：半径都是 50 的圆 -->
+<circle cx="100" cy="100" r="50" fill="blue" />
+<ellipse cx="100" cy="100" rx="50" ry="50" fill="blue" />
+```
+
+### 示例：扁平椭圆
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <ellipse cx="100" cy="50" rx="80" ry="30" fill="green" />
+</svg>
+```
+
+## polygon - 多边形
+
+`<polygon>` 是 SVG 的多边形元素，通过一系列顶点坐标定义：
+
+```xml
+<polygon
+  points="100,10 40,198 190,78 10,78 160,198"
+  fill="orange"
+/>
+```
+
+| 属性 | 必填 | 说明 | 示例 |
+|-----|------|------|------|
+| `points` | 是 | 顶点坐标列表，用空格分隔 | `"x1,y1 x2,y2 x3,y3"` |
+
+### points 格式说明
+
+顶点坐标格式：`x,y`，多个顶点用空格分隔：
+
+```
+points="x1,y1 x2,y2 x3,y3 x4,y4 ..."
+```
+
+### 示例：三角形
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 等边三角形 -->
+  <polygon
+    points="100,20 20,180 180,180"
+    fill="orange"
+  />
+</svg>
+```
+
+### 示例：五边形
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <polygon
+    points="100,10 40,70 60,150 140,150 160,70"
+    fill="purple"
+  />
+</svg>
+```
+
+### 示例：星形
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 五角星 -->
+  <polygon
+    points="100,10 123,70 190,70 137,110 160,180 100,140 40,180 63,110 10,70 77,70"
+    fill="yellow"
+    stroke="orange"
+    stroke-width="2"
+  />
+</svg>
+```
+
+## polyline - 折线
+
+`<polyline>` 是 SVG 的折线元素，与多边形类似但不自动闭合：
+
+```xml
+<polyline
+  points="20,100 60,60 100,100 140,60 180,100"
+  fill="none"
+  stroke="blue"
+  stroke-width="3"
+/>
+```
+
+### polygon vs polyline
+
+| 元素 | 是否闭合 | 适用场景 |
+|-----|---------|----------|
+| `<polygon>` | 是，自动连接首尾 | 多边形区域 |
+| `<polyline>` | 否，不连接首尾 | 折线、开放路径 |
+
+### 示例：折线图
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <polyline
+    points="10,80 50,30 90,60 130,20 170,70"
+    fill="none"
+    stroke="blue"
+    stroke-width="3"
+  />
+</svg>
+```
+
+## line - 直线
+
+`<line>` 是 SVG 的直线元素，通过起点和终点定义：
+
+```xml
+<line
+  x1="20" y1="20"
+  x2="180" y2="180"
+  stroke="red"
+  stroke-width="2"
+/>
+```
+
+| 属性 | 必填 | 说明 | 示例 |
+|-----|------|------|------|
+| `x1` | 是 | 起点 X 坐标 | `x1="20"` |
+| `y1` | 是 | 起点 Y 坐标 | `y1="20"` |
+| `x2` | 是 | 终点 X 坐标 | `x2="180"` |
+| `y2` | 是 | 终点 Y 坐标 | `y2="180"` |
+| `stroke` | 是 | 线条颜色 | `stroke="red"` |
+| `stroke-width` | 否 | 线条宽度 | `stroke-width="2"` |
+
+### 示例：交叉线
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 对角线 1 -->
+  <line x1="20" y1="20" x2="180" y2="180" stroke="red" stroke-width="2" />
+
+  <!-- 对角线 2 -->
+  <line x1="180" y1="20" x2="20" y2="180" stroke="blue" stroke-width="2" />
+</svg>
+```
+
+## path - 路径
+
+`<path>` 是 SVG 最强大的元素，可以绘制任意形状：
+
+```xml
+<path
+  d="M 10 10 L 100 10 L 100 100 Z"
+  fill="lightgreen"
+  stroke="green"
+  stroke-width="2"
+/>
+```
+
+### path 命令
+
+| 命令 | 说明 | 示例 |
+|-----|------|------|
+| `M` | Move to，移动到 | `M 10 10` |
+| `L` | Line to，画线到 | `L 100 100` |
+| `H` | Horizontal line to，水平线 | `H 100` |
+| `V` | Vertical line to，垂直线 | `V 100` |
+| `C` | Cubic Bézier，三次贝塞尔曲线 | `C 50 50 100 50 150 100` |
+| `S` | Smooth cubic Bézier，平滑三次贝塞尔 | `S 200 50 250 100` |
+| `Q` | Quadratic Bézier，二次贝塞尔曲线 | `Q 100 50 150 100` |
+| `T` | Smooth quadratic Bézier，平滑二次贝塞尔 | `T 200 100` |
+| `A` | Arc，椭圆弧 | `A 50 50 0 0 1 150 150` |
+| `Z` | Close path，闭合路径 | `Z` |
+
+**大小写区别**：大写表示绝对坐标，小写表示相对坐标。
+
+### 示例：矩形路径
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 等价于 <rect x="50" y="50" width="100" height="100" /> -->
+  <path
+    d="M 50 50 L 150 50 L 150 150 L 50 150 Z"
+    fill="lightblue"
+    stroke="blue"
+    stroke-width="2"
+  />
+</svg>
+```
+
+### 示例：圆形路径
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 圆形路径：M起点 A半径X,半径Y 旋转 大弧标志 顺时针标志 终点 -->
+  <path
+    d="M 100 20 A 80 80 0 1 1 100 180 A 80 80 0 1 1 100 20"
+    fill="none"
+    stroke="red"
+    stroke-width="3"
+  />
+</svg>
+```
+
+### 示例：贝塞尔曲线
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <!-- 二次贝塞尔曲线 -->
+  <path
+    d="M 10 80 Q 100 10 190 80"
+    fill="none"
+    stroke="purple"
+    stroke-width="3"
+  />
+</svg>
+```
+
+### 示例：波浪线
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <!-- 多段贝塞尔曲线形成波浪 -->
+  <path
+    d="M 0 50 Q 25 20 50 50 T 100 50 T 150 50 T 200 50"
+    fill="none"
+    stroke="blue"
+    stroke-width="3"
+  />
+</svg>
+```
+
+## 图形选择建议
+
+| 需求 | 推荐元素 |
+|-----|----------|
+| 矩形、方块 | `<rect>` |
+| 圆形 | `<circle>` |
+| 椭圆 | `<ellipse>` |
+| 三角形、多边形 | `<polygon>` |
+| 折线、开放路径 | `<polyline>` |
+| 直线 | `<line>` |
+| 复杂形状、曲线 | `<path>` |
+

@@ -1,0 +1,192 @@
+export const title = "Skew 函数概览"
+
+import { BasicSkewX, BasicSkewY } from "./examples"
+
+# {title}
+
+Skew（倾斜）变换是 SVG 动画中创建透视和倾斜效果的函数。本项目提供了两个独立的倾斜函数：
+
+- **`genAnimateSkewX`** - 沿 X 轴倾斜（水平倾斜）
+- **`genAnimateSkewY`** - 沿 Y 轴倾斜（垂直倾斜）
+
+---
+
+## 函数签名
+
+### SkewX（水平倾斜）
+
+```tsx
+import { genAnimateSkewX } from "@svg-anim/skewX";
+
+genAnimateSkewX({
+  // ===== 必填参数 =====
+  timeline: SkewTimelineSegment[],          // 必填：时间线段数组
+
+  // ===== 可选参数 =====
+  initAngle?: number,                        // 初始倾斜角度，默认 0
+  delay?: number,                            // 初始延迟（秒），默认 0
+  additive?: boolean,                        // 是否累加变换，默认 true
+  calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 动画计算模式，自动
+  freeze?: boolean,                          // 是否保持最终状态，默认 false
+  loopCount?: number,                        // 循环次数（0 = 无限），默认 1
+})
+```
+
+### SkewY（垂直倾斜）
+
+```tsx
+import { genAnimateSkewY } from "@svg-anim/skewY";
+
+genAnimateSkewY({
+  // ===== 必填参数 =====
+  timeline: SkewTimelineSegment[],          // 必填：时间线段数组
+
+  // ===== 可选参数 =====
+  initAngle?: number,                        // 初始倾斜角度，默认 0
+  delay?: number,                            // 初始延迟（秒），默认 0
+  additive?: boolean,                        // 是否累加变换，默认 true
+  calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 动画计算模式，自动
+  freeze?: boolean,                          // 是否保持最终状态，默认 false
+  loopCount?: number,                        // 循环次数（0 = 无限），默认 1
+})
+```
+
+---
+
+## 核心概念
+
+### SkewX（水平倾斜）
+
+SkewX 使元素沿 X 轴倾斜，**正值向右倾斜**，**负值向左倾斜**。
+
+```
+初始状态      skewX(20°)     skewX(-20°)
+┌─────┐         ╱         ╲
+│  █  │        █  █       █  █
+│  █  │       █  █      █  █
+└─────┘      └────┘     └────┘
+```
+
+### SkewY（垂直倾斜）
+
+SkewY 使元素沿 Y 轴倾斜，**正值向下倾斜**，**负值向上倾斜**。
+
+```
+初始状态      skewY(20°)     skewY(-20°)
+┌─────┐         ┌─────┐      ┌─────┐
+│     │        ╱     ╲     ╲     ╱
+│  █  │       │  █  │     │  █  │
+│     │      ╱       ╲   ╲       ╱
+└─────┘     └─────────┘ └─────────┘
+```
+
+---
+
+## 基础示例
+
+### SkewX 水平倾斜
+
+**代码示例：**
+
+```tsx
+import { genAnimateSkewX } from "@svg-anim/skewX";
+
+<svg width="200" height="150" viewBox="0 0 200 150">
+  <rect x="50" y="25" width="100" height="100" fill="blue">
+    {genAnimateSkewX({
+      timeline: [
+        { toValue: 20, durationSeconds: 1 },
+        { toValue: -20, durationSeconds: 1 },
+        { toValue: 0, durationSeconds: 1 }
+      ],
+      loopCount: 0
+    })}
+  </rect>
+</svg>
+```
+
+**效果预览：**
+
+<BasicSkewX />
+
+**说明**：蓝色方块左右倾斜循环动画
+
+---
+
+### SkewY 垂直倾斜
+
+**代码示例：**
+
+```tsx
+import { genAnimateSkewY } from "@svg-anim/skewY";
+
+<svg width="200" height="150" viewBox="0 0 200 150">
+  <rect x="50" y="25" width="100" height="100" fill="green">
+    {genAnimateSkewY({
+      timeline: [
+        { toValue: 20, durationSeconds: 1 },
+        { toValue: -20, durationSeconds: 1 },
+        { toValue: 0, durationSeconds: 1 }
+      ],
+      loopCount: 0
+    })}
+  </rect>
+</svg>
+```
+
+**效果预览：**
+
+<BasicSkewY />
+
+**说明**：绿色方块上下倾斜循环动画
+
+---
+
+## 核心参数
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `timeline` | `TimelineSegment[]` | **必填** | 动画时间线配置 |
+| `timeline[].toValue` | `number` | - | 目标倾斜角度（度） |
+| `timeline[].durationSeconds` | `number` | - | 该阶段时长（秒） |
+| `initAngle` | `number` | `0` | 初始倾斜角度 |
+
+---
+
+## 倾斜方向
+
+### SkewX（水平倾斜）
+
+- **正值** → 向右倾斜
+- **负值** → 向左倾斜
+- **0** → 无倾斜
+
+### SkewY（垂直倾斜）
+
+- **正值** → 向下倾斜
+- **负值** → 向上倾斜
+- **0** → 无倾斜
+
+---
+
+## 应用场景
+
+### 1. 创建 3D 透视效果
+
+通过倾斜 + 缩放的组合，模拟物体的 3D 翻转效果。
+
+### 2. 动态文本效果
+
+创建文字的倾斜入场或出场动画。
+
+### 3. 卡片翻转
+
+模拟卡片沿某个轴翻转的效果。
+
+---
+
+## 相关章节
+
+- [方向控制](./2-direction) - 掌握倾斜方向的控制
+- [往返动画](./3-round-trip) - 创建倾斜往返效果
+- [组合变换](./6-combo) - Skew 与其他变换的组合使用

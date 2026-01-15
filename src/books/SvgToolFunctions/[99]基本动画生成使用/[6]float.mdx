@@ -1,0 +1,295 @@
+export const title = "浮动动画 float"
+export const icon = "Cloud"
+
+# {title}
+
+`genAnimateFloat` 是专门用于创建浮动效果的预设动画工具。浮动动画是一种上下或左右循环移动的效果，常用于云朵、气泡、悬浮物体等场景。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimateFloat } from '@svg-anim/float';
+
+genAnimateFloat({
+  floatRangeY?: number,               // 默认 20：Y 轴浮动范围（像素）
+  floatRangeX?: number,               // 默认 0：X 轴浮动范围（像素）
+  duration?: number,                   // 默认 4：单次浮动时长（秒）
+  keySplines?: string,                 // 默认 '0.24 0 0.24 1'：缓动曲线
+  repeatCount?: number,                // 默认 0：循环次数（0 = 无限）
+  delay?: number,                      // 默认 0：初始延迟（秒）
+  beginType?: SvgBeginEventType,          // 默认 undefined：动画开始事件类型
+})
+```
+
+---
+
+## 使用示例
+
+### 简单的上下浮动
+
+```tsx
+<svg width="200" height="200">
+  <g>
+    {genAnimateFloat({
+      floatRangeY: 20,  // 上下浮动 20px
+      duration: 4       // 4 秒完成一个循环
+    })}
+    <ellipse cx="100" cy="100" rx="50" ry="30" fill="white" />
+    <ellipse cx="120" cy="90" rx="40" ry="25" fill="white" />
+    <ellipse cx="80" cy="90" rx="35" ry="20" fill="white" />
+  </g>
+</svg>
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 20; 0 -20; 0 20"
+  dur="4s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+/>
+```
+
+**效果**：云朵在垂直方向上下浮动，循环播放
+
+---
+
+### 左右浮动
+
+```tsx
+{genAnimateFloat({
+  floatRangeX: 30,  // 左右浮动 30px
+  floatRangeY: 0,
+  duration: 3
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="30 0; -30 0; 30 0"
+  dur="3s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+/>
+```
+
+---
+
+### 对角线浮动
+
+```tsx
+{genAnimateFloat({
+  floatRangeX: 15,  // X 轴浮动 15px
+  floatRangeY: 10,  // Y 轴浮动 10px
+  duration: 5
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="15 10; -15 -10; 15 10"
+  dur="5s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+/>
+```
+
+---
+
+### 快速浮动
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 15,
+  duration: 2  // 2 秒一个循环
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 15; 0 -15; 0 15"
+  dur="2s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+/>
+```
+
+---
+
+### 慢速浮动
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 30,
+  duration: 8,  // 8 秒一个循环
+  keySplines: '0.37 0 0.63 1'  // 更平滑的缓动
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 30; 0 -30; 0 30"
+  dur="8s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.37 0 0.63 1; 0.37 0 0.63 1"
+/>
+```
+
+---
+
+### 微小浮动
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 5,  // 仅浮动 5px
+  duration: 3
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 5; 0 -5; 0 5"
+  dur="3s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+/>
+```
+
+---
+
+### 点击触发浮动
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 20,
+  beginType: 'click'
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 20; 0 -20; 0 20"
+  dur="4s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+  begin="click"
+/>
+```
+
+---
+
+### 延迟浮动
+
+```tsx
+{genAnimateFloat({
+  floatRangeY: 20,
+  delay: 2  // 延迟 2 秒后开始
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 20; 0 -20; 0 20"
+  dur="4s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+  begin="2s"
+/>
+```
+
+---
+
+## 注意事项
+
+### 浮动范围
+
+- **`floatRangeY`**：控制垂直浮动范围（像素）
+- **`floatRangeX`**：控制水平浮动范围（像素）
+- 两个参数可以同时使用，实现对角线浮动
+
+### 缓动曲线
+
+- 默认使用 `'0.24 0 0.24 1'`（ease-in-out）
+- 可以自定义缓动曲线以获得不同的浮动效果
+
+---
+
+## 完整示例：浮动的云朵
+
+```tsx
+import { genAnimateFloat } from '@svg-anim/float';
+
+const FloatingCloud = () => {
+  return (
+    <svg width="200" height="200">
+      <g>
+        {/* 云朵主体 */}
+        {genAnimateFloat({
+          floatRangeY: 15,
+          duration: 5,
+          keySplines: '0.37 0 0.63 1'
+        })}
+        <ellipse cx="100" cy="100" rx="50" ry="30" fill="white" />
+        <ellipse cx="120" cy="90" rx="40" ry="25" fill="white" />
+        <ellipse cx="80" cy="90" rx="35" ry="20" fill="white" />
+      </g>
+    </svg>
+  );
+};
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 15; 0 -15; 0 15"
+  dur="5s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.37 0 0.63 1; 0.37 0 0.63 1"
+/>
+```

@@ -1,0 +1,419 @@
+import { ClickEventDemo } from "./examples/ClickEventDemo"
+import { PointerEventsComparison } from "./examples/PointerEventsComparison"
+
+export const title = "click 事件传播机制"
+export const icon = "Zap"
+
+# {title}
+
+在 SVG 交互设计中，有一个看似矛盾但实则精妙的设计：父元素设置 `pointer-events: none`，但子元素的 `animate begin="click"` 仍然能正常工作。本文深入讲解这个机制背后的原理。
+
+---
+
+## 看似矛盾的现象
+
+下面这段代码展示了一个看似矛盾的情况：
+
+```xml
+<svg style="pointer-events: none;">
+  <animate attributeName="width" from="300" to="400" begin="click" dur="1s" fill="freeze" />
+
+  <rect x="50" y="50" width="100" height="100" fill="blue">
+    <animate attributeName="height" from="100" to="50" begin="click" dur="1s" fill="freeze" />
+  </rect>
+</svg>
+```
+
+**疑问**：
+- `<svg>` 设置了 `pointer-events: none`，不应该接收点击事件
+- 但为什么 `svg` 下的 `<animate begin="click">` 仍然能被触发？
+
+**实际效果**（点击蓝色矩形）：
+
+<ClickEventDemo />
+
+---
+
+## 核心原理：两个独立的系统
+
+`pointer-events` 和 `begin="click"` 是两个完全不同的系统，各自负责不同的功能：
+
+```
+pointer-events: none
+  └─ 控制：谁能【接收】鼠标事件
+
+begin="click"
+  └─ 控制：监听 <animate> 父元素上的【click 事件】
+```
+
+### 关键区别
+
+| 系统 | 作用范围 | 控制内容 |
+|------|----------|----------|
+| `pointer-events` | DOM 元素层级 | 谁能成为鼠标事件的目标 |
+| `begin="click"` | `<animate>` 的父元素 | 响应父元素上的 click 事件 |
+
+---
+
+## 完整的事件流程
+
+让我们追踪一次点击的完整生命周期：
+
+```xml
+<svg style="pointer-events: none;">                      ← A: svg 不接收鼠标事件
+
+  <animate begin="click" ... />                          ← B: 监听 svg 内的 click 事件
+
+  <rect style="pointer-events: visiblePainted;">         ← C: rect 可以接收鼠标事件
+    <animate begin="click" ... />                        ← D: 监听 svg 内的 click 事件
+  </rect>
+</svg>
+```
+
+### 事件传播步骤
+
+```
+第①步：用户点击屏幕
+       ↓
+第②步：浏览器判断谁能接收事件
+       - svg (pointer-events: none) ✗ 不接收
+       - rect (pointer-events: visiblePainted) ✓ 接收
+       ↓
+第③步：rect 接收到点击，触发 click 事件
+       ↓
+第④步：click 事件沿 DOM 树向上冒泡（rect → svg → ...）
+       ↓
+第⑤步：冒泡过程中，监听父元素 click 的 animate 被触发
+       - animate D (父元素是 rect) ✓ rect 是事件目标，触发
+       - animate B (父元素是 svg)  ✓ 冒泡到达 svg，触发
+```
+
+---
+
+## ASCII 图解事件传播
+
+```
+用户点击 (x=100, y=100)
+   ↓
+┌─────────────────────────────────┐
+│ <svg pointer-events: none>      │ ← 不接收鼠标点击
+│   ├─ <animate begin="click">    │ ← 监听 svg 上的 click（冒泡到达时触发）
+│   │                             │
+│   └─ <rect pointer: visible>    │ ← 接收鼠标点击！(100,100 在 rect 内)
+│       └─ <animate begin="click">│ ← 监听 rect 上的 click（直接触发）
+│                                 │
+└─────────────────────────────────┘
+        │
+        ↓ rect 捕获点击，click 事件产生
+        │
+        ↓ 事件沿 DOM 冒泡：rect → svg
+        │
+   ┌────┴────┐
+   ↓         ↓
+animate D  animate B
+(rect触发)  (svg冒泡触发)
+```
+
+---
+
+## begin="click" 的监听范围
+
+`begin="click"` **监听的是 `<animate>` 父元素上的 click 事件**，而非整个 SVG 上下文。之所以看起来像是全局监听，是因为 DOM 事件冒泡机制：子元素的 click 事件会沿 DOM 树向上传递到所有祖先元素。
+
+### 监听范围示例
+
+```xml
+<svg id="mysvg" viewBox="0 0 200 200">
+  <animate attributeName="opacity" from="1" to="0.5" begin="click" dur="1s" />
+
+  <rect id="rect1" x="10" y="10" width="50" height="50" fill="blue" />
+  <circle id="circle1" cx="150" cy="50" r="30" fill="red" />
+  <text id="text1" x="100" y="150" text-anchor="middle">点击任意图形</text>
+</svg>
+```
+
+**点击效果**：
+- 点击 `rect1` → 触发 `animate`（整个 svg 变半透明）
+- 点击 `circle1` → 触发 `animate`
+- 点击 `text1` → 触发 `animate`
+
+**只要在 svg 范围内产生 click 事件，冒泡路径上的所有 `begin="click"` 的 animate 都会响应！**
+
+---
+
+## 为什么 svg 要设置 pointer-events: none？
+
+### 对比示例
+
+<PointerEventsComparison />
+
+**对比说明**：
+- **左侧（auto）**：点击任何区域（包括空白）都会触发事件
+- **右侧（none）**：只有绿色矩形区域响应点击
+
+---
+
+## 三层分离设计
+
+这个精妙的设计实际上是一个三层分离的架构：
+
+```
+第一层：鼠标事件接收
+─────────────────────
+pointer-events: none (svg)           ← svg 不接收
+pointer-events: visiblePainted (rect) ← rect 接收
+
+第二层：事件冒泡
+─────────────────────
+rect 接收点击 → 产生 click 事件 → 沿 DOM 树冒泡（rect → svg）
+
+第三层：动画监听
+─────────────────────
+begin="click" (rect 的 animate)  ← 监听 rect，rect 是事件目标，触发
+begin="click" (svg 的 animate)   ← 监听 svg，事件冒泡到达 svg，触发
+```
+
+---
+
+## 代码执行流程
+
+让我们用时间线来追踪一次完整的点击事件：
+
+```
+t=0ms: 用户点击 rect 区域 (x=100, y=100)
+       │
+       ↓
+t=1ms: 浏览器检测元素
+       - svg (pointer-events: none) → 跳过，不接收
+       - rect (pointer-events: visiblePainted) → 命中！接收点击
+       │
+       ↓
+t=2ms: rect 触发 click 事件
+       │
+       ↓
+t=3ms: click 事件沿 DOM 树冒泡
+       │
+       ↓
+t=4ms: 冒泡路径上的 begin="click" 的 <animate> 依次检测到事件
+       │
+       ├─→ rect 下的 animate (height 动画) 监听 rect，rect 是事件目标 → 启动
+       └─→ svg 下的 animate (width 动画) 监听 svg，冒泡到达 → 启动
+       │
+       ↓
+t=5ms: 两个动画同时运行
+       - svg width 开始增加：300 → 400
+       - rect height 开始减少：100 → 50
+```
+
+---
+
+## 完整代码示例
+
+### 示例：点击触发的多重动画
+
+```xml
+<svg viewBox="0 0 300 300" style="pointer-events: none;">
+  <!-- svg 的动画：改变背景透明度 -->
+  <animate attributeName="opacity"
+           values="1;0.5;1"
+           begin="click"
+           dur="2s" />
+
+  <!-- 背景矩形 -->
+  <rect x="50" y="50" width="200" height="200" fill="#f0f0f0" stroke="#ccc" />
+
+  <!-- 可点击的按钮 -->
+  <g style="pointer-events: visiblePainted;">
+    <rect id="button" x="100" y="100" width="100" height="100" fill="blue">
+      <!-- rect 的动画：改变颜色 -->
+      <animate attributeName="fill"
+               values="blue;red;blue"
+               begin="click"
+               dur="1s" />
+    </rect>
+
+    <!-- rect 的动画：改变尺寸 -->
+    <animate attributeName="width"
+             values="100;120;100"
+             begin="click"
+             dur="0.5s"
+             additive="sum" />
+  </g>
+
+  <text x="150" y="155" text-anchor="middle" fill="white" font-size="20">
+    点击按钮
+  </text>
+</svg>
+```
+
+**点击效果**：
+1. svg 透明度变化（1 → 0.5 → 1）
+2. 按钮颜色变化（blue → red → blue）
+3. 按钮宽度变化（100 → 120 → 100）
+
+---
+
+## 设计目标与实现
+
+### 设计目标
+
+```
+1. 只让特定区域可点击（rect）
+2. 点击后触发多个动画（svg 和 rect 都有动画）
+3. 精确控制交互区域
+```
+
+### 实现方式
+
+```
+┌─────────────────────────────────┐
+│ pointer-events 分层             │
+│ ├─ svg: none (不接收鼠标)       │
+│ └─ rect: visiblePainted (接收)  │
+│                                 │
+│ begin="click" 各自监听父元素    │
+│ ├─ svg 的 animate: 监听 svg     │
+│ └─ rect 的 animate: 监听 rect   │
+│                                 │
+│ 事件冒泡串联                    │
+│ rect 接收点击 → 产生 click 事件 │
+│ → 冒泡到 svg → 两个 animate    │
+│   各自监听到自己父元素上的事件  │
+│ → 一起触发                      │
+└─────────────────────────────────┘
+```
+
+---
+
+## 为什么这样设计？
+
+### 分离关注点
+
+```
+pointer-events    → 控制交互区域（谁能被点击）
+begin="click"     → 监听父元素的 click 事件（通过冒泡接收子元素事件）
+```
+
+这种分离让我们可以：
+- 独立控制哪些区域可点击
+- 独立控制哪些动画响应哪个元素的 click
+- 通过冒泡机制，子元素的点击自动传播到父元素的 animate
+
+### 灵活性示例
+
+```xml
+<svg style="pointer-events: none;">
+  <!-- 动画 1：响应任何子元素的点击 -->
+  <animate attributeName="opacity" begin="click" dur="1s" />
+
+  <!-- 动画 2：只在 rect 被点击时触发（通过事件 ID） -->
+  <animate attributeName="width" begin="rect.click" dur="1s" />
+
+  <!-- 可点击区域 1 -->
+  <rect id="rect" style="pointer-events: visiblePainted;">
+    <animate attributeName="fill" begin="click" dur="1s" />
+  </rect>
+
+  <!-- 可点击区域 2 -->
+  <circle id="circle" style="pointer-events: visiblePainted;">
+    <animate attributeName="r" begin="click" dur="1s" />
+  </circle>
+</svg>
+```
+
+**效果**：
+- 点击 rect：触发所有 3 个动画
+- 点击 circle：触发动画 1 和动画 3
+
+---
+
+## 微信公众号中的应用
+
+### 实际案例
+
+```xml
+<svg viewBox="0 0 750 1334" style="pointer-events: none;">
+  <!-- 整体动画：点击任何按钮都触发背景闪烁 -->
+  <animate attributeName="opacity"
+           values="1;0.8;1"
+           begin="click"
+           dur="0.3s" />
+
+  <!-- 背景装饰（不可点击） -->
+  <circle cx="375" cy="300" r="200" fill="rgba(0,0,255,0.1)" />
+
+  <!-- 按钮组（可点击） -->
+  <g style="pointer-events: visiblePainted;">
+    <rect id="btn1" x="150" y="500" width="450" height="100" fill="blue" rx="10">
+      <animate attributeName="fill"
+               values="blue;darkblue;blue"
+               begin="click"
+               dur="0.3s" />
+    </rect>
+    <text x="375" y="560" text-anchor="middle" fill="white" font-size="32">
+      点击按钮 1
+    </text>
+  </g>
+
+  <g style="pointer-events: visiblePainted;">
+    <rect id="btn2" x="150" y="650" width="450" height="100" fill="green" rx="10">
+      <animate attributeName="fill"
+               values="green;darkgreen;green"
+               begin="click"
+               dur="0.3s" />
+    </rect>
+    <text x="375" y="710" text-anchor="middle" fill="white" font-size="32">
+      点击按钮 2
+    </text>
+  </g>
+</svg>
+```
+
+**效果**：
+- 点击按钮 1：按钮 1 变色 + 整个 svg 闪烁
+- 点击按钮 2：按钮 2 变色 + 整个 svg 闪烁
+- 点击背景空白区域：无反应
+
+---
+
+## 总结
+
+### 核心要点
+
+```
+svg pointer-events: none
+  ├─ 含义：svg 元素本身不响应鼠标事件
+  └─ 不影响：svg 内部的 click 事件传播
+
+animate begin="click"
+  ├─ 含义：监听 <animate> 父元素上的 click 事件
+  └─ 来源：父元素自身被点击，或子元素 click 冒泡到达
+
+rect pointer-events: visiblePainted
+  ├─ 含义：rect 可以接收鼠标事件
+  └─ 效果：点击 rect 产生 click 事件
+```
+
+### 组合效果
+
+```
+rect 接收点击 → 触发 click 事件
+→ 事件沿 DOM 冒泡（rect → svg）
+→ 路径上监听父元素 click 的 animate 都响应
+→ 即使这些 animate 的父元素 (svg) 设置了 pointer-events: none
+```
+
+### 关键理解
+
+**pointer-events 控制的是"谁能接收鼠标"，begin="click" 监听的是"animate 父元素上的 click 事件"，两者是独立的系统！冒泡机制将两者串联起来：子元素被点击 → 事件冒泡到父元素 → 父元素上的 animate 监听到事件。**
+
+这就是为什么父元素 `pointer-events: none`，子元素触发的 click 事件仍然能被父元素的 animate 监听到的原因——`pointer-events: none` 只阻止元素成为事件目标，不阻止事件冒泡通过它。这是 SVG 事件模型的一个非常精妙的设计！
+
+---
+
+## 参考资料
+
+- [W3C SVG pointer-events 规范](https://github.com/w3c/svgwg/issues/744)
+- [W3C SMIL Animation 规范](https://www.w3.org/TR/SMIL/animation.html)
+- [MDN: pointer-events](https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Attribute/pointer-events)
+- [MDN: SVG animate element](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/animate)

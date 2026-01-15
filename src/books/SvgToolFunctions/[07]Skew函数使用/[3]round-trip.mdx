@@ -1,0 +1,245 @@
+export const title = "往返倾斜动画"
+
+import { SkewXRoundTrip, SkewYRoundTrip } from "./examples"
+
+# {title}
+
+往返动画是指元素从初始状态倾斜到目标角度，再返回初始状态的循环动画。
+
+---
+
+## 基础往返动画
+
+### SkewX 往返倾斜
+
+**代码示例：**
+
+```tsx
+import { genAnimateSkewX } from "@svg-anim/skewX";
+
+<svg width="200" height="150" viewBox="0 0 200 150">
+  <rect x="50" y="25" width="100" height="100" fill="blue">
+    {genAnimateSkewX({
+      timeline: [
+        { toValue: 30, durationSeconds: 1 },   // 向右倾斜
+        { toValue: 0, durationSeconds: 1 },    // 返回直立
+      ],
+      loopCount: 0
+    })}
+  </rect>
+</svg>
+```
+
+**效果：**
+
+<SkewXRoundTrip />
+
+**说明**：蓝色方块在左右倾斜之间循环
+
+---
+
+### SkewY 往返倾斜
+
+**代码示例：**
+
+```tsx
+import { genAnimateSkewY } from "@svg-anim/skewY";
+
+<svg width="200" height="150" viewBox="0 0 200 150">
+  <rect x="50" y="25" width="100" height="100" fill="green">
+    {genAnimateSkewY({
+      timeline: [
+        { toValue: 30, durationSeconds: 1 },   // 向下倾斜
+        { toValue: 0, durationSeconds: 1 },    // 返回直立
+      ],
+      loopCount: 0
+    })}
+  </rect>
+</svg>
+```
+
+**效果：**
+
+<SkewYRoundTrip />
+
+**说明**：绿色方块在上下倾斜之间循环
+
+---
+
+## 对称往返动画
+
+### 双向对称摇摆
+
+创建一个对称的摇摆效果，从 0° → 最大角度 → 反向最大角度 → 0°。
+
+**代码示例：**
+
+```tsx
+import { genAnimateSkewX } from "@svg-anim/skewX";
+
+genAnimateSkewX({
+  timeline: [
+    { toValue: 20, durationSeconds: 0.8, keySplines: "0.42 0 0.58 1" },   // 向右
+    { toValue: -20, durationSeconds: 1.6, keySplines: "0.42 0 0.58 1" },  // 向左
+    { toValue: 20, durationSeconds: 1.6, keySplines: "0.42 0 0.58 1" },   // 向右
+    { toValue: 0, durationSeconds: 0.8, keySplines: "0.42 0 0.58 1" }     // 返回
+  ],
+  loopCount: 0
+})
+```
+
+**说明**：
+- 第一阶段：从 0° 倾斜到 20°（向右）
+- 第二阶段：从 20° 倾斜到 -20°（向左穿过中心）
+- 第三阶段：从 -20° 倾斜到 20°（向右穿过中心）
+- 第四阶段：从 20° 返回 0°（直立）
+
+---
+
+## 循环往复模式
+
+### 无缝循环往返
+
+使用 `loopCount: 0` 创建无限循环：
+
+```tsx
+genAnimateSkewX({
+  initAngle: -15,  // 从向左倾斜开始
+  timeline: [
+    { toValue: 15, durationSeconds: 2, keySplines: "0.42 0 1 1" },    // 缓动到右倾斜
+    { toValue: -15, durationSeconds: 2, keySplines: "0.42 0 1 1" }    // 缓动到左倾斜
+  ],
+  loopCount: 0,  // 无限循环
+  freeze: true
+})
+```
+
+**时间线分析：**
+
+```
+循环开始 (-15°)
+    │
+    ├─ 2秒缓动 → 15° (向右倾斜)
+    │
+    ├─ 2秒缓动 → -15° (向左倾斜，回到起点)
+    │
+    └─ 重复循环...
+```
+
+---
+
+## 组合往返动画
+
+### 同时使用 SkewX 和 SkewY
+
+```tsx
+import { genAnimateSkewX } from "@svg-anim/skewX";
+import { genAnimateSkewY } from "@svg-anim/skewY";
+
+<g>
+  {/* SkewX 动画 */}
+  {genAnimateSkewX({
+    timeline: [
+      { toValue: 30, durationSeconds: 1.5 },
+      { toValue: -30, durationSeconds: 3 },
+      { toValue: 30, durationSeconds: 1.5 }
+    ],
+    loopCount: 0
+  })}
+
+  {/* SkewY 动画叠加 */}
+  {genAnimateSkewY({
+    timeline: [
+      { toValue: 30, durationSeconds: 1.5 },
+      { toValue: -30, durationSeconds: 3 },
+      { toValue: 30, durationSeconds: 1.5 }
+    ],
+    loopCount: 0,
+    additive: true  // 累加变换
+  })}
+</g>
+```
+
+**说明**：元素同时进行 X 轴和 Y 轴的倾斜，产生复杂的对角倾斜效果。
+
+---
+
+## 缓动效果
+
+### 使用贝塞尔曲线
+
+往返动画配合缓动曲线，创造更自然的运动感：
+
+```tsx
+// ease-in-out 效果
+genAnimateSkewX({
+  timeline: [
+    {
+      toValue: 25,
+      durationSeconds: 1.5,
+      keySplines: "0.42 0 0.58 1"  // ease-in-out
+    },
+    {
+      toValue: -25,
+      durationSeconds: 3,
+      keySplines: "0.42 0 0.58 1"  // ease-in-out
+    },
+    {
+      toValue: 25,
+      durationSeconds: 1.5,
+      keySplines: "0.42 0 0.58 1"  // ease-in-out
+    }
+  ],
+  loopCount: 0
+})
+```
+
+**缓动类型参考：**
+
+| keySplines | 效果 | 适用场景 |
+|-----------|------|----------|
+| `0.42 0 0.58 1` | ease-in-out | 自然往返 |
+| `0.42 0 1 1` | ease-out | 快速倾斜 |
+| `0 0 0.58 1` | ease-in | 慢速倾斜 |
+| `0 0 1 1` | linear | 匀速倾斜 |
+
+---
+
+## 应用场景
+
+### 1. 钟摆效果
+
+使用往返倾斜模拟钟摆的运动轨迹：
+
+```tsx
+genAnimateSkewX({
+  timeline: [
+    { toValue: 15, durationSeconds: 1, keySplines: "0.42 0 1 1" },
+    { toValue: -15, durationSeconds: 2, keySplines: "0.42 0 1 1" },
+    { toValue: 15, durationSeconds: 2, keySplines: "0.42 0 1 1" }
+  ],
+  loopCount: 0
+})
+```
+
+### 2. 书页翻动效果
+
+使用 SkewY 模拟书页翻动的透视变化：
+
+```tsx
+genAnimateSkewY({
+  initAngle: -30,
+  timeline: [
+    { toValue: 30, durationSeconds: 1.5, keySplines: "0.25 0.1 0.25 1" },
+    { toValue: -30, durationSeconds: 0.5, keySplines: "0.25 0.1 0.25 1" }
+  ],
+  loopCount: 0
+})
+```
+
+---
+
+## 相关章节
+
+- [倾斜方向](./2-direction) - 理解倾斜的方向规则
+- [组合变换](./6-combo) - Skew 与其他变换的组合使用

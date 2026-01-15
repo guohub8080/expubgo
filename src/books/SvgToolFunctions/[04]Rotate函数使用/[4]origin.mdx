@@ -1,0 +1,139 @@
+export const title = "旋转中心点"
+
+import { CenterOrigin, CornerOrigin, CustomOrigin } from "./examples"
+
+# {title}
+
+`origin` 参数控制旋转中心点（轴心）。
+
+**重要**：默认情况下，元素围绕 SVG 坐标原点 (0, 0) 旋转，而不是元素中心！要实现元素中心旋转，需要提供 `elementBounds` 参数。
+
+---
+
+## 默认原点旋转
+
+不指定 `origin` 时（或使用 `'center'` 但不提供 `elementBounds`），元素围绕 SVG 坐标原点 (0, 0) 旋转。
+
+**代码示例：**
+
+```tsx
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <rect x="75" y="75" width="50" height="50" fill="blue">
+    {genAnimateRotate({
+      timeline: [
+        { toValue: 360, durationSeconds: 2 }
+      ]
+    })}
+  </rect>
+</svg>
+```
+
+**效果预览：**
+
+<CenterOrigin />
+
+**说明**：方块围绕自身中心 (100, 100) 旋转
+
+---
+
+## 角落旋转
+
+将旋转中心点设置为元素的一个角。
+
+**代码示例：**
+
+```tsx
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <g>
+    {genAnimateRotate({
+      timeline: [
+        { toValue: 360, durationSeconds: 2 }
+      ],
+      loopCount: 0,
+      origin: [75, 75]  // 左上角坐标
+    })}
+    <rect x="75" y="75" width="50" height="50" fill="green" />
+  </g>
+</svg>
+```
+
+**效果预览：**
+
+<CornerOrigin />
+
+**说明**：方块围绕左上角 (75, 75) 旋转
+
+---
+
+## 自定义中心点
+
+可以指定任意的旋转中心点。
+
+**代码示例：**
+
+```tsx
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <g>
+    {genAnimateRotate({
+      timeline: [
+        { toValue: 360, durationSeconds: 2 }
+      ],
+      loopCount: 0,
+      origin: [100, 150]  // 自定义坐标
+    })}
+    <rect x="75" y="75" width="50" height="50" fill="orange" />
+  </g>
+</svg>
+```
+
+**效果预览：**
+
+<CustomOrigin />
+
+**说明**：方块围绕外部点 (100, 150) 旋转，形成轨道效果
+
+---
+
+## origin 参数格式
+
+```tsx
+// 数组格式：自定义坐标 [x, y]
+origin: [100, 100]     // 坐标 (100, 100)
+origin: [75, 75]        // 坐标 (75, 75)
+
+// 字符串格式：快捷位置
+origin: 'center'        // 元素中心（需提供 elementBounds）
+origin: 'origin'        // SVG 原点 (0, 0)
+origin: 'topLeft'       // 左上角（需提供 elementBounds）
+origin: 'topCenter'     // 顶部中心（需提供 elementBounds）
+```
+
+---
+
+## 使用技巧
+
+### 1. 卫星效果
+
+元素围绕外部点旋转，模拟卫星轨道。
+
+```tsx
+origin: [150, 100]  // 远离元素的点
+```
+
+### 2. 围绕元素中心旋转
+
+需要提供 `elementBounds` 参数。
+
+```tsx
+genAnimateRotate({
+  origin: 'center',
+  elementBounds: { x: 75, y: 75, w: 50, h: 50 }
+})
+```
+
+---
+
+## 下一步
+
+- **多角度旋转** - 复杂旋转路径
+- **旋转时序控制** - 高级时间控制

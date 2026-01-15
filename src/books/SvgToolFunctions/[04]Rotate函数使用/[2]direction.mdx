@@ -1,0 +1,107 @@
+export const title = "旋转方向"
+
+import { ClockwiseRotate, CounterClockwiseRotate, HalfRotate } from "./examples"
+
+# {title}
+
+旋转方向由角度的正负决定：正值顺时针，负值逆时针。
+
+---
+
+## 顺时针旋转
+
+正值角度表示顺时针方向旋转。
+
+**代码示例：**
+
+```tsx
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="30" fill="blue">
+    {genAnimateRotate({
+      timeline: [
+        { toValue: 360, durationSeconds: 2 }
+      ]
+    })}
+  </circle>
+</svg>
+```
+
+**效果预览：**
+
+<ClockwiseRotate />
+
+**说明**：蓝色圆形顺时针旋转 360°（完整一圈）
+
+---
+
+## 逆时针旋转
+
+负值角度表示逆时针方向旋转。
+
+**代码示例：**
+
+```tsx
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="30" fill="green">
+    {genAnimateRotate({
+      timeline: [
+        { toValue: -360, durationSeconds: 2 }
+      ]
+    })}
+  </circle>
+</svg>
+```
+
+**效果预览：**
+
+<CounterClockwiseRotate />
+
+**说明**：绿色圆形逆时针旋转 360°
+
+---
+
+## 半圈旋转
+
+旋转 180°（半圈）常用于翻转效果。
+
+**代码示例：**
+
+```tsx
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <rect x="75" y="75" width="50" height="50" fill="orange">
+    {genAnimateRotate({
+      timeline: [
+        { toValue: 180, durationSeconds: 1 }
+      ],
+      freeze: true
+    })}
+  </rect>
+</svg>
+```
+
+**效果预览：**
+
+<HalfRotate />
+
+**说明**：橙色方块旋转 180° 后保持最终位置
+
+---
+
+## 角度参考
+
+| 角度 | 说明 | 效果 |
+|------|------|------|
+| `360` | 顺时针一圈 | 完整旋转 |
+| `-360` | 逆时针一圈 | 完整旋转 |
+| `180` | 顺时针半圈 | 翻转 |
+| `-180` | 逆时针半圈 | 翻转 |
+| `90` | 顺时针直角 | 1/4 圈 |
+| `-90` | 逆时针直角 | 1/4 圈 |
+
+---
+
+## 下一步
+
+- **旋转中心点** - 自定义旋转轴心位置
+- **往返旋转** - 来回旋转动画
+- **多角度旋转** - 序列旋转路径

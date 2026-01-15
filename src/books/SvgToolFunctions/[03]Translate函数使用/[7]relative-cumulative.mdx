@@ -1,0 +1,105 @@
+export const title = "相对移动与累积移动"
+
+import {
+  RelativeMode,
+  CumulativeMode,
+  ComparisonDemo
+} from "./examples"
+
+# {title}
+
+`isRelativeMove` 参数控制动画的计算模式，有两种不同的计算方式，需要根据场景选择合适的模式。
+
+---
+
+## 相对移动模式（isRelativeMove: true，默认值）
+
+每个阶段的 `toValue` 是**相对于上一阶段终点**的增量。
+
+**代码示例：**
+
+```tsx
+genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  isRelativeMove: true,
+  timeline: [
+    { toValue: { x: 300, y: 0 }, durationSeconds: 1 },   // 向右300
+    { toValue: { x: -300, y: 0 }, durationSeconds: 0.5 },  // 返回起点（向左300）
+    { toValue: { x: 150, y: 0 }, durationSeconds: 1 }      // 再向右150
+  ]
+})
+```
+
+**效果预览：**
+
+<RelativeMode />
+
+**说明**：每次移动都是相对于上一个位置的增量
+
+---
+
+## 累积移动模式（isRelativeMove: false）
+
+每个阶段的 `toValue` 是**相对于初始位置**的绝对坐标。
+
+**代码示例：**
+
+```tsx
+genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  isRelativeMove: false,
+  timeline: [
+    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },   // 移动到100
+    { toValue: { x: 100, y: 0 }, durationSeconds: 0.5 },  // 仍在100
+    { toValue: { x: 150, y: 0 }, durationSeconds: 1 }     // 移动到150
+  ]
+})
+```
+
+**效果预览：**
+
+<CumulativeMode />
+
+**说明**：每次移动都是相对于初始位置的绝对坐标
+
+---
+
+## 对比演示
+
+两种模式最终效果相同，但参数写法不同。
+
+**代码对比：**
+
+```tsx
+// 相对移动模式：{ x: 0 } 表示保持不动
+genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  isRelativeMove: true,
+  timeline: [
+    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },   // 向右100
+    { toValue: { x: 0, y: 0 }, durationSeconds: 1 }      // 保持不动（停留在100）
+  ]
+})
+
+// 累积移动模式：{ x: 0 } 表示返回起点
+genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  isRelativeMove: false,
+  timeline: [
+    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },   // 移动到100
+    { toValue: { x: 0, y: 0 }, durationSeconds: 1 }      // 返回起点
+  ]
+})
+```
+
+**效果预览：**
+
+<ComparisonDemo />
+
+**说明**：虽然参数不同，但最终效果相同
+
+---
+
+## 总结
+
+掌握这两种模式可以让你更精确地控制动画的每个阶段。

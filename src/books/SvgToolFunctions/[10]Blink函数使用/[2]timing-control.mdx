@@ -1,0 +1,329 @@
+export const title = "时序控制与循环"
+
+import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./examples"
+
+# {title}
+
+`genAnimateSoftBlink` 提供了丰富的时序控制选项，包括延迟启动、循环次数控制、点击触发等，让你能够精确控制闪烁动画的时机和次数。
+
+---
+
+## 延迟启动
+
+使用 `delay` 参数让动画在指定时间后自动开始。
+
+### 基础延迟
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  delay: 2,  // 延迟 2 秒后开始
+  onceBlinkDurationSeconds: 1.2
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0.2; 1"
+  dur="1.2s"
+  begin="2s"
+  repeatCount="indefinite"
+/>
+```
+
+**效果预览：**
+
+<DelayBlink />
+
+**说明：** 页面加载 2 秒后，星星开始闪烁。
+
+---
+
+## 循环次数控制
+
+使用 `repeatCount` 参数控制动画重复次数。
+
+### 有限次数循环
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  repeatCount: 3,  // 闪烁 3 次后停止
+  onceBlinkDurationSeconds: 1.2
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0.2; 1"
+  dur="1.2s"
+  repeatCount="3"
+/>
+```
+
+**效果预览：**
+
+<LimitedBlink />
+
+**说明：** 星星闪烁 3 次后停止在完全显示状态。
+
+---
+
+### 无限循环
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  repeatCount: 0,  // 0 表示无限循环
+  onceBlinkDurationSeconds: 1.2
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0.2; 1"
+  dur="1.2s"
+  repeatCount="indefinite"
+/>
+```
+
+**说明：** 星星持续闪烁，不会停止（默认行为）。
+
+---
+
+## 点击触发
+
+使用 `beginType: 'click'` 参数让动画在点击时开始。
+
+### 基础点击触发
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  beginType: 'click',
+  onceBlinkDurationSeconds: 1.2
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0.2; 1"
+  dur="1.2s"
+  begin="click"
+  repeatCount="indefinite"
+/>
+```
+
+**效果预览：**
+
+<ClickBlink />
+
+**说明：** 点击星星后，开始无限循环闪烁。
+
+---
+
+### 点击触发 + 延迟
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  beginType: 'click',
+  delay: 0.5,  // 点击后延迟 0.5 秒开始
+  onceBlinkDurationSeconds: 1.2
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0.2; 1"
+  dur="1.2s"
+  begin="click+0.5s"
+  repeatCount="indefinite"
+/>
+```
+
+**效果预览：**
+
+<ClickDelayBlink />
+
+**说明：** 点击星星后，等待 0.5 秒，然后开始闪烁。
+
+---
+
+## 参数组合示例
+
+### 闪烁 3 次后停止
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  repeatCount: 3,
+  onceBlinkDurationSeconds: 0.8,
+  minOpacity: 0.3
+})}
+```
+
+**效果：** 快速闪烁 3 次后停止
+
+---
+
+### 延迟 1 秒后闪烁 5 次
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  delay: 1,
+  repeatCount: 5,
+  onceBlinkDurationSeconds: 1,
+  minOpacity: 0.2
+})}
+```
+
+**效果：** 延迟 1 秒后开始，闪烁 5 次后停止
+
+---
+
+### 点击后闪烁 2 次
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  beginType: 'click',
+  repeatCount: 2,
+  onceBlinkDurationSeconds: 1.5
+})}
+```
+
+**效果：** 点击后闪烁 2 次
+
+---
+
+## 时序控制最佳实践
+
+### 场景 1：加载动画
+
+**需求：** 页面加载后立即开始闪烁，持续到内容加载完成
+
+**推荐参数：**
+
+```tsx
+{genAnimateSoftBlink({
+  repeatCount: 0,  // 无限循环
+  onceBlinkDurationSeconds: 1,
+  minOpacity: 0.3
+})}
+```
+
+---
+
+### 场景 2：提示动画
+
+**需求：** 页面加载后延迟 2 秒，闪烁 3 次引起注意
+
+**推荐参数：**
+
+```tsx
+{genAnimateSoftBlink({
+  delay: 2,
+  repeatCount: 3,
+  onceBlinkDurationSeconds: 0.8,
+  minOpacity: 0.2
+})}
+```
+
+---
+
+### 场景 3：交互反馈
+
+**需求：** 点击后闪烁 2 次，表示操作成功
+
+**推荐参数：**
+
+```tsx
+{genAnimateSoftBlink({
+  beginType: 'click',
+  repeatCount: 2,
+  onceBlinkDurationSeconds: 0.5,
+  minOpacity: 0.4,
+  freeze: true
+})}
+```
+
+---
+
+### 场景 4：装饰效果
+
+**需求：** 延迟 1 秒后开始无限循环的轻柔闪烁
+
+**推荐参数：**
+
+```tsx
+{genAnimateSoftBlink({
+  delay: 1,
+  repeatCount: 0,
+  onceBlinkDurationSeconds: 2.5,
+  minOpacity: 0.6
+})}
+```
+
+---
+
+## 微信公众号注意事项
+
+### 点击触发在微信中的应用
+
+微信公众号对 `begin="click"` 有良好支持，常用于：
+
+- **选项卡切换** - 点击后内容闪烁显示
+- **答案揭示** - 点击后答案闪烁出现
+- **互动反馈** - 点击后按钮闪烁确认
+
+**完整示例：**
+
+```tsx
+<svg viewBox="0 0 200 200">
+  <g style={{ cursor: 'pointer' }}>
+    <rect width="200" height="200" fill="transparent" />
+    <circle cx="100" cy="100" r="50" fill="blue">
+      {genAnimateSoftBlink({
+        beginType: 'click',
+        repeatCount: 3,
+        onceBlinkDurationSeconds: 0.8
+      })}
+    </circle>
+  </g>
+</svg>
+```
+
+---
+
+## 下一步
+
+现在你已经掌握了时序控制的各种用法。接下来将学习：
+
+- **点击触发详解** - 更复杂的交互式闪烁效果
+- **自定义缓动** - 使用不同的缓动曲线创建特殊效果
+- **完整示例** - 实际应用场景的综合案例

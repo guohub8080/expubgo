@@ -1,0 +1,792 @@
+export const title = "缩放动画 scale"
+export const icon = "ZoomIn"
+
+# {title}
+
+`genAnimateScale` 是 SVG 缩放动画的生成工具，可以创建 `<animateTransform type="scale">` 元素。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimateScale } from '@svg-anim/scale';
+
+genAnimateScale({
+  initScale?: number,                       // 默认 1：初始缩放比例（1 = 原始大小）
+  timeline: ScaleTimelineSegment[],         // 必填：时间线段数组
+  delay?: number,                           // 默认 0：初始延迟（秒）
+  additive?: boolean,                       // 默认 true：是否累加变换
+  beginType?: SvgBeginEventType,               // 默认 undefined：动画开始事件类型
+  calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 自动：动画计算模式
+  freeze?: boolean,                         // 默认 false：是否保持最终状态
+  loopCount?: number,                       // 默认 1：循环次数（0 = 无限）
+  origin?: ScaleOrigin,                     // 默认 'center'：缩放中心点
+  elementBounds?: { x?, y?, w, h },         // 必填*：元素边界信息
+})
+```
+
+### ScaleTimelineSegment 类型
+
+```tsx
+interface ScaleTimelineSegment {
+  toScale?: number,                         // 默认上一段缩放：目标缩放比例
+  durationSeconds: number,                  // 必填：该段持续时间（秒）
+  keySplines?: string,                      // 默认 "0.42 0 0.58 1"：贝塞尔缓动参数
+}
+```
+
+### ScaleOrigin 类型
+
+```tsx
+type ScaleOrigin =
+  | 'center'       // 中心点 [x+w/2, y+h/2]
+  | 'topCenter'    // 顶部中心 [x+w/2, y]
+  | 'topLeft'      // 左上角 [x, y]
+  | 'topRight'     // 右上角 [x+w, y]
+  | 'bottomCenter' // 底部中心 [x+w/2, y+h]
+  | 'bottomLeft'   // 左下角 [x, y+h]
+  | 'bottomRight'  // 右下角 [x+w, y+h]
+  | 'leftCenter'   // 左侧中心 [x, y+h/2]
+  | 'rightCenter'  // 右侧中心 [x+w, y+h/2]
+  | 'origin'       // SVG 坐标原点 [0, 0]
+  | [number, number]; // 自定义坐标 [cx, cy]
+```
+
+---
+
+## 缩放比例说明
+
+| 比例 | 效果 | 说明 |
+|------|------|------|
+| `0` | 完全消失 | 元素缩小到不可见 |
+| `0.5` | 缩小一半 | 元素变为原始大小的 50% |
+| `1` | 原始大小 | 默认状态 |
+| `1.5` | 放大 1.5 倍 | 元素变为原始大小的 150% |
+| `2` | 放大两倍 | 元素变为原始大小的 200% |
+
+---
+
+## 使用示例
+
+### 简单的放大缩小
+
+```tsx
+<svg width="200" height="200">
+  <circle cx="100" cy="100" r="30" fill="blue">
+    {genAnimateScale({
+      initScale: 1,
+      timeline: [
+        { toScale: 1.5, durationSeconds: 1 },  // 放大到 1.5 倍
+        { toScale: 1, durationSeconds: 1 }     // 缩小回 1 倍
+      ]
+    })}
+  </circle>
+</svg>
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<!-- 第一步：平移到中心点 -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="100 100; 100 100; 100 100"
+  keyTimes="0; 0.5; 1"
+  dur="2s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+<!-- 第二步：执行缩放 -->
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1 1; 1.5 1.5; 1 1"
+  keyTimes="0; 0.5; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+<!-- 第三步：平移回原位置 -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="-100 -100; -100 -100; -100 -100"
+  keyTimes="0; 0.5; 1"
+  dur="2s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+**效果**：圆形从原始大小放大到 1.5 倍，然后缩小回原始大小
+
+**说明**：为了围绕任意原点缩放，使用了三段变换：translate(cx,cy) → scale(sx,sy) → translate(-cx,-cy)
+
+---
+
+### 中心缩放（推荐配合 CSS）
+
+```tsx
+import { getCenterScaleStyle } from '@svg-anim/scale';
+
+<circle
+  cx="100" cy="100" r="30"
+  fill="blue"
+  style={getCenterScaleStyle()}
+>
+  {genAnimateScale({
+    origin: 'center',
+    timeline: [
+      { toScale: 1.5, durationSeconds: 1 }
+    ]
+  })}
+</circle>
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 0; 0 0"
+  keyTimes="0; 1"
+  dur="1s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+<!-- scale -->
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1 1; 1.5 1.5"
+  keyTimes="0; 1"
+  keySplines="0.42 0 0.58 1"
+  dur="1s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 0; 0 0"
+  keyTimes="0; 1"
+  dur="1s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+**CSS 样式：**
+```css
+transform-origin: center;
+transform-box: fill-box;
+```
+
+---
+
+### 左上角缩放（使用 elementBounds）
+
+```tsx
+{genAnimateScale({
+  origin: 'topLeft',
+  elementBounds: { x: 70, y: 70, w: 60, h: 60 },
+  timeline: [
+    { toScale: 1.5, durationSeconds: 1 }
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<!-- translate to origin -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="70 70; 70 70"
+  keyTimes="0; 1"
+  dur="1s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+<!-- scale -->
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1 1; 1.5 1.5"
+  keyTimes="0; 1"
+  keySplines="0.42 0 0.58 1"
+  dur="1s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+<!-- translate back -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="-70 -70; -70 -70"
+  keyTimes="0; 1"
+  dur="1s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+**说明**：topLeft = [x, y] = [70, 70]
+
+---
+
+### 自定义坐标缩放
+
+```tsx
+{genAnimateScale({
+  origin: [100, 100],  // 自定义缩放中心
+  timeline: [
+    { toScale: 2, durationSeconds: 1 }
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<!-- translate to origin -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="100 100; 100 100"
+  keyTimes="0; 1"
+  dur="1s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+<!-- scale -->
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1 1; 2 2"
+  keyTimes="0; 1"
+  keySplines="0.42 0 0.58 1"
+  dur="1s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+<!-- translate back -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="-100 -100; -100 -100"
+  keyTimes="0; 1"
+  dur="1s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 呼吸效果（反复放大缩小）
+
+```tsx
+{genAnimateScale({
+  initScale: 1,
+  timeline: [
+    { toScale: 1.2, durationSeconds: 1 },  // 放大
+    { toScale: 1, durationSeconds: 1 }     // 缩小
+  ],
+  loopCount: 0  // 无限循环
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="100 100; 100 100; 100 100"
+  keyTimes="0; 0.5; 1"
+  dur="2s"
+  calcMode="linear"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
+/>
+<!-- scale -->
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1 1; 1.2 1.2; 1 1"
+  keyTimes="0; 0.5; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
+/>
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="-100 -100; -100 -100; -100 -100"
+  keyTimes="0; 0.5; 1"
+  dur="2s"
+  calcMode="linear"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 点击放大
+
+```tsx
+{genAnimateScale({
+  initScale: 1,
+  timeline: [
+    { toScale: 1.5, durationSeconds: 0.3 }
+  ],
+  beginType: 'click',  // 点击触发
+  freeze: true             // 保持放大状态
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="100 100; 100 100"
+  keyTimes="0; 1"
+  dur="0.3s"
+  calcMode="linear"
+  begin="click"
+  repeatCount="1"
+  fill="freeze"
+  additive="sum"
+/>
+<!-- scale -->
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1 1; 1.5 1.5"
+  keyTimes="0; 1"
+  keySplines="0.42 0 0.58 1"
+  dur="0.3s"
+  calcMode="spline"
+  begin="click"
+  repeatCount="1"
+  fill="freeze"
+  additive="sum"
+/>
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="-100 -100; -100 -100"
+  keyTimes="0; 1"
+  dur="0.3s"
+  calcMode="linear"
+  begin="click"
+  repeatCount="1"
+  fill="freeze"
+  additive="sum"
+/>
+```
+
+---
+
+### 弹性放大（先快后慢）
+
+```tsx
+import { getBackBezier } from '@pub-utils/getBezier';
+
+{genAnimateScale({
+  initScale: 0,
+  timeline: [
+    {
+      toScale: 1,
+      keySplines: getBackBezier({ overshoot: 1.7 }),  // 弹性效果
+      durationSeconds: 0.6
+    }
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="100 100; 100 100"
+  keyTimes="0; 1"
+  dur="0.6s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+<!-- scale -->
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="0 0; 1 1"
+  keyTimes="0; 1"
+  keySplines="0.34 1.56 0.64 1"
+  dur="0.6s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="-100 -100; -100 -100"
+  keyTimes="0; 1"
+  dur="0.6s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 脉冲效果（多次放大缩小）
+
+```tsx
+{genAnimateScale({
+  initScale: 1,
+  timeline: [
+    { toScale: 1.3, durationSeconds: 0.3 },
+    { toScale: 1, durationSeconds: 0.3 },
+    { toScale: 1.2, durationSeconds: 0.3 },
+    { toScale: 1, durationSeconds: 0.3 }
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="100 100; 100 100; 100 100; 100 100; 100 100"
+  keyTimes="0; 0.25; 0.5; 0.75; 1"
+  dur="1.2s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+<!-- scale -->
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1 1; 1.3 1.3; 1 1; 1.2 1.2; 1 1"
+  keyTimes="0; 0.25; 0.5; 0.75; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="1.2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="-100 -100; -100 -100; -100 -100; -100 -100; -100 -100"
+  keyTimes="0; 0.25; 0.5; 0.75; 1"
+  dur="1.2s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 从零出现（从小到大）
+
+```tsx
+{genAnimateScale({
+  initScale: 0,
+  timeline: [
+    { toScale: 1, durationSeconds: 0.5 }
+  ],
+  freeze: true  // 保持最终状态
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="100 100; 100 100"
+  keyTimes="0; 1"
+  dur="0.5s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="freeze"
+  additive="sum"
+/>
+<!-- scale -->
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="0 0; 1 1"
+  keyTimes="0; 1"
+  keySplines="0.42 0 0.58 1"
+  dur="0.5s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="freeze"
+  additive="sum"
+/>
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="-100 -100; -100 -100"
+  keyTimes="0; 1"
+  dur="0.5s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="freeze"
+  additive="sum"
+/>
+```
+
+---
+
+### 心跳效果
+
+```tsx
+import { genAnimateScale } from '@svg-anim/scale';
+
+const Heartbeat = () => {
+  return (
+    <svg width="100" height="100" viewBox="0 0 100 100">
+      {/* 心形 */}
+      <path
+        d="M50 30 C50 30 20 10 20 30 C20 45 35 55 50 70 C65 55 80 45 80 30 C80 10 50 30 50 30"
+        fill="#ef4444"
+      >
+        {/* 心跳动画 */}
+        {genAnimateScale({
+          origin: 'center',
+          elementBounds: { x: 20, y: 10, w: 60, h: 60 },
+          initScale: 1,
+          timeline: [
+            { toScale: 1.1, durationSeconds: 0.1 },
+            { toScale: 1, durationSeconds: 0.1 },
+            { toScale: 1.15, durationSeconds: 0.1 },
+            { toScale: 1, durationSeconds: 0.7 }
+          ],
+          loopCount: 0
+        })}
+      </path>
+    </svg>
+  );
+};
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="50 40; 50 40; 50 40; 50 40; 50 40"
+  keyTimes="0; 0.1; 0.2; 0.3; 1"
+  dur="1s"
+  calcMode="linear"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
+/>
+<!-- scale -->
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1 1; 1.1 1.1; 1 1; 1.15 1.15; 1 1"
+  keyTimes="0; 0.1; 0.2; 0.3; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="1s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
+/>
+<!-- translate -->
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="-50 -40; -50 -40; -50 -40; -50 -40; -50 -40"
+  keyTimes="0; 0.1; 0.2; 0.3; 1"
+  dur="1s"
+  calcMode="linear"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+## elementBounds 详解
+
+`elementBounds` 提供元素的位置和尺寸，用于自动计算缩放中心：
+
+```tsx
+// 元素位于 (70, 70)，尺寸 60x60
+elementBounds: {
+  x: 70,   // 元素左上角 X 坐标（可选，默认 0）
+  y: 70,   // 元素左上角 Y 坐标（可选，默认 0）
+  w: 60,   // 元素宽度（必填）
+  h: 60    // 元素高度（必填）
+}
+```
+
+**快捷位置对应的坐标：**
+
+| origin | 计算方式 | 示例值 |
+|--------|----------|--------|
+| `'center'` | `[x + w/2, y + h/2]` | `[100, 100]` |
+| `'topCenter'` | `[x + w/2, y]` | `[100, 70]` |
+| `'bottomRight'` | `[x + w, y + h]` | `[130, 130]` |
+| `'topLeft'` | `[x, y]` | `[70, 70]` |
+
+---
+
+## 注意事项
+
+### additive 属性
+
+- **推荐使用 `additive: true`**（默认）：动画会与其他变换叠加
+- 使用 `additive: false`：动画会替换其他变换
+
+### 缩放比例限制
+
+- 过大的缩放比例（如 10 以上）可能导致性能问题
+- 负数缩放比例会翻转元素（通常不是预期效果）
+
+### 与其他动画组合
+
+```tsx
+<circle cx="100" cy="100" r="30" fill="blue">
+  {/* 同时缩放和旋转 */}
+  {genAnimateScale({
+    initScale: 1,
+    timeline: [{ toScale: 1.5, durationSeconds: 2 }]
+  })}
+  {genAnimateRotate({
+    initAngle: 0,
+    timeline: [{ toAngle: 360, durationSeconds: 2 }]
+  })}
+</circle>
+```
+
+### freeze 属性
+
+- **`freeze: false`**（默认）：动画结束后回到原始状态
+- **`freeze: true`**：动画结束后停留在最后一帧
+
+---
+
+## 完整示例：交互式按钮（悬停放大）
+
+```tsx
+import { genAnimateScale } from '@svg-anim/scale';
+
+const InteractiveButton = () => {
+  return (
+    <svg width="200" height="60">
+      <g>
+        {/* 按钮背景 */}
+        <rect
+          x="10"
+          y="10"
+          width="180"
+          height="40"
+          rx="8"
+          fill="#3b82f6"
+        >
+          {/* 悬停时放大 */}
+          {genAnimateScale({
+            origin: 'center',
+            elementBounds: { x: 10, y: 10, w: 180, h: 40 },
+            initScale: 1,
+            timeline: [
+              { toScale: 1.05, durationSeconds: 0.2 }
+            ],
+            beginType: undefined,
+            freeze: true
+          })}
+        </rect>
+
+        {/* 按钮文字 */}
+        <text
+          x="100"
+          y="36"
+          textAnchor="middle"
+          fill="white"
+          fontSize="16"
+          fontWeight="bold"
+        >
+          点击我
+        </text>
+      </g>
+    </svg>
+  );
+};
+```

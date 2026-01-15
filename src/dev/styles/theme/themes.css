@@ -1,0 +1,233 @@
+/**
+ * 多主题系统
+ * 使用 [data-theme] 属性而不是 .dark 类
+ * 支持无限多个主题
+ */
+
+/* ===================================
+   默认主题（亮色）
+   =================================== */
+:root,
+[data-theme="light"] {
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.145 0 0);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.145 0 0);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.145 0 0);
+  --color-primary: #1976D2;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: oklch(0.97 0 0);
+  --color-secondary-foreground: oklch(0.205 0 0);
+  --color-muted: oklch(0.97 0 0);
+  --color-muted-foreground: oklch(0.556 0 0);
+  --color-accent: oklch(0.97 0 0);
+  --color-accent-foreground: oklch(0.205 0 0);
+  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(0.922 0 0);
+  --color-input: oklch(0.922 0 0);
+  --color-ring: #1976D2;
+  --color-chart-1: oklch(0.646 0.222 41.116);
+  --color-chart-2: oklch(0.6 0.118 184.704);
+  --color-chart-3: oklch(0.398 0.07 227.392);
+  --color-chart-4: oklch(0.828 0.189 84.429);
+  --color-chart-5: oklch(0.769 0.188 70.08);
+  --color-sidebar: oklch(0.985 0 0);
+  --color-sidebar-foreground: oklch(0.145 0 0);
+  --color-sidebar-primary: oklch(0.205 0 0);
+  --color-sidebar-primary-foreground: oklch(0.985 0 0);
+  --color-sidebar-accent: oklch(0.97 0 0);
+  --color-sidebar-accent-foreground: oklch(0.205 0 0);
+  --color-sidebar-border: oklch(0.922 0 0);
+  --color-sidebar-ring: oklch(0.708 0 0);
+}
+
+/* ===================================
+   暗色主题
+   =================================== */
+[data-theme="dark"] {
+  --color-background: oklch(0.145 0 0);
+  --color-foreground: oklch(0.985 0 0);
+  --color-card: oklch(0.205 0 0);
+  --color-card-foreground: oklch(0.985 0 0);
+  --color-popover: oklch(0.205 0 0);
+  --color-popover-foreground: oklch(0.985 0 0);
+  --color-primary: oklch(0.922 0 0);
+  --color-primary-foreground: oklch(0.205 0 0);
+  --color-secondary: oklch(0.269 0 0);
+  --color-secondary-foreground: oklch(0.985 0 0);
+  --color-muted: oklch(0.269 0 0);
+  --color-muted-foreground: oklch(0.708 0 0);
+  --color-accent: oklch(0.269 0 0);
+  --color-accent-foreground: oklch(0.985 0 0);
+  --color-destructive: oklch(0.704 0.191 22.216);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(1 0 0 / 10%);
+  --color-input: oklch(1 0 0 / 15%);
+  --color-ring: oklch(0.556 0 0);
+  --color-chart-1: oklch(0.488 0.243 264.376);
+  --color-chart-2: oklch(0.696 0.17 162.48);
+  --color-chart-3: oklch(0.769 0.188 70.08);
+  --color-chart-4: oklch(0.627 0.265 303.9);
+  --color-chart-5: oklch(0.645 0.246 16.439);
+  --color-sidebar: oklch(0.205 0 0);
+  --color-sidebar-foreground: oklch(0.985 0 0);
+  --color-sidebar-primary: oklch(0.488 0.243 264.376);
+  --color-sidebar-primary-foreground: oklch(0.985 0 0);
+  --color-sidebar-accent: oklch(0.269 0 0);
+  --color-sidebar-accent-foreground: oklch(0.985 0 0);
+  --color-sidebar-border: oklch(1 0 0 / 10%);
+  --color-sidebar-ring: oklch(0.556 0 0);
+}
+
+/* ===================================
+   复古主题
+   =================================== */
+[data-theme="retro"] {
+  --color-background: #f5f0e8;
+  --color-foreground: #3d3229;
+  --color-card: #faf6f0;
+  --color-card-foreground: #3d3229;
+  --color-popover: #faf6f0;
+  --color-popover-foreground: #3d3229;
+  --color-primary: #8B7355;
+  --color-primary-foreground: #faf6f0;
+  --color-secondary: #e8e0d4;
+  --color-secondary-foreground: #3d3229;
+  --color-muted: #e8e0d4;
+  --color-muted-foreground: #7a6b5a;
+  --color-accent: #d4c8b8;
+  --color-accent-foreground: #3d3229;
+  --color-destructive: #a05040;
+  --color-destructive-foreground: #faf6f0;
+  --color-border: #d4c8b8;
+  --color-input: #d4c8b8;
+  --color-ring: #8B7355;
+}
+
+/* ===================================
+   午夜主题 - 深蓝紫，适合夜间
+   =================================== */
+[data-theme="midnight"] {
+  --color-background: #0f172a;
+  --color-foreground: #e2e8f0;
+  --color-card: #1e293b;
+  --color-card-foreground: #e2e8f0;
+  --color-popover: #1e293b;
+  --color-popover-foreground: #e2e8f0;
+  --color-primary: #818cf8;
+  --color-primary-foreground: #0f172a;
+  --color-secondary: #1e293b;
+  --color-secondary-foreground: #e2e8f0;
+  --color-muted: #1e293b;
+  --color-muted-foreground: #94a3b8;
+  --color-accent: #312e81;
+  --color-accent-foreground: #e2e8f0;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #334155;
+  --color-input: #334155;
+  --color-ring: #818cf8;
+}
+
+/* ===================================
+   森林主题 - 墨绿色系，自然风
+   =================================== */
+[data-theme="forest"] {
+  --color-background: #f0f4f1;
+  --color-foreground: #1a2e1a;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a2e1a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1a2e1a;
+  --color-primary: #2d6a4f;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #d8e8dc;
+  --color-secondary-foreground: #1a2e1a;
+  --color-muted: #d8e8dc;
+  --color-muted-foreground: #5a7a5a;
+  --color-accent: #40916c;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #c0392b;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #b8d4c0;
+  --color-input: #b8d4c0;
+  --color-ring: #2d6a4f;
+}
+
+/* ===================================
+   焦糖主题 - 暖橙棕色，温馨舒适
+   =================================== */
+[data-theme="caramel"] {
+  --color-background: #faf7f2;
+  --color-foreground: #5c4033;
+  --color-card: #ffffff;
+  --color-card-foreground: #5c4033;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #5c4033;
+  --color-primary: #a67c52;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f0e6d8;
+  --color-secondary-foreground: #5c4033;
+  --color-muted: #f0e6d8;
+  --color-muted-foreground: #8b7355;
+  --color-accent: #c49a6c;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #b85450;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #e5d9cc;
+  --color-input: #e5d9cc;
+  --color-ring: #a67c52;
+}
+
+/* ===================================
+   深海主题 - 深蓝青色，沉静深邃
+   =================================== */
+[data-theme="ocean"] {
+  --color-background: #f0f4f8;
+  --color-foreground: #1a365d;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a365d;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1a365d;
+  --color-primary: #2563eb;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #dbeafe;
+  --color-secondary-foreground: #1a365d;
+  --color-muted: #dbeafe;
+  --color-muted-foreground: #4a6fa5;
+  --color-accent: #3b82f6;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #bfdbfe;
+  --color-input: #bfdbfe;
+  --color-ring: #2563eb;
+}
+
+/* ===================================
+   薄雾主题 - 灰蓝冷淡，极简现代
+   =================================== */
+[data-theme="mist"] {
+  --color-background: #e2e8f0;
+  --color-foreground: #1e293b;
+  --color-card: #f1f5f9;
+  --color-card-foreground: #1e293b;
+  --color-popover: #f1f5f9;
+  --color-popover-foreground: #1e293b;
+  --color-primary: #475569;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #cbd5e1;
+  --color-secondary-foreground: #1e293b;
+  --color-muted: #cbd5e1;
+  --color-muted-foreground: #546e8a;
+  --color-accent: #94a3b8;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #b0c0d0;
+  --color-input: #b0c0d0;
+  --color-ring: #475569;
+}
+

@@ -1,0 +1,518 @@
+export const title = "KeySplines 生成函数"
+
+# {title}
+
+`genSvgKeySplines` 是 SVG 动画系统的**底层参数计算工具**。它只负责计算数字，不生成任何 SVG 代码。
+
+## 核心概念
+
+SVG 的 `<animate>` 和 `<animateTransform>` 标签需要三个核心参数：
+
+- **keyTimes** - 关键时间点（如 `"0;0.5;1"`）
+- **keySplines** - 缓动曲线（如 `"0.42 0 0.58 1"`）
+- **values** - 关键值序列（如 `"0;100;0"`）
+
+手动计算这些参数非常复杂，`genSvgKeySplines` 可以自动完成！
+
+## genSvgKeySplines vs genSvgAnimate
+
+这两个工具经常被混淆，但它们处于**完全不同的层次**：
+
+### 层次对比
+
+```
+┌─────────────────────────────────────────────────┐
+│           用户看到的效果（圆形从左移到右）          │
+└─────────────────────────────────────────────────┘
+                        ↑
+┌─────────────────────────────────────────────────┐
+│  genSvgAnimate (高层动画生成器)                   │
+│  ├── translate/  (位移)                          │
+│  ├── rotate/    (旋转)                          │
+│  ├── scale/     (缩放)                          │
+│  └── opacity/   (透明度)                        │
+│                                                 │
+│  输出: 完整的 <animateTransform> 元素            │
+│  用户可以直接放入 SVG 使用                       │
+└─────────────────────────────────────────────────┘
+                        ↑ 调用
+┌─────────────────────────────────────────────────┐
+│  genSvgKeySplines (底层参数计算器)               │
+│                                                 │
+│  输出: { keyTimes, keySplines, values, duration }│
+│  只是纯数据，不涉及任何 SVG 结构                │
+└─────────────────────────────────────────────────┘
+```
+
+### 核心区别
+
+| 特性 | genSvgKeySplines | genSvgAnimate |
+|------|------------------|---------------|
+| **层次** | 底层计算工具 | 高层动画生成器 |
+| **输出** | 参数对象（纯数据） | React 元素（可渲染） |
+| **职责** | 只计算时间/曲线/值 | 处理完整的动画逻辑 |
+| **使用场景** | 需要完全自定义控制 | 快速生成常见动画 |
+| **依赖关系** | 独立存在 | 内部调用 genSvgKeySplines |
+
+## 代码对比
+
+### 场景：让一个圆形从左边移到右边（2秒，ease-in-out）
+
+#### 方式 1：使用 genSvgKeySplines（底层方式）
+
+你需要自己处理所有细节：
+
+```tsx
+import { genSvgKeySplines } from '@pub-utils/genSvgKeySplines';
+
+const MovingCircle = () => {
+  // 第1步：计算参数
+  const keys = genSvgKeySplines({
+    initValue: 0,
+    timeline: [
+      { keySplines: '0.42 0 0.58 1', toValue: 200, durationSeconds: 2 }
+    ]
+  });
+  // 结果: { keyTimes: '0;1', keySplines: '0.42 0 0.58 1', values: '0;200', totalDuration: 2 }
+
+  // 第2步：手动组装 animateTransform 元素
+  return (
+    <svg width="300" height="100">
+      <circle cx="50" cy="50" r="20" fill="blue">
+        <animateTransform
+          attributeName="transform"
+          type="translate"
+          values={keys.values}
+          keyTimes={keys.keyTimes}
+          keySplines={keys.keySplines}
+          dur={`${keys.totalDuration}s`}
+          calcMode="spline"
+        />
+      </circle>
+    </svg>
+  );
+};
+```
+
+**优点**：完全控制每个属性
+**缺点**：代码繁琐，容易出错
+
+---
+
+#### 方式 2：使用 genSvgAnimate（高层方式）
+
+只需要声明你的意图：
+
+```tsx
+import { genAnimateTranslate } from '@svg-anim/translate';
+
+const MovingCircle = () => {
+  return (
+    <svg width="300" height="100">
+      <circle cx="50" cy="50" r="20" fill="blue">
+        {/* 直接放入生成的元素 */}
+        {genAnimateTranslate({
+          initValue: { x: 0, y: 0 },
+          timeline: [
+            { keySplines: '0.42 0 0.58 1', toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+          ]
+        })}
+      </circle>
+    </svg>
+  );
+};
+```
+
+**优点**：简洁、不易出错
+**缺点**：灵活性较低（但通常足够用）
+
+---
+
+### genSvgAnimate 的内部实现
+
+让我们看看 `genAnimateTranslate` 内部是如何使用 `genSvgKeySplines` 的：
+
+```tsx
+// 这是 genAnimateTranslate 的简化实现逻辑
+function genAnimateTranslate(config) {
+  const { initValue, timeline } = config;
+
+  // 1. 分别处理 X 和 Y 轴的参数
+  const xTimeline = timeline.map(seg => ({
+    keySplines: seg.keySplines,
+    toValue: seg.toValue.x,
+    durationSeconds: seg.durationSeconds
+  }));
+
+  const yTimeline = timeline.map(seg => ({
+    keySplines: seg.keySplines,
+    toValue: seg.toValue.y,
+    durationSeconds: seg.durationSeconds
+  }));
+
+  // 2. 调用 genSvgKeySplines 计算 X 和 Y 的参数
+  const xKeys = genSvgKeySplines({ initValue: initValue.x, timeline: xTimeline });
+  const yKeys = genSvgKeySplines({ initValue: initValue.y, timeline: yTimeline });
+
+  // 3. 合并 X 和 Y 的 values
+  const xyValues = xKeys.values.split(';').map((xVal, i) => {
+    const yVal = yKeys.values.split(';')[i];
+    return `${xVal} ${yVal}`;
+  }).join(';');
+
+  // 4. 返回完整的 animateTransform 元素
+  return (
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      values={xyValues}
+      keyTimes={xKeys.keyTimes}
+      keySplines={xKeys.keySplines}
+      dur={`${xKeys.totalDuration}s`}
+      calcMode="spline"
+    />
+  );
+}
+```
+
+**关键点**：`genSvgAnimate` 内部调用了两次 `genSvgKeySplines`（分别计算 X 和 Y 轴），然后合并结果。
+
+---
+
+## 什么时候用哪个？
+
+### 使用 genSvgKeySplines，当你需要：
+
+1. **完全自定义动画属性**
+   ```tsx
+   // 想要一个特殊的动画效果
+   <animate
+     attributeName="stroke-dasharray"
+     values={keys.values}
+     keyTimes={keys.keyTimes}
+     keySplines={keys.keySplines}
+     calcMode="spline"
+   />
+   ```
+
+2. **理解 SVG 动画的工作原理**
+   - 学习 keyTimes/keySplines/values 的关系
+   - 调试复杂的动画问题
+
+3. **构建自己的动画生成工具**
+   - 类似 genSvgAnimate 的自定义工具
+   - 特定领域的动画生成器
+
+4. **处理非标准的动画需求**
+   - 多属性联动动画
+   - 条件性动画控制
+
+---
+
+### 使用 genSvgAnimate，当你需要：
+
+1. **快速生成常见动画**
+   ```tsx
+   // 位移
+   genAnimateTranslate({ ... })
+   // 旋转
+   genAnimateRotate({ ... })
+   // 缩放
+   genAnimateScale({ ... })
+   // 透明度
+   genAnimateOpacity({ ... })
+   ```
+
+2. **不想处理底层细节**
+   - 不需要关心 keyTimes 如何计算
+   - 不需要手动拼接 values 字符串
+
+3. **直接可用的 SVG 元素**
+   ```tsx
+   <circle>
+     {genAnimateTranslate({ ... })}  {/* 直接放入即可 */}
+   </circle>
+   ```
+
+4. **提高开发效率**
+   - 预设效果（fadeBlink、breathe、float 等）
+   - 辅助函数（loop、path 等）
+
+---
+
+## 函数签名
+
+### 输入参数
+
+| 参数 | 类型 | 说明 | 示例 |
+|------|------|------|------|
+| `initValue` | `string \| number` | 动画的初始值 | `0`, `"0px"`, `"red"` |
+| `timeline` | `SvgTimelineSegment[]` | 时间线段数组 | 见下方表 |
+
+**SvgTimelineSegment 结构：**
+
+| 参数 | 类型 | 说明 | 示例 |
+|------|------|------|------|
+| `keySplines` | `string` | 贝塞尔曲线参数 | `"0.42 0 0.58 1"` |
+| `toValue` | `string \| number` | 该段的目标值 | `100`, `"100px"` |
+| `durationSeconds` | `number` | 该段的持续时间（秒） | `2`, `1.5` |
+
+### 输出结果
+
+| 参数 | 类型 | 说明 | 示例 |
+|------|------|------|------|
+| `keyTimes` | `string` | 关键时间点（分号分隔） | `"0;0.4;1"` |
+| `keySplines` | `string` | 缓动曲线参数（分号分隔） | `"0.42 0 0.58 1;0 0 0.58 1"` |
+| `values` | `string` | 关键值序列（分号分隔） | `"0;100;200"` |
+| `totalDuration` | `number` | 动画总时长（秒） | `5` |
+
+---
+
+## 使用示例
+
+### 示例 1：单段动画
+
+**输入：**
+```typescript
+const result = genSvgKeySplines({
+  initValue: 0,
+  timeline: [
+    {
+      keySplines: '0.42 0 0.58 1',
+      toValue: 100,
+      durationSeconds: 2
+    }
+  ]
+});
+```
+
+**输出：**
+```typescript
+{
+  keyTimes: '0;1',
+  keySplines: '0.42 0 0.58 1',
+  values: '0;100',
+  totalDuration: 2
+}
+```
+
+**可视化：**
+```
+时间轴：├────────────┤
+      0s         2s
+值：    0    →    100
+```
+
+---
+
+### 示例 2：两段动画
+
+**输入：**
+```typescript
+const result = genSvgKeySplines({
+  initValue: 0,
+  timeline: [
+    {
+      keySplines: '0.42 0 0.58 1',  // ease-in-out
+      toValue: 100,
+      durationSeconds: 2
+    },
+    {
+      keySplines: '0 0 0.58 1',      // ease-out
+      toValue: 200,
+      durationSeconds: 3
+    }
+  ]
+});
+```
+
+**输出：**
+```typescript
+{
+  keyTimes: '0;0.4;1',
+  keySplines: '0.42 0 0.58 1;0 0 0.58 1',
+  values: '0;100;200',
+  totalDuration: 5
+}
+```
+
+**可视化：**
+```
+时间轴：├────────┤├───────────────┤
+      0s       2s             5s
+      ←── 40% ──→←──── 60% ────→
+
+值：    0   →   100   →   200
+```
+
+---
+
+### 示例 3：往返动画（呼吸效果）
+
+**输入：**
+```typescript
+const result = genSvgKeySplines({
+  initValue: 1,
+  timeline: [
+    {
+      keySplines: '0.42 0 0.58 1',
+      toValue: 1.3,
+      durationSeconds: 1
+    },
+    {
+      keySplines: '0.42 0 0.58 1',
+      toValue: 1,
+      durationSeconds: 1
+    },
+    {
+      keySplines: '0.42 0 0.58 1',
+      toValue: 0.7,
+      durationSeconds: 1
+    }
+  ]
+});
+```
+
+**输出：**
+```typescript
+{
+  keyTimes: '0;0.333;0.667;1',
+  keySplines: '0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1',
+  values: '1;1.3;1;0.7',
+  totalDuration: 3
+}
+```
+
+**可视化：**
+```
+时间轴：├──┤├──┤├──┤
+      0s 1s 2s 3s
+     33% 33% 33%
+
+值： 1 → 1.3 → 1 → 0.7
+    放大   还原   缩小
+```
+
+---
+
+## 参数计算原理
+
+### keyTimes 计算方式
+
+```
+相对时间 = 累计时间 / 总时长
+
+例如：
+总时长 = 5秒
+
+第1段：2秒 → 2/5 = 0.4
+第2段：3秒 → (2+3)/5 = 1.0
+
+keyTimes = "0;0.4;1"
+```
+
+### values 构建方式
+
+```
+values = [初始值, 目标值1, 目标值2, ...]
+
+例如：
+initValue = 0
+第1段 toValue = 100
+第2段 toValue = 200
+
+values = "0;100;200"
+```
+
+### keySplines 拼接方式
+
+```
+keySplines = [第1段, 第2段, ...]
+
+注意：keySplines 的数量 = keyTimes 数量 - 1
+```
+
+---
+
+## 错误处理
+
+### timeline 为空
+
+```typescript
+// ❌ 错误
+genSvgKeySplines({
+  initValue: 0,
+  timeline: []
+})
+// Error: timeline 必须是非空数组
+```
+
+### keySplines 格式错误
+
+```typescript
+// ❌ 错误
+genSvgKeySplines({
+  initValue: 0,
+  timeline: [
+    { keySplines: 'invalid', toValue: 100, durationSeconds: 2 }
+  ]
+})
+// Error: 第 0 个 keySplines 格式不正确: "invalid"
+//       应为 "x1 y1 x2 y2" 格式，例如 "0.42 0 0.58 1"
+```
+
+### 总时长为 0
+
+```typescript
+// ❌ 错误
+genSvgKeySplines({
+  initValue: 0,
+  timeline: [
+    { keySplines: '0 0 1 1', toValue: 100, durationSeconds: 0 }
+  ]
+})
+// Error: 总时长必须大于 0
+```
+
+---
+
+## 配合其他工具使用
+
+### 与 getBezier 配合
+
+```tsx
+import { genSvgKeySplines } from '@pub-utils/genSvgKeySplines';
+import { getEaseBezier, getPowerBezier } from '@pub-utils/getBezier';
+
+const keys = genSvgKeySplines({
+  initValue: 0,
+  timeline: [
+    {
+      keySplines: getEaseBezier({ isIn: true, isOut: true }),
+      toValue: 100,
+      durationSeconds: 2
+    },
+    {
+      keySplines: getPowerBezier({ power: 4, isIn: false, isOut: true }),
+      toValue: 200,
+      durationSeconds: 3
+    }
+  ]
+});
+```
+
+---
+
+## 性能提示
+
+- ✅ 计算成本：O(n)，n 为 timeline 段数
+- ✅ 内存占用：小，只生成 4 个字符串
+- ✅ 运行时开销：几乎为零，编译时计算
+
+---
+
+## 相关链接
+
+- [贝塞尔缓动函数 Bezier](./[6]bezier.mdx) - 如何生成 keySplines 参数
+- [缓动 KeySplines](./[1]keysplines.mdx) - keySplines 在 SVG 中的作用
+- [元素边界 ElementBounds](./[2]element-bounds.mdx) - 控制动画的变换原点

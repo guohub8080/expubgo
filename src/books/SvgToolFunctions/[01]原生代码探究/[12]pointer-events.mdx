@@ -1,0 +1,748 @@
+export const title = "pointer-events 与事件冒泡"
+export const icon = "CursorClick"
+
+# {title}
+
+在 SVG 交互设计中，`pointer-events` 属性和事件冒泡机制是实现复杂点击效果的核心技术。本文深入探讨这些机制在 SVG 中的行为和应用。
+
+---
+
+## pointer-events 属性
+
+### 什么是 pointer-events
+
+`pointer-events` 是一个 CSS 属性，用于控制元素是否响应鼠标、触摸等指针事件。在 SVG 中，这个属性尤为重要，因为它可以实现"点击穿透"效果。
+
+### 基本语法
+
+```css
+pointer-events: auto | none | visiblePainted | visibleFill | visibleStroke | visible |
+                painted | fill | stroke | all | inherit
+```
+
+### 常用值对比
+
+| 值 | 说明 | 应用场景 |
+|----|------|----------|
+| `auto` | 默认值，元素接收所有指针事件 | 正常交互元素 |
+| `none` | 元素不接收指针事件，事件穿透到下层 | 遮罩层、装饰元素 |
+| `visiblePainted` | 只在可见且被绘制区域响应 | SVG 默认行为 |
+| `fill` | 只在 fill 区域响应 | 填充图形 |
+| `stroke` | 只在 stroke 区域响应 | 线条图形 |
+| `all` | 在整个区域响应（包括透明区域） | 透明按钮 |
+
+---
+
+## SVG 专用值详解
+
+### 完整值列表
+
+`pointer-events` 在 SVG 中有以下专用值：
+
+```
+auto | none | visiblePainted | visibleFill | visibleStroke | visible | painted | fill | stroke | all
+```
+
+### 决策矩阵
+
+这些值的判断逻辑可以理解为两个维度的组合：
+
+| 值 | visibility 检查 | fill/stroke 检查 | 响应区域 |
+|----|-----------------|------------------|----------|
+| `visiblePainted` | ✅ 必须可见 | ✅ 必须有填充或描边 | 可见且绘制的部分 |
+| `visibleFill` | ✅ 必须可见 | ❌ 忽略 fill 值 | 填充区域（包括 fill="none"） |
+| `visibleStroke` | ✅ 必须可见 | ❌ 忽略 stroke 值 | 描边区域（包括 stroke="none"） |
+| `visible` | ✅ 必须可见 | ❌ 忽略两者 | 填充和描边区域 |
+| `painted` | ❌ 忽略 visibility | ✅ 必须有填充或描边 | 绘制的部分（包括不可见） |
+| `fill` | ❌ 忽略 visibility | ❌ 忽略 fill 值 | 填充区域 |
+| `stroke` | ❌ 忽略 visibility | ❌ 忽略 stroke 值 | 描边区域 |
+| `all` | ❌ 忽略 visibility | ❌ 忽略两者 | 整个元素边界框 |
+
+### visiblePainted（SVG 默认值）
+
+**行为**：只在 `visibility="visible"` **且** `fill` 或 `stroke` 不为 `none` 时响应。
+
+```xml
+<svg viewBox="0 0 200 200">
+  <!-- 响应点击：可见且有填充 -->
+  <rect x="10" y="10" width="50" height="50" fill="blue"
+        pointer-events="visiblePainted" onclick="alert('1')" />
+
+  <!-- 不响应：fill="none" -->
+  <rect x="70" y="10" width="50" height="50" fill="none" stroke="black"
+        pointer-events="visiblePainted" onclick="alert('2')" />
+
+  <!-- 不响应：visibility="hidden" -->
+  <rect x="10" y="70" width="50" height="50" fill="red"
+        visibility="hidden"
+        pointer-events="visiblePainted" onclick="alert('3')" />
+</svg>
+```
+
+### visibleFill
+
+**行为**：只在 `visibility="visible"` 时响应填充区域，**忽略 `fill` 的值**。
+
+```xml
+<svg viewBox="0 0 200 200">
+  <!-- 响应：即使 fill="none" 也响应填充区域 -->
+  <rect x="10" y="10" width="50" height="50"
+        fill="none" stroke="black"
+        pointer-events="visibleFill"
+        onclick="alert('填充区域被点击')" />
+
+  <!-- 不响应：visibility="hidden" -->
+  <rect x="70" y="10" width="50" height="50"
+        fill="blue"
+        visibility="hidden"
+        pointer-events="visibleFill"
+        onclick="alert('不会触发')" />
+</svg>
+```
+
+**关键差异**：与 `visiblePainted` 不同，`visibleFill` 即使 `fill="none"` 也会响应点击（只要 `visibility="visible"`）。
+
+### visibleStroke
+
+**行为**：只在 `visibility="visible"` 时响应描边区域，**忽略 `stroke` 的值**。
+
+```xml
+<svg viewBox="0 0 200 200">
+  <!-- 响应：即使 stroke="none" 也响应描边区域 -->
+  <rect x="10" y="10" width="50" height="50"
+        fill="blue" stroke="none" stroke-width="10"
+        pointer-events="visibleStroke"
+        onclick="alert('描边区域被点击')" />
+
+  <!-- 响应：描边区域（线条本身） -->
+  <line x1="10" y1="70" x2="100" y2="70"
+        stroke="none" stroke-width="20"
+        pointer-events="visibleStroke"
+        onclick="alert('线条被点击')" />
+</svg>
+```
+
+### visible
+
+**行为**：只在 `visibility="visible"` 时响应，同时响应填充和描边区域。
+
+```xml
+<svg viewBox="0 0 200 200">
+  <!-- 响应：填充区域 -->
+  <rect x="10" y="10" width="50" height="50"
+        fill="blue"
+        pointer-events="visible"
+        onclick="alert('填充')" />
+
+  <!-- 响应：描边区域 -->
+  <rect x="70" y="10" width="50" height="50"
+        fill="none" stroke="black" stroke-width="10"
+        pointer-events="visible"
+        onclick="alert('描边')" />
+</svg>
+```
+
+### painted
+
+**行为**：只检查 `fill` 或 `stroke` 是否不为 `none`，**忽略 `visibility`**。
+
+```xml
+<svg viewBox="0 0 200 200">
+  <!-- 响应：即使不可见，只要 fill 不是 none 就响应 -->
+  <rect x="10" y="10" width="50" height="50"
+        fill="blue"
+        visibility="hidden"
+        pointer-events="painted"
+        onclick="alert('隐藏但响应点击！')" />
+
+  <!-- 不响应：fill="none" -->
+  <rect x="70" y="10" width="50" height="50"
+        fill="none" stroke="black"
+        visibility="hidden"
+        pointer-events="painted"
+        onclick="alert('不会触发')" />
+</svg>
+```
+
+**用途**：适用于需要捕获不可见元素点击的场景（如隐藏的热区）。
+
+### fill
+
+**行为**：只响应填充区域，**完全忽略** `visibility` 和 `fill` 的值。
+
+```xml
+<svg viewBox="0 0 200 200">
+  <!-- 响应：填充区域，即使 fill="none" 且不可见 -->
+  <rect x="10" y="10" width="50" height="50"
+        fill="none"
+        visibility="hidden"
+        pointer-events="fill"
+        onclick="alert('填充区域')" />
+
+  <!-- 不响应：只有描边，没有填充 -->
+  <rect x="70" y="10" width="50" height="50"
+        fill="none" stroke="black" stroke-width="10"
+        pointer-events="fill"
+        onclick="alert('不会触发')" />
+</svg>
+```
+
+### stroke
+
+**行为**：只响应描边区域，**完全忽略** `visibility` 和 `stroke` 的值。
+
+```xml
+<svg viewBox="0 0 200 200">
+  <!-- 响应：描边区域，即使 stroke="none" 且不可见 -->
+  <rect x="10" y="10" width="50" height="50"
+        stroke="none" stroke-width="10"
+        visibility="hidden"
+        pointer-events="stroke"
+        onclick="alert('描边区域')" />
+
+  <!-- 不响应：只有填充，没有描边 -->
+  <rect x="70" y="10" width="50" height="50"
+        fill="blue"
+        pointer-events="stroke"
+        onclick="alert('不会触发')" />
+</svg>
+```
+
+### all
+
+**行为**：响应整个元素的边界框（bounding box），**完全忽略** `visibility`、`fill`、`stroke`。
+
+```xml
+<svg viewBox="0 0 200 200">
+  <!-- 响应：整个矩形区域（包括透明部分） -->
+  <rect x="10" y="10" width="100" height="100"
+        fill="none"
+        pointer-events="all"
+        onclick="alert('整个边界框')" />
+
+  <!-- 对比：只有填充区域响应 -->
+  <rect x="120" y="10" width="100" height="100"
+        fill="none"
+        pointer-events="visibleFill"
+        onclick="alert('不会触发')" />
+</svg>
+```
+
+**用途**：创建透明按钮或热区，点击整个边界框都有效。
+
+---
+
+### 值对比表总结
+
+| 值 | 检查 visibility | 检查 fill/stroke | 响应区域 | 适用场景 |
+|----|-----------------|------------------|----------|----------|
+| `visiblePainted` | ✅ | ✅ | 有绘制内容的可见部分 | SVG 默认行为 |
+| `visibleFill` | ✅ | ❌ | 填充区域（可见） | 只关心填充 |
+| `visibleStroke` | ✅ | ❌ | 描边区域（可见） | 只关心线条 |
+| `visible` | ✅ | ❌ | 填充+描边（可见） | 可见区域全部响应 |
+| `painted` | ❌ | ✅ | 有绘制内容（任意可见性） | 隐藏热区 |
+| `fill` | ❌ | ❌ | 填充区域（任意值） | 纯填充检测 |
+| `stroke` | ❌ | ❌ | 描边区域（任意值） | 纯线条检测 |
+| `all` | ❌ | ❌ | 整个边界框 | 透明按钮 |
+
+---
+
+---
+
+## SVG 中的 pointer-events
+
+### 默认行为
+
+SVG 元素的默认 `pointer-events` 值是 `visiblePainted`，这意味着：
+
+```xml
+<svg viewBox="0 0 200 200">
+  <!-- 默认行为：只在可见区域响应点击 -->
+  <rect x="50" y="50" width="100" height="100" fill="blue" />
+
+  <!-- 透明区域不响应点击 -->
+  <rect x="50" y="50" width="100" height="100" fill="transparent" />
+</svg>
+```
+
+### pointer-events: none 的效果
+
+设置 `pointer-events: none` 后，元素完全穿透，点击事件会传递到下层元素：
+
+```xml
+<svg viewBox="0 0 200 200">
+  <!-- 底层：红色矩形 -->
+  <rect x="50" y="50" width="100" height="100" fill="red" onclick="alert('底层被点击')" />
+
+  <!-- 顶层：蓝色矩形，设置 pointer-events: none -->
+  <rect x="50" y="50" width="100" height="100" fill="blue"
+        style="pointer-events: none"
+        onclick="alert('顶层被点击')" />
+</svg>
+
+<!-- 点击结果：弹出"底层被点击"，顶层完全穿透 -->
+```
+
+### 组合使用：CSS 属性
+
+```xml
+<svg viewBox="0 0 200 200">
+  <style>
+    .click-through { pointer-events: none; }
+    .clickable { pointer-events: auto; }
+  </style>
+
+  <!-- 顶层遮罩，点击穿透 -->
+  <rect class="click-through" x="0" y="0" width="200" height="200" fill="rgba(0,0,0,0.5)" />
+
+  <!-- 底层按钮，正常响应 -->
+  <rect class="clickable" x="50" y="50" width="100" height="50" fill="blue" />
+</svg>
+```
+
+---
+
+## pointer-events 不继承特性
+
+### 关键问题
+
+在 SVG 中，**`pointer-events` 不会自动继承**到子元素。这是一个容易被忽视的重要特性。
+
+### 问题示例
+
+```xml
+<svg viewBox="0 0 200 200">
+  <style>
+    .parent { pointer-events: none; }
+  </style>
+
+  <!-- 父元素设置 pointer-events: none -->
+  <g class="parent">
+    <!-- 子元素仍然可以接收点击！ -->
+    <rect x="50" y="50" width="100" height="100" fill="blue"
+          onclick="alert('子元素被点击')" />
+  </g>
+</svg>
+
+<!-- 结果：子元素仍然响应点击，父元素的 pointer-events 不生效 -->
+```
+
+### 解决方案：显式设置
+
+每个需要穿透的元素都必须单独设置 `pointer-events: none`：
+
+```xml
+<svg viewBox="0 0 200 200">
+  <style>
+    .parent { pointer-events: none; }
+    .child { pointer-events: none; }  /* 必须显式设置 */
+  </style>
+
+  <g class="parent">
+    <!-- 现在子元素也穿透了 -->
+    <rect class="child" x="50" y="50" width="100" height="100" fill="blue" />
+  </g>
+
+  <!-- 底层元素可以接收点击 -->
+  <rect x="75" y="75" width="50" height="50" fill="red"
+        onclick="alert('底层被点击')" />
+</svg>
+```
+
+### 批量设置方法
+
+使用 CSS 选择器批量设置：
+
+```xml
+<svg viewBox="0 0 200 200">
+  <style>
+    /* 所有子元素都不接收事件 */
+    .overlay * { pointer-events: none; }
+
+    /* 但特定元素仍然响应 */
+    .overlay .interactive { pointer-events: auto; }
+  </style>
+
+  <g class="overlay">
+    <rect x="0" y="0" width="200" height="200" fill="rgba(0,0,0,0.3)" />
+    <circle cx="100" cy="100" r="30" fill="blue" class="interactive"
+            onclick="alert('圆形被点击')" />
+  </g>
+</svg>
+```
+
+---
+
+## 事件冒泡机制
+
+### 基本概念
+
+SVG 事件遵循标准的 DOM 事件冒泡机制：
+
+1. **捕获阶段**：从根元素向下传播到目标元素
+2. **目标阶段**：在目标元素上触发
+3. **冒泡阶段**：从目标元素向上传播到根元素
+
+### 冒泡示例
+
+```xml
+<svg viewBox="0 0 200 200" onclick="alert('SVG 被点击')">
+  <g onclick="alert('Group 被点击')">
+    <rect x="50" y="50" width="100" height="100" fill="blue"
+          onclick="alert('Rect 被点击')" />
+  </g>
+</svg>
+
+<!-- 点击矩形后的执行顺序：
+     1. "Rect 被点击"
+     2. "Group 被点击"
+     3. "SVG 被点击"
+-->
+```
+
+### 阻止冒泡：stopPropagation
+
+使用 `event.stopPropagation()` 阻止事件继续传播：
+
+```xml
+<svg viewBox="0 0 200 200" onclick="alert('SVG 被点击')">
+  <g onclick="alert('Group 被点击')">
+    <rect x="50" y="50" width="100" height="100" fill="blue"
+          onclick="event.stopPropagation(); alert('Rect 被点击')" />
+  </g>
+</svg>
+
+<!-- 点击矩形后：
+     1. "Rect 被点击"
+     2. 冒泡被阻止，不会触发 Group 和 SVG 的点击事件
+-->
+```
+
+### 复杂嵌套中的冒泡问题
+
+在复杂的 SVG 嵌套结构中，`stopPropagation` 可能失效：
+
+```xml
+<svg viewBox="0 0 200 200">
+  <g id="outer" onclick="alert('Outer Group')">
+    <g id="inner" onclick="event.stopPropagation(); alert('Inner Group')">
+      <rect x="50" y="50" width="100" height="100" fill="blue" />
+    </g>
+  </g>
+
+  <!-- 另一个独立的组 -->
+  <g id="separate" onclick="alert('Separate Group')">
+    <circle cx="150" cy="150" r="30" fill="red" />
+  </g>
+</svg>
+```
+
+**潜在问题**：
+- 如果元素有重叠，事件可能同时触发多个元素
+- `stopPropagation` 只阻止当前事件流，不能阻止其他元素的事件
+
+---
+
+## pointer-events 与事件冒泡的组合
+
+### 场景：点击穿透但阻止冒泡
+
+```xml
+<svg viewBox="0 0 200 200">
+  <style>
+    .overlay { pointer-events: none; }
+  </style>
+
+  <!-- 底层按钮 -->
+  <rect id="bottom" x="50" y="50" width="100" height="100" fill="red"
+        onclick="alert('底层被点击')" />
+
+  <!-- 顶层遮罩，穿透但捕获事件 -->
+  <g class="overlay" onclick="event.stopPropagation(); alert('遮罩被触发')">
+    <rect x="0" y="0" width="200" height="200" fill="transparent" />
+  </g>
+
+  <!-- 外层容器 -->
+  <g onclick="alert('外层被点击')">
+    <!-- 内容 -->
+  </g>
+</svg>
+
+<!-- 行为分析：
+     1. 遮罩层 pointer-events: none，点击穿透到底层
+     2. 但如果遮罩层有事件监听，仍然可能触发
+     3. stopPropagation 阻止事件传播到外层
+-->
+```
+
+### 最佳实践：分层控制
+
+```xml
+<svg viewBox="0 0 200 200">
+  <style>
+    /* 装饰层：完全穿透 */
+    .decoration { pointer-events: none; }
+
+    /* 交互层：正常响应 */
+    .interactive { pointer-events: auto; }
+
+    /* 阻挡层：捕获并阻止事件 */
+    .blocker { pointer-events: all; }
+  </style>
+
+  <!-- 装饰层：不干扰点击 -->
+  <g class="decoration">
+    <circle cx="100" cy="100" r="80" fill="rgba(0,0,255,0.2)" />
+  </g>
+
+  <!-- 交互层：按钮区域 -->
+  <g class="interactive">
+    <rect x="50" y="50" width="100" height="100" fill="blue"
+          onclick="alert('按钮被点击')" />
+  </g>
+
+  <!-- 阻挡层：防止点击外层 -->
+  <rect class="blocker" x="0" y="0" width="200" height="200" fill="transparent"
+        onclick="event.stopPropagation()" />
+</svg>
+```
+
+---
+
+## ZeroHeightContainer 中的应用
+
+### isEventPassThrough 实现
+
+`ZeroHeightContainer` 的 `isEventPassThrough` 属性通过设置 `pointer-events: none` 实现事件穿透：
+
+```tsx
+// ZeroHeightContainer.tsx 中的实现
+const ZeroHeightContainer = (props: ZeroHeightContainerProps) => {
+  const innerStyle = buildInnerStyle({
+    isEventPassThrough: defaultTo(props.isEventPassThrough, false),
+  });
+
+  return (
+    <SectionEx style={outerStyle}>
+      <section style={innerStyle}>{props.children}</section>
+    </SectionEx>
+  );
+};
+
+function buildInnerStyle(options: {
+  isEventPassThrough: boolean;
+}): CSSProperties {
+  return {
+    ...baseInnerStyle,
+    ...(isEventPassThrough && { pointerEvents: 'none' }),
+  };
+}
+```
+
+### 实际应用示例
+
+```tsx
+<ZeroHeightContainer>
+  {/* 底层：功能按钮 */}
+  <svg onClick={() => console.log('按钮被点击')}>
+    <rect width="100" height="100" fill="blue" />
+  </svg>
+</ZeroHeightContainer>
+
+<ZeroHeightContainer isEventPassThrough>
+  {/* 顶层：装饰元素，点击穿透到底层 */}
+  <svg>
+    <circle cx="50" cy="50" r="30" fill="rgba(255,0,0,0.5)" />
+  </svg>
+</ZeroHeightContainer>
+
+<!-- 点击圆形后，输出"按钮被点击" -->
+```
+
+---
+
+## 微信公众号兼容性
+
+### 支持的 pointer-events 值
+
+微信公众号 SVG 支持以下 `pointer-events` 值：
+
+| 值 | 微信支持 | 说明 |
+|----|----------|------|
+| `auto` | ✅ | 默认值 |
+| `none` | ✅ | 事件穿透 |
+| `visiblePainted` | ✅ | SVG 默认 |
+| `fill` | ✅ | 填充区域 |
+| `stroke` | ✅ | 描边区域 |
+
+### 不支持的特性
+
+- ❌ JavaScript 动态修改 `pointer-events`
+- ❌ `pointer-events` 继承（必须显式设置）
+
+### 微信环境最佳实践
+
+```xml
+<!-- 推荐写法 -->
+<svg viewBox="0 0 750 1334">
+  <style>
+    /* 使用 CSS 类，而不是内联样式 */
+    .click-through { pointer-events: none; }
+    .clickable { pointer-events: auto; }
+  </style>
+
+  <!-- 装饰层 -->
+  <g class="click-through">
+    <circle cx="375" cy="667" r="200" fill="rgba(0,0,255,0.2)" />
+  </g>
+
+  <!-- 交互层 -->
+  <g class="clickable">
+    <rect x="275" y="567" width="200" height="200" fill="blue">
+      <animate attributeName="fill"
+               values="blue;red;blue"
+               dur="2s"
+               repeatCount="indefinite"
+               begin="click" />
+    </rect>
+  </g>
+</svg>
+```
+
+---
+
+## 常见问题与解决方案
+
+### 问题 1：嵌套元素点击穿透失效
+
+**现象**：父元素设置了 `pointer-events: none`，但子元素仍然响应点击。
+
+**原因**：`pointer-events` 不会继承。
+
+**解决方案**：
+```xml
+<svg viewBox="0 0 200 200">
+  <style>
+    .overlay * { pointer-events: none; }  /* 使用通配符 */
+  </style>
+
+  <g class="overlay">
+    <rect x="50" y="50" width="100" height="100" fill="blue" />
+    <circle cx="100" cy="100" r="30" fill="red" />
+  </g>
+</svg>
+```
+
+### 问题 2：stopPropagation 不生效
+
+**现象**：在复杂嵌套中，`stopPropagation` 无法阻止事件传播。
+
+**原因**：事件可能同时触发多个元素，`stopPropagation` 只阻止当前事件流。
+
+**解决方案**：
+```xml
+<svg viewBox="0 0 200 200">
+  <style>
+    .block-events { pointer-events: none; }
+  </style>
+
+  <!-- 使用 pointer-events 完全阻止事件 -->
+  <g class="block-events" onclick="event.stopPropagation()">
+    <rect x="50" y="50" width="100" height="100" fill="blue" />
+  </g>
+
+  <rect x="75" y="75" width="50" height="50" fill="red"
+        onclick="alert('红色被点击')" />
+</svg>
+```
+
+### 问题 3：透明区域仍然响应点击
+
+**现象**：设置了 `fill="transparent"` 的元素仍然响应点击。
+
+**原因**：`visiblePainted` 默认行为，透明但绘制过的区域仍响应。
+
+**解决方案**：
+```xml
+<svg viewBox="0 0 200 200">
+  <!-- 方案 1：使用 pointer-events: none -->
+  <rect x="50" y="50" width="100" height="100"
+        fill="transparent"
+        style="pointer-events: none" />
+
+  <!-- 方案 2：完全不渲染 -->
+  <!-- 不在 DOM 中创建元素 -->
+</svg>
+```
+
+---
+
+## 实际案例：多层按钮系统
+
+```xml
+<svg viewBox="0 0 400 400">
+  <style>
+    .layer { pointer-events: none; }
+    .layer * { pointer-events: none; }
+    .btn { pointer-events: auto; cursor: pointer; }
+  </style>
+
+  <!-- 背景层 -->
+  <g class="layer">
+    <rect width="400" height="400" fill="#f0f0f0" />
+    <circle cx="200" cy="200" r="150" fill="rgba(0,0,255,0.1)" />
+  </g>
+
+  <!-- 装饰层 -->
+  <g class="layer">
+    <path d="M50,50 L350,50 L200,350 Z" fill="rgba(255,0,0,0.1)" />
+  </g>
+
+  <!-- 按钮层 -->
+  <g>
+    <rect class="btn" x="150" y="150" width="100" height="100" fill="blue" rx="10">
+      <animate attributeName="fill"
+               values="blue;darkblue;blue"
+               dur="0.3s"
+               begin="click" />
+    </rect>
+    <text class="btn" x="200" y="205" text-anchor="middle" fill="white" font-size="20">
+      点击
+    </text>
+  </g>
+</svg>
+```
+
+**效果**：
+- 背景和装饰层完全穿透
+- 只有按钮区域响应点击
+- 点击时按钮颜色变化
+
+---
+
+## 总结
+
+### 关键要点
+
+1. **pointer-events 不会继承**：每个元素必须单独设置
+2. **使用 CSS 批量设置**：通过选择器统一控制多个元素
+3. **pointer-events: none 是穿透**：不接收事件，事件传递到下层
+4. **stopPropagation 阻止冒泡**：但只对当前事件流有效
+5. **组合使用实现复杂效果**：pointer-events + stopPropagation
+
+### 最佳实践
+
+1. **分层设计**：将装饰层和交互层分离
+2. **使用 CSS 类**：而不是内联样式
+3. **测试兼容性**：在微信公众号中验证效果
+4. **简化结构**：避免过深的嵌套
+5. **明确的交互区域**：使用 `fill` 或 `stroke` 精确控制
+
+---
+
+## 参考资料
+
+- [W3C SVG pointer-events 规范](https://github.com/w3c/svgwg/issues/744)
+- [MDN: pointer-events](https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Attribute/pointer-events)
+- [SVG 事件冒泡与 stopPropagation](https://blog.csdn.net/cbaili/article/details/122955513)
+- [微信公众号 SVG 白名单](https://www.fudan.design/svg.html)

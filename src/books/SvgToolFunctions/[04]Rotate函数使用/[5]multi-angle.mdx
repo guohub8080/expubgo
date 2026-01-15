@@ -1,0 +1,120 @@
+export const title = "多角度旋转"
+
+import { MultiAngleRotate } from "./examples"
+
+# {title}
+
+多角度旋转可以创建复杂的旋转路径，元素依次旋转到多个指定角度。
+
+---
+
+## 卫星往返轨道
+
+元素在轨道上来回摆动，展示多角度序列动画。
+
+**代码示例：**
+
+```tsx
+genAnimateRotate({
+  initAngle: 0,
+  origin: [100, 100],        // 轨道中心
+  timeline: [
+    { toValue: 120, durationSeconds: 1 },      // 向右下
+    { toValue: -120, durationSeconds: 2 },     // 摆动到左侧
+    { toValue: 120, durationSeconds: 2 },      // 摆动到右侧
+    { toValue: -120, durationSeconds: 2 },     // 摆动到左侧
+    { toValue: 0, durationSeconds: 1 }         // 回到原位
+  ],
+  loopCount: 0
+})
+```
+
+**效果预览：**
+
+<MultiAngleRotate />
+
+**说明**：紫色卫星围绕金色恒星在轨道上来回摆动
+
+---
+
+## 使用辅助函数
+
+`genAnimateRotatePath` 函数简化了多角度旋转的创建：
+
+```tsx
+import { genAnimateRotatePath } from "@svg-anim/rotate";
+
+// 角度数组，总时长 4 秒
+genAnimateRotatePath([90, 180, 270, 360], 4)
+```
+
+自动计算每个阶段的时长。
+
+---
+
+## 复杂路径示例
+
+### 阶梯式旋转
+
+```tsx
+genAnimateRotatePath([45, 90, 135, 180, 225, 270, 315, 360], 6)
+```
+
+### 往返多段
+
+```tsx
+genAnimateRotate({
+  initAngle: 0,
+  timeline: [
+    { toValue: 120, durationSeconds: 1 },
+    { toValue: -60, durationSeconds: 1.5 },
+    { toValue: 60, durationSeconds: 1 },
+    { toValue: 0, durationSeconds: 1 }
+  ]
+})
+```
+
+### 停顿效果
+
+```tsx
+genAnimateRotate({
+  initAngle: 0,
+  timeline: [
+    { toValue: 90, durationSeconds: 1 },
+    { toValue: 90, durationSeconds: 0.5 },  // 停顿
+    { toValue: 180, durationSeconds: 1 },
+    { toValue: 180, durationSeconds: 0.5 }, // 停顿
+    { toValue: 270, durationSeconds: 1 }
+  ]
+})
+```
+
+---
+
+## 应用场景
+
+### 指针旋转
+
+```tsx
+genAnimateRotatePath([30, 60, 90, 120, 150, 180], 3)
+```
+
+### 多段动画
+
+```tsx
+genAnimateRotate({
+  initAngle: 0,
+  timeline: [
+    { toValue: 45, durationSeconds: 0.5 },
+    { toValue: -45, durationSeconds: 1 },
+    { toValue: 0, durationSeconds: 0.5 }
+  ],
+  freeze: true
+})
+```
+
+---
+
+## 下一步
+
+- **旋转时序控制** - 延迟、循环、冻结

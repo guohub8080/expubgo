@@ -1,0 +1,307 @@
+export const title = "SVG scale 变换"
+export const icon = "Scale"
+
+# {title}
+
+`scale` 是 SVG 中用于缩放元素的变换,可以单独控制 X 和 Y 方向的缩放比例。
+
+## 基本语法
+
+```xml
+<element transform="scale(sx sy)" />
+```
+
+| 参数 | 说明 | 示例 |
+|-----|------|------|
+| `sx` | X 方向缩放比例(必需) | `scale(2)` |
+| `sy` | Y 方向缩放比例(可选,默认等于 sx) | `scale(2 0.5)` |
+
+### 等比缩放
+
+单一参数时,X 和 Y 方向使用相同缩放比例:
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 原始矩形 -->
+  <rect x="20" y="20" width="40" height="40" fill="lightblue" />
+
+  <!-- 放大 2 倍 -->
+  <rect x="20" y="20" width="40" height="40" fill="blue" transform="scale(2)" />
+</svg>
+```
+
+### 非等比缩放
+
+分别指定 X 和 Y 方向的缩放比例:
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 原始圆形 -->
+  <circle cx="100" cy="50" r="30" fill="lightblue" />
+
+  <!-- X 方向放大 2 倍,Y 方向放大 0.5 倍 -->
+  <circle cx="100" cy="150" r="30" fill="blue" transform="scale(2 0.5)" />
+</svg>
+```
+
+## 缩放中心点
+
+默认情况下,缩放是以**原点 (0, 0)** 为中心,而不是元素的中心:
+
+### 默认行为(从原点缩放)
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 原点标记 -->
+  <circle cx="0" cy="0" r="5" fill="red" />
+
+  <!-- 原始矩形 -->
+  <rect x="50" y="50" width="40" height="40" fill="lightblue" />
+
+  <!-- 放大 1.5 倍(从原点向外扩展) -->
+  <rect x="50" y="50" width="40" height="40" fill="blue" transform="scale(1.5)" />
+</svg>
+```
+
+### 从元素中心缩放
+
+使用 `translate` 先移动到原点,缩放后再移回:
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 原始矩形 -->
+  <rect x="80" y="80" width="40" height="40" fill="lightblue" />
+
+  <!-- 从中心缩放 1.5 倍 -->
+  <!-- translate(100 100) 移到原点,scale(1.5) 缩放,translate(-100 -100) 移回 -->
+  <rect x="80" y="80" width="40" height="40" fill="blue"
+        transform="translate(100 100) scale(1.5) translate(-100 -100)" />
+</svg>
+```
+
+## 缩放值说明
+
+| 值 | 效果 | 说明 |
+|----|------|------|
+| `0` | 元素消失 | 完全压缩 |
+| `0 < s < 1` | 缩小 | 例如 `0.5` 是一半大小 |
+| `1` | 原始大小 | 无变化 |
+| `s > 1` | 放大 | 例如 `2` 是两倍大小 |
+| `s < 0` | 镜像翻转 | 例如 `-1` 是镜像 |
+
+### 镜像翻转
+
+使用负值实现镜像效果:
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <!-- 原始图形 -->
+  <path d="M 50 50 L 70 30 L 90 50 Z" fill="blue" />
+
+  <!-- X 方向镜像 -->
+  <path d="M 50 50 L 70 30 L 90 50 Z" fill="green" transform="translate(100 0) scale(-1 1)" />
+
+  <!-- Y 方向镜像 -->
+  <path d="M 50 50 L 70 30 L 90 50 Z" fill="red" transform="translate(50 50) scale(1 -1)" />
+</svg>
+```
+
+## 实际应用场景
+
+### 场景 1: 创建大小变化的元素
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 小圆 -->
+  <circle cx="50" cy="50" r="20" fill="blue" />
+
+  <!-- 中圆(原始大小的 1.5 倍) -->
+  <circle cx="150" cy="50" r="20" fill="blue" transform="translate(150 50) scale(1.5) translate(-150 -50)" />
+
+  <!-- 大圆(原始大小的 2 倍) -->
+  <circle cx="100" cy="150" r="20" fill="blue" transform="translate(100 150) scale(2) translate(-100 -150)" />
+</svg>
+```
+
+### 场景 2: 扁平化效果
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 原始圆形 -->
+  <circle cx="100" cy="50" r="40" fill="lightblue" />
+
+  <!-- 压扁的椭圆(使用 scale) -->
+  <circle cx="100" cy="150" r="40" fill="blue" transform="translate(100 150) scale(1 0.5) translate(-100 -150)" />
+</svg>
+```
+
+### 场景 3: 3D 透视效果
+
+使用非等比缩放模拟 3D 效果:
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 远处的矩形(小) -->
+  <rect x="75" y="30" width="50" height="30" fill="blue" opacity="0.5" />
+
+  <!-- 中距离 -->
+  <rect x="50" y="80" width="100" height="60" fill="blue" opacity="0.7" />
+
+  <!-- 近处的矩形(大) -->
+  <rect x="0" y="150" width="200" height="40" fill="blue" opacity="1" transform="scale(1 0.8)" />
+</svg>
+```
+
+## 动画中的应用
+
+### 呼吸效果
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="30" fill="blue">
+    <animateTransform
+      attributeName="transform"
+      type="scale"
+      values="1; 1.5; 1"
+      dur="2s"
+      repeatCount="indefinite"
+      additive="sum"
+    />
+  </circle>
+</svg>
+```
+
+### 弹跳效果
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="30" fill="blue">
+    <!-- 落地时压扁 -->
+    <animateTransform
+      attributeName="transform"
+      type="scale"
+      values="1 1; 0.8 1.2; 1 1"
+      keyTimes="0; 0.5; 1"
+      dur="1s"
+      repeatCount="indefinite"
+      additive="sum"
+    />
+  </circle>
+</svg>
+```
+
+### 从中心缩放的动画
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <rect x="-40" y="-40" width="80" height="80" fill="blue">
+      <animateTransform
+        attributeName="transform"
+        type="scale"
+        values="0.5; 1.5; 0.5"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+## 复合变换
+
+scale 与其他变换结合使用:
+
+### 先缩放后平移
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <rect x="0" y="0" width="40" height="40" fill="blue"
+        transform="scale(2) translate(50 50)" />
+  <!-- 先放大 2 倍,再移动 (50*2, 50*2) = (100, 100) -->
+</svg>
+```
+
+### 先平移后缩放
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <rect x="0" y="0" width="40" height="40" fill="blue"
+        transform="translate(50 50) scale(2)" />
+  <!-- 先移动到 (50, 50),再以原点为中心放大 2 倍 -->
+</svg>
+```
+
+### 围绕指定点旋转并缩放
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <rect x="-30" y="-30" width="60" height="60" fill="blue">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0"
+        to="360"
+        dur="4s"
+        repeatCount="indefinite"
+      />
+      <animateTransform
+        attributeName="transform"
+        type="scale"
+        values="0.5; 1; 0.5"
+        dur="2s"
+        repeatCount="indefinite"
+        additive="sum"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+## 注意事项
+
+### 1. 描边宽度
+
+缩放也会影响描边宽度:
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <!-- 原始矩形,描边 2px -->
+  <rect x="20" y="30" width="40" height="40" fill="none" stroke="blue" stroke-width="2" />
+
+  <!-- 放大 2 倍后,描边变成 4px -->
+  <rect x="100" y="30" width="40" height="40" fill="none" stroke="blue" stroke-width="2"
+        transform="scale(2)" />
+</svg>
+```
+
+### 2. 变换原点
+
+默认从原点缩放,需要从元素中心缩放时,使用 `translate` 技巧:
+
+```xml
+<!-- 推荐:先移动到原点,缩放,再移回 -->
+<rect transform="translate(cx cy) scale(s) translate(-cx -cy)" />
+
+<!-- 或:定义时以中心为原点 -->
+<g transform="translate(cx cy)">
+  <rect x="-w/2" y="-h/2" width="w" height="h" />
+</g>
+```
+
+### 3. 微信公众号兼容性
+
+scale 在微信公众号中完全支持,可以放心使用。
+
+## 最佳实践
+
+1. **从中心缩放**: 使用 `translate` 配合 `scale` 实现从元素中心缩放
+2. **动画原点**: 定义图形时就考虑中心点,避免动画时位置偏移
+3. **描边处理**: 如需保持描边宽度,使用 `vector-effect="non-scaling-stroke"`
+4. **负值镜像**: 使用 `scale(-1 1)` 或 `scale(1 -1)` 实现镜像翻转
+
+```xml
+<!-- 保持描边宽度不变 -->
+<rect stroke-width="2" vector-effect="non-scaling-stroke" transform="scale(2)" />
+```

@@ -1,0 +1,211 @@
+export const title = "点击触发"
+
+import { ClickFadeIn } from "./examples"
+
+# {title}
+
+点击触发让透明度动画在用户交互时才开始播放，创造更丰富的用户体验。
+
+---
+
+## 基本用法
+
+使用 `beginType: 'click'` 让动画在点击时开始。
+
+**代码示例：**
+
+```tsx
+import { genAnimateOpacity } from "@svg-anim/opacity";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="40" fill="blue">
+    {genAnimateOpacity({
+      initOpacity: 0,
+      timeline: [
+        { toValue: 1, durationSeconds: 1 }
+      ],
+      beginType: 'click',
+      freeze: true
+    })}
+  </circle>
+</svg>
+```
+
+**效果预览：**
+
+<ClickFadeIn />
+
+**说明**：点击圆形后开始淡入动画
+
+---
+
+## 点击 + 延迟
+
+结合 `delay` 参数，可以在点击后延迟一段时间再开始动画。
+
+**代码示例：**
+
+```tsx
+{genAnimateOpacity({
+  initOpacity: 1,
+  timeline: [
+    { toValue: 0, durationSeconds: 1 }
+  ],
+  beginType: 'click',
+  delay: 1,      // 点击后延迟1秒开始
+  freeze: true
+})}
+```
+
+**说明**：点击后等待1秒，然后开始淡出
+
+---
+
+## 预设效果
+
+### 点击淡入
+
+```tsx
+import { opacityPresets } from '@svg-anim/opacity';
+
+// 点击后淡入（默认1秒）
+opacityPresets.clickFadeIn()
+
+// 自定义时长
+opacityPresets.clickFadeIn(0.5)
+```
+
+### 点击淡出
+
+```tsx
+import { opacityPresets } from '@svg-anim/opacity';
+
+// 点击后淡出（默认1秒）
+opacityPresets.clickFadeOut()
+
+// 自定义时长
+opacityPresets.clickFadeOut(0.5)
+```
+
+---
+
+## 常见应用场景
+
+### 提示信息显示
+
+用户点击后显示提示信息：
+
+```tsx
+<text x="100" y="100" textAnchor="middle" fontSize="16" fill="blue">
+  点击我！
+  {genAnimateOpacity({
+    initOpacity: 0,
+    timeline: [{ toValue: 1, durationSeconds: 0.5 }],
+    beginType: 'click',
+    freeze: true
+  })}
+</text>
+```
+
+### 选项切换
+
+点击后切换可见状态：
+
+```tsx
+// 隐藏状态（初始）
+<circle cx="100" cy="100" r="40" fill="red">
+  {genAnimateOpacity({
+    initOpacity: 0,
+    timeline: [{ toValue: 1, durationSeconds: 0.3 }],
+    beginType: 'click',
+    freeze: true
+  })}
+</circle>
+```
+
+### 逐步展示
+
+点击后依次显示多个元素：
+
+```tsx
+<g>
+  <circle cx="50" cy="100" r="20" fill="blue">
+    {genAnimateOpacity({
+      initOpacity: 0,
+      timeline: [{ toValue: 1, durationSeconds: 0.5 }],
+      beginType: 'click',
+      freeze: true
+    })}
+  </circle>
+  <circle cx="100" cy="100" r="20" fill="green">
+    {genAnimateOpacity({
+      initOpacity: 0,
+      timeline: [{ toValue: 1, durationSeconds: 0.5 }],
+      beginType: 'click',
+      freeze: true
+    })}
+  </circle>
+  <circle cx="150" cy="100" r="20" fill="red">
+    {genAnimateOpacity({
+      initOpacity: 0,
+      timeline: [{ toValue: 1, durationSeconds: 0.5 }],
+      beginType: 'click',
+      freeze: true
+    })}
+  </circle>
+</g>
+```
+
+---
+
+## 注意事项
+
+### 点击区域
+
+元素只有在**动画开始前**可以点击。如果需要始终可点击，需要配合其他技术。
+
+### freeze 参数
+
+点击触发动画通常需要设置 `freeze: true`，避免动画结束后恢复初始状态。
+
+### 多个点击动画
+
+如果需要多次点击触发，可以创建新的动画实例或使用循环计数。
+
+---
+
+## 完整示例：交互式按钮
+
+```tsx
+import { genAnimateOpacity } from "@svg-anim/opacity";
+
+<svg width="200" height="100" viewBox="0 0 200 100">
+  {/* 按钮背景 */}
+  <rect x="50" y="25" width="100" height="50" rx="10" fill="#3b82f6">
+    {/* 点击后变暗 */}
+    {genAnimateOpacity({
+      initOpacity: 1,
+      timeline: [{ toValue: 0.7, durationSeconds: 0.2 }],
+      beginType: 'click',
+      freeze: true
+    })}
+  </rect>
+
+  {/* 按钮文字 */}
+  <text x="100" y="55" textAnchor="middle" fontSize="16" fill="white" pointerEvents="none">
+    点击我
+  </text>
+</svg>
+```
+
+---
+
+## 总结
+
+| 参数 | 效果 |
+|------|------|
+| `beginType: 'click'` | 点击后开始动画 |
+| `beginType: 'click'` + `delay: n` | 点击后延迟n秒开始 |
+| `freeze: true` | 保持最终状态 |
+
+点击触发让透明度动画更具交互性，适合创建响应式的用户界面效果。

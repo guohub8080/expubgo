@@ -1,0 +1,553 @@
+export const title = "零高度容器"
+
+# {title}
+
+ZeroHeightContainer 是一个特殊的容器组件，它通过设置 `height: 0` 使本身不占据垂直高度，专门用于实现前后叠加画面的效果。
+
+---
+
+## 函数签名
+
+```tsx
+import { ZeroHeightContainer } from '@pubSVG/C2_Containers'
+
+ZeroHeightContainer({
+  // ===== 必填参数 =====
+  children: ReactNode,
+
+  // ===== 可选参数 =====
+  mp?: mpProps,
+  isEventPassThrough?: boolean,
+  isForcePriority?: boolean,
+  is3d?: boolean
+})
+```
+
+### 参数说明
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `children` | `ReactNode` | - | **必填**。要在容器中渲染的内容 |
+| `mp` | `mpProps` | - | 可选。用于快速设置 margin/padding 的样式输入对象，包含 `mt`、`mb`、`ml`、`mr`、`pt`、`pb`、`pl`、`pr` 属性 |
+| `isEventPassThrough` | `boolean` | `false` | 可选。是否启用事件穿透模式 |
+| `isForcePriority` | `boolean` | `false` | 可选。是否启用强制优先模式 |
+| `is3d` | `boolean` | `false` | 可选。是否启用 3D 变换模式 |
+
+#### mpProps 类型定义
+```typescript
+type mpProps = {
+    mt?: number | string; // margin-top
+    mb?: number | string; // margin-bottom
+    ml?: number | string; // margin-left
+    mr?: number | string; // margin-right
+    pt?: number | string; // padding-top
+    pb?: number | string; // padding-bottom
+    pl?: number | string; // padding-left
+    pr?: number | string; // padding-right
+};
+```
+
+### 模式组合
+
+组件会根据参数组合自动选择对应的实现：
+
+- **默认模式**：所有参数为 `false` 时的基础零高容器
+- **3D 模式**：`is3d: true` - 支持 3D 变换效果
+- **事件穿透**：`isEventPassThrough: true` - 点击事件穿透容器
+- **强制优先**：`isForcePriority: true` - 提升 z-index 优先级
+- **穿透+优先**：`isEventPassThrough: true` + `isForcePriority: true`
+
+---
+
+## 核心原理
+
+### 双层结构设计
+
+```tsx
+<SectionEx style={{ /* 外层样式 */ }}>
+  <section style={{ height: 0, overflow: 'visible' }}>
+    {children}
+  </section>
+</SectionEx>
+```
+
+**外层容器**负责：
+- 对齐方式（`textAlign: 'center'`）
+- 溢出控制（`overflow: 'hidden'`）
+- 用户交互（`userSelect: 'text'`）
+
+**内层容器**负责：
+- 零高度（`height: 0`）
+- 内容可见（`overflow: 'visible'`）
+- 宽度控制（`width: '100%'`）
+
+### 关键样式
+
+**外层样式：**
+```javascript
+{
+  WebkitTouchCallout: "none",  // 禁用 iOS 长按菜单
+  userSelect: "text",          // 允许文本选择
+  overflow: "hidden",          // 隐藏溢出
+  textAlign: "center",         // 居中对齐
+  lineHeight: 0,               // 行高为 0
+}
+```
+
+**内层样式：**
+```javascript
+{
+  textAlign: "center",
+  height: 0,                   // 核心特性
+  lineHeight: 0,
+  width: "100%",
+  margin: "0 auto",
+  overflow: "visible",         // 内容可见
+  marginTop: 0,
+}
+```
+
+---
+
+## 基础用法
+
+### 默认模式
+
+```tsx
+import { ZeroHeightContainer } from '@pubSVG/C2_Containers'
+
+<ZeroHeightContainer>
+  <svg viewBox="0 0 300 300">
+    {/* 你的 SVG 内容 */}
+  </svg>
+</ZeroHeightContainer>
+```
+
+### 使用 margin/padding 快捷设置
+
+```tsx
+import { ZeroHeightContainer } from '@pubSVG/C2_Containers'
+
+<ZeroHeightContainer mp={{ mt: 16, mb: 16, pl: 8, pr: 8 }}>
+  <svg>...</svg>
+</ZeroHeightContainer>
+```
+
+---
+
+## 变体模式详解
+
+### is3d - 3D 变换模式
+
+**改变的内容：**
+
+```css
+/* 默认模式 */
+transform-style: flat;  /* 默认值 */
+
+/* is3d: true */
+transform-style: preserve-3d;
+```
+
+**作用：** 让子元素在 3D 空间中保持位置关系
+
+**示例对比：**
+
+```tsx
+/* 默认模式 - 子元素在 2D 平面 */
+<ZeroHeightContainer>
+  <div style={{ transform: 'rotateY(45deg)' }}>
+    <img src="card.png" />
+  </div>
+</ZeroHeightContainer>
+/* 结果：图片扁平地倾斜，没有立体感 */
+
+/* 3D 模式 - 子元素在 3D 空间 */
+<ZeroHeightContainer is3d>
+  <div style={{ transform: 'rotateY(45deg)' }}>
+    <img src="card.png" />
+  </div>
+</ZeroHeightContainer>
+/* 结果：图片有真实的 3D 旋转效果 */
+```
+
+**应用场景：**
+- 3D 卡片翻转
+- 透视变换展示
+- 立体层叠效果
+
+---
+
+### isEventPassThrough - 事件穿透模式
+
+**改变的内容：**
+
+```css
+/* 默认模式 */
+pointer-events: auto;  /* 默认值，接收点击事件 */
+
+/* isEventPassThrough: true */
+pointer-events: none;  /* 不接收点击事件，事件穿透到下层 */
+```
+
+**作用：** 让点击事件穿透当前容器，触发下层元素
+
+**示例对比：**
+
+```tsx
+<ZeroHeightContainer>
+  <svg onClick={() => console.log('上层被点击')}>
+    <rect width="100" height="100" fill="blue" />
+  </svg>
+</ZeroHeightContainer>
+<ZeroHeightContainer>
+  <svg onClick={() => console.log('下层被点击')}>
+    <rect width="100" height="100" fill="red" />
+  </svg>
+</ZeroHeightContainer>
+/* 点击结果：只输出 "上层被点击"，下层收不到事件 */
+
+/* 开启事件穿透后 */
+<ZeroHeightContainer isEventPassThrough>
+  <svg onClick={() => console.log('上层被点击')}>
+    <rect width="100" height="100" fill="blue" />
+  </svg>
+</ZeroHeightContainer>
+<ZeroHeightContainer>
+  <svg onClick={() => console.log('下层被点击')}>
+    <rect width="100" height="100" fill="red" />
+  </svg>
+</ZeroHeightContainer>
+/* 点击结果：输出 "下层被点击"，事件穿透了上层 */
+```
+
+**应用场景：**
+- 多层叠加时需要点击最下层
+- 实现透明遮罩层
+- 复杂的交互设计
+
+---
+
+### isForcePriority - 强制优先模式
+
+**改变的内容：**
+
+```css
+/* 默认模式 */
+z-index: auto;  /* 遵循文档流顺序 */
+
+/* isForcePriority: true */
+z-index: 1;  /* 强制提升层级 */
+```
+
+**作用：** 强制提升容器在 z-index 堆叠上下文中的优先级
+
+**示例对比：**
+
+```tsx
+<ZeroHeightContainer>
+  <svg>
+    <rect width="100" height="100" fill="red" />
+  </svg>
+</ZeroHeightContainer>
+<ZeroHeightContainer>
+  <svg>
+    <rect width="100" height="100" fill="blue" />
+  </svg>
+</ZeroHeightContainer>
+/* 视觉结果：蓝色在上（后渲染的在上层） */
+
+/* 使用强制优先后 */
+<ZeroHeightContainer isForcePriority>
+  <svg>
+    <rect width="100" height="100" fill="red" />
+  </svg>
+</ZeroHeightContainer>
+<ZeroHeightContainer>
+  <svg>
+    <rect width="100" height="100" fill="blue" />
+  </svg>
+</ZeroHeightContainer>
+/* 视觉结果：红色在上（isForcePriority 强制提升层级） */
+```
+
+**应用场景：**
+- 确保某个图层始终在最上方
+- 处理复杂的 z-index 层级关系
+- 防止被其他元素遮挡
+
+---
+
+### 组合使用
+
+**穿透 + 优先：**
+
+```tsx
+<ZeroHeightContainer
+  isEventPassThrough
+  isForcePriority
+>
+  {/* 点击穿透 + 强制优先 */}
+</ZeroHeightContainer>
+```
+
+**效果：**
+- `isEventPassThrough`: 事件穿透到下层
+- `isForcePriority`: 但本容器的视觉层级仍然最高
+
+这种组合常用于：顶层装饰元素需要看到，但点击要穿透到功能层。
+
+---
+
+## 元素堆叠原理
+
+### height: 0 如何实现堆叠？
+
+当父容器设置 `height: 0` 时，子元素会失去垂直高度约束，但仍然保持水平排列。多个子元素会**垂直重叠**在一起：
+
+```tsx
+<ZeroHeightContainer>
+  <svg viewBox="0 0 300 300">图1</svg>
+  <svg viewBox="0 0 300 300">图2</svg>
+  <svg viewBox="0 0 300 300">图3</svg>
+</ZeroHeightContainer>
+```
+
+**视觉效果：**
+```
+┌─────────┐
+│   图3   │  ← 最上面的元素（最后声明的）
+├─────────┤
+│   图2   │  ← 中间的元素
+├─────────┤
+│   图1   │  ← 最下面的元素（最先声明的）
+└─────────┘
+```
+
+**关键点：**
+- 元素按照**文档流顺序**从下往上堆叠
+- 后声明的元素覆盖先声明的元素
+- `overflow: 'visible'` 让内容可以显示出来
+
+---
+
+### 视觉层级与 z-index
+
+在默认情况下，零高容器内的元素遵循**普通文档流层级**：
+
+#### 默认层级（无 z-index）
+
+```tsx
+<ZeroHeightContainer>
+  {/* 层级 1 - 最底层 */}
+  <svg>背景图</svg>
+
+  {/* 层级 2 - 中间层 */}
+  <svg>装饰层</svg>
+
+  {/* 层级 3 - 最顶层 */}
+  <svg>前景层</svg>
+</ZeroHeightContainer>
+```
+
+**显示效果：** 前景层在最上面，背景层在最下面
+
+#### 使用 z-index 控制层级
+
+```tsx
+<ZeroHeightContainer>
+  <svg style={{ position: 'relative', zIndex: 1 }}>
+    背景图
+  </svg>
+
+  <svg style={{ position: 'relative', zIndex: 3 }}>
+    装饰层
+  </svg>
+
+  <svg style={{ position: 'relative', zIndex: 2 }}>
+    前景层
+  </svg>
+</ZeroHeightContainer>
+```
+
+**显示效果：** 装饰层在最上面（z-index: 3），前景层在中间
+
+> **注意**：z-index 只对定位元素生效（`position` 非 `static`）
+
+---
+
+### 零高容器嵌套
+
+**支持嵌套，但需要注意层叠上下文：**
+
+```tsx
+// 外层零高容器
+<ZeroHeightContainer>
+  {/* 内层零高容器 */}
+  <ZeroHeightContainer>
+    <svg>内容</svg>
+  </ZeroHeightContainer>
+
+  <svg>外层内容</svg>
+</ZeroHeightContainer>
+```
+
+**效果分析：**
+- 外层和内层都设置了 `height: 0`
+- 内层元素的 z-index 只在内层的层叠上下文中有效
+- 外层内容的 z-index 在外层的层叠上下文中有效
+
+**实际应用场景：**
+```tsx
+<ZeroHeightContainer>
+  {/* 背景组 */}
+  <ZeroHeightContainer>
+    <svg>天空</svg>
+    <svg>云彩</svg>
+  </ZeroHeightContainer>
+
+  {/* 前景组 */}
+  <ZeroHeightContainer>
+    <svg>山脉</svg>
+    <svg>树木</svg>
+  </ZeroHeightContainer>
+</ZeroHeightContainer>
+```
+
+---
+
+### 层叠上下文的影响
+
+当使用 `isForcePriority: true` 时，会创建新的层叠上下文：
+
+```tsx
+<ZeroHeightContainer isForcePriority>
+  {/* 这个容器有独立的层叠上下文 */}
+  <svg style={{ zIndex: 1 }}>
+    元素A
+  </svg>
+</ZeroHeightContainer>
+
+<ZeroHeightContainer>
+  <svg style={{ zIndex: 10 }}>
+    元素B
+  </svg>
+</ZeroHeightContainer>
+```
+
+**层级分析：**
+- 元素A 在自己的层叠上下文中，z-index: 1
+- 元素B 在另一个层叠上下文中，z-index: 10
+- 两个层叠上下文是**同级**的，不能直接比较 z-index 值
+
+**如果要让元素A 显示在元素B 上面：**
+- 提高 `isForcePriority` 容器的 z-index
+- 或者给元素A 设置更大的 z-index 值
+
+---
+
+## 典型应用场景
+
+### 错层滑动效果
+
+在品牌 H5 页面中广泛使用，制造"错层"视觉效果：
+
+```
+结构示例：
+┌────────────────┐
+│  正常内容1     │ ← 占据文档流
+├────────────────┤
+│ [零高容器]     │ ← height:0, overflow:visible
+│   └─悬浮大图   │    图片"浮"在上方，不占空间
+├────────────────┤
+│  正常内容2     │ ← 继续正常排列
+└────────────────┘
+```
+
+### 多图层叠加
+
+通过多个零高容器叠加不同图层，制造景深效果：
+
+- **背景层** - 零高容器 A
+- **中间装饰层** - 零高容器 B
+- **前景卡片层** - 零高容器 C
+
+每个层都不占文档流高度，但视觉上叠在一起。
+
+### 悬浮置顶效果
+
+让大图"贴在"顶部，而不占正常文档流高度。
+
+---
+
+## 为什么适合叠画面？
+
+### 传统布局 vs 零高容器布局
+
+**传统布局：**
+```
+┌─────┐
+│ 图A │ height: 300px
+├─────┤
+│ 图B │ height: 200px  ← 图片垂直排列
+├─────┤
+│ 图C │ height: 150px
+└─────┘
+```
+
+**零高容器布局：**
+```
+┌─────┐ ← 零高容器1 (height:0)
+│ 图A │    └─图A悬浮显示
+├─────┤ ← 零高容器2 (height:0)
+│ 图B │    └─图B悬浮显示，叠在图A上
+├─────┤ ← 零高容器3 (height:0)
+│ 图C │    └─图C悬浮显示，叠在前两者上
+└─────┘
+        所有图片在同一位置叠加！
+```
+
+**核心价值**：零高容器让元素**显示但不占空间**，这正是实现前后叠加画面的理想技术。配合 `overflow: visible`，它能在不影响页面布局的前提下，自由控制图层的叠加效果。
+
+---
+
+## 注意事项
+
+### height: 0 的限制
+
+- 内部内容必须有明确的尺寸或定位
+- 绝对定位的子元素不受影响
+- 相对定位的子元素会重叠
+
+### overflow: visible 的必要性
+
+- 必须设置 `overflow: 'visible'` 才能看到内容
+- 外层使用 `overflow: 'hidden'` 控制整体溢出
+
+### 与微信公众号的兼容
+
+ZeroHeightContainer 的设计考虑了微信公众号的 SVG 限制：
+
+- 使用 `section` 语义化标签
+- 避免使用 `position` 定位
+- 简单的 CSS 样式
+
+---
+
+## 总结
+
+ZeroHeightContainer 通过 `height: 0` 实现了：
+
+- **元素重叠** - 多个内容垂直堆叠
+- **3D 变换** - 支持 `preserve-3d` 效果
+- **灵活扩展** - 多种变体模式
+- **微信兼容** - 符合融媒体规范
+
+它是创建复杂 SVG 交互效果的基础容器，特别适合实现前后叠加画面的场景。
+
+---
+
+## 相关容器
+
+基于 ZeroHeightContainer，我们还提供了 `OverlayContainer` 容器，专门用于实现"内容+覆盖层"的语义化包装。详见：[重叠容器](./[2]overlay_container.mdx)
+

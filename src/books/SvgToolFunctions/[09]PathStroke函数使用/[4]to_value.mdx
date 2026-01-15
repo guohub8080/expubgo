@@ -1,0 +1,400 @@
+export const title = "深入理解 toValue 与擦除效果"
+
+import { ToValueDemo } from "./examples"
+
+# {title}
+
+理解 `toValue` 是掌握路径描边动画的关键。本章节深入讲解 `toValue` 的含义、计算方式，以及各种擦除效果的实现原理。
+
+---
+
+## toValue 是什么？
+
+`toValue` 控制 `stroke-dashoffset`（虚线偏移量）的**目标值**。
+
+**核心公式：**
+
+```
+显示程度 = 1 - (offset / pathLength)
+
+offset = 0      → 显示程度 = 100% (完全显示)
+offset = 100    → 显示程度 = 50% (半显示)  [假设 pathLength = 200]
+offset = 200    → 显示程度 = 0% (完全隐藏)
+```
+
+**offset 与显示的关系：**
+
+| offset 值 | 状态 | 显示比例 |
+|-----------|------|----------|
+| `0` | 完全显示 | 100% |
+| `pathLength / 2` | 半显示 | 50% |
+| `pathLength` | 完全隐藏 | 0% |
+
+---
+
+## 动画过程详解
+
+### 从隐藏到显示（绘制）
+
+```tsx
+timeline: [
+  { durationSeconds: 2, toValue: 0 }
+]
+```
+
+**动画过程：**
+- **初始**：offset = 200 (pathLength) → 完全隐藏
+- **过程**：offset 从 200 逐渐减小到 0
+- **结束**：offset = 0 → 完全显示
+
+**视觉效果：** 路径从起点开始"画"到终点，逐渐显现
+
+---
+
+### 从显示到隐藏（擦除）
+
+```tsx
+timeline: [
+  { durationSeconds: 2, toValue: 200 }
+]
+```
+
+**动画过程：**
+- **初始**：offset = 0 → 完全显示
+- **过程**：offset 从 0 逐渐增加到 200
+- **结束**：offset = 200 → 完全隐藏
+
+**视觉效果：** 路径从起点开始"擦除"到终点，逐渐消失
+
+**⚠️ 重要：这是"倒着回去"的擦除效果，不是从尾巴开始消失！**
+
+---
+
+## toValue 设计规则
+
+### 规则1：始终基于 pathLength
+
+所有 `toValue` 都应该是 `0` 到 `pathLength` 之间的值：
+
+```tsx
+pathLength: 500  // 所有 toValue 应该在 0-500 之间
+
+// ✅ 正确
+timeline: [
+  { toValue: 0 },      // 完全显示
+  { toValue: 250 },    // 半显示
+  { toValue: 500 }     // 完全隐藏
+]
+
+// ❌ 错误
+timeline: [
+  { toValue: -100 },   // 超出范围
+  { toValue: 800 }     // 超出范围
+]
+```
+
+---
+
+### 规则2：连续性
+
+下一段动画从上一段的 `toValue` 继续：
+
+```tsx
+timeline: [
+  { durationSeconds: 1, toValue: 200 },  // 第1段结束在 200
+  { durationSeconds: 1, toValue: 0 }     // 第2段从 200 开始，变到 0
+]
+
+// 时间轴：
+// 0s ──────── 1s ──────── 2s
+// offset: 200 ───────────────→ 0
+// 状态:  隐藏 ───────────────→ 显示
+```
+
+---
+
+## 常见 toValue 模式
+
+### 模式1：绘制（隐藏 → 显示）
+
+```tsx
+{
+  pathLength: 500,
+  initOffset: 500,  // 从隐藏开始
+  timeline: [
+    { durationSeconds: 2, toValue: 0 }  // 画到完全显示
+  ]
+}
+```
+
+---
+
+### 模式2：擦除（显示 → 隐藏）
+
+```tsx
+{
+  pathLength: 500,
+  initOffset: 0,    // 从显示开始
+  timeline: [
+    { durationSeconds: 2, toValue: 500 }  // 擦除到完全隐藏
+  ]
+}
+```
+
+---
+
+### 模式3：半途暂停
+
+```tsx
+{
+  pathLength: 500,
+  timeline: [
+    { durationSeconds: 1, toValue: 250 },  // 画到半显示
+    { durationSeconds: 0.5, toValue: 250 },  // 停留0.5秒（保持）
+    { durationSeconds: 1, toValue: 0 }      // 继续画到完全显示
+  ]
+}
+```
+
+---
+
+### 模式4：往返绘制
+
+```tsx
+{
+  pathLength: 500,
+  timeline: [
+    { durationSeconds: 1.5, toValue: 0 },    // 画到完全显示
+    { durationSeconds: 1, toValue: 300 }      // 擦除到 60% 显示
+  ]
+}
+```
+
+---
+
+## 可视化对比
+
+### toValue 对比示例
+
+**效果预览：**
+
+<ToValueDemo />
+
+**说明：**
+- **左上**：toValue = 0，从隐藏变为完全显示
+- **右上**：toValue = 100，从隐藏变为半显示
+- **左下**：toValue = 200，从显示变为完全隐藏
+- **右下**：toValue = pathLength (200)，从显示变为完全隐藏
+
+这个示例展示了不同 `toValue` 目标值的显示效果。
+
+---
+
+## 从尾巴开始消失的擦除动画
+
+### 问题分析
+
+你想要的"从尾巴开始消失"效果是：
+- 绘制完成后，从路径末端（尾巴）开始逐渐消失
+- 而不是从起点开始倒着擦除
+
+**⚠️ 重要：`genAnimatePathStroke` 无法直接实现"从尾巴开始消失"！**
+
+**原因：**
+- `stroke-dashoffset` 控制的是整个虚线的偏移
+- 改变 offset 时，整条路径的显示状态同时变化
+- 无法让路径的不同部分有不同的 offset 值
+
+---
+
+### 可行的替代方案
+
+#### 方案1：分段路径（推荐）
+
+将路径分成多段，依次擦除：
+
+```tsx
+<svg width="300" height="100" viewBox="0 0 300 100">
+  {/* 第1段：前半部分 */}
+  {genAnimatePathStroke({
+    pathLength: 150,
+    initOffset: 0,
+    freeze: true,
+    timeline: [
+      { durationSeconds: 1, toValue: 150 }
+    ],
+    element: (
+      <path d="M 20 50 L 140 50" stroke="#3b82f6" strokeWidth="3" fill="none" />
+    )
+  })}
+
+  {/* 第2段：后半部分，延迟擦除 */}
+  {genAnimatePathStroke({
+    pathLength: 150,
+    initOffset: 0,
+    delay: 2,  // 等前半段擦除后
+    freeze: true,
+    timeline: [
+      { durationSeconds: 1, toValue: 150 }
+    ],
+    element: (
+      <path d="M 140 50 L 280 50" stroke="#10b981" strokeWidth="3" fill="none" />
+    )
+  })}
+</svg>
+```
+
+**效果：** 前半部分先擦除，后半部分延迟后擦除，形成"逐渐消失"的视觉效果
+
+---
+
+#### 方案2：使用遮罩（高级）
+
+使用 SVG `<mask>` 或 `<clipPath>` 实现复杂的擦除效果：
+
+```tsx
+<svg width="300" height="100" viewBox="0 0 300 100">
+  <defs>
+    <mask id="fade-mask">
+      {/* 白色矩形：完全显示 */}
+      <rect width="300" height="100" fill="white">
+        {/* 黑色矩形：逐渐扩大的覆盖区域，从右向左 */}
+        <rect x="300" width="0" height="100" fill="black">
+          <animate
+            attributeName="width"
+            from="0"
+            to="300"
+            dur="2s"
+            fill="freeze"
+          />
+        </rect>
+      </mask>
+    </defs>
+  </defs>
+
+  {/* 应用遮罩 */}
+  <g mask="url(#fade-mask)">
+    <path d="M 20 50 L 280 50" stroke="#3b82f6" strokeWidth="3" fill="none" />
+  </g>
+</svg>
+```
+
+**效果：** 黑色覆盖层从右向左移动，被覆盖的路径部分逐渐消失
+
+---
+
+#### 方案3：多路径叠加
+
+使用多条相同路径，设置不同的偏移和延迟：
+
+```tsx
+<svg width="300" height="100" viewBox="0 0 300 100">
+  {genAnimatePathStroke({
+    pathLength: 300,
+    timeline: [
+      { durationSeconds: 2, toValue: 0 }
+    ],
+    element: (
+      <path d="M 20 50 L 280 50" stroke="#3b82f6" strokeWidth="3" fill="none" />
+    )
+  })}
+
+  {genAnimatePathStroke({
+    pathLength: 300,
+    initOffset: 0,
+    delay: 2,
+    timeline: [
+      { durationSeconds: 2, toValue: 300 }
+    ],
+    element: (
+      <path d="M 20 50 L 280 50" stroke="#3b82f6" strokeWidth="3" fill="none" />
+    )
+  })}
+</svg>
+```
+
+**效果：** 2秒后第二条路径开始擦除，覆盖在第一条路径上
+
+---
+
+## toValue 计算技巧
+
+### 技巧1：根据显示比例计算
+
+如果你知道路径长度，可以按比例计算 toValue：
+
+```tsx
+pathLength: 1000
+
+// 显示 75%
+toValue = 1000 × (1 - 0.75) = 250
+
+// 显示 25%
+toValue = 1000 × (1 - 0.25) = 750
+```
+
+---
+
+### 技巧2：反向计算需要的 toValue
+
+如果你想让路径显示特定比例：
+
+```tsx
+pathLength: 500
+
+// 想要显示 80%
+toValue = 500 × (1 - 0.8) = 100
+```
+
+---
+
+## 常见错误
+
+### ❌ 错误：toValue 超出范围
+
+```tsx
+{
+  pathLength: 500,
+  timeline: [
+    { toValue: -100 }  // ❌ 负数无效
+  ]
+}
+```
+
+**修正：** toValue 应该在 0 到 pathLength 之间
+
+---
+
+### ❌ 错误：忘记 pathLength 与 toValue 的关系
+
+```tsx
+{
+  pathLength: 500,
+  timeline: [
+    { toValue: 1000 }  // ❌ 超过 pathLength
+  ]
+}
+```
+
+**修正：** 确保 toValue ≤ pathLength
+
+---
+
+## toValue 速查表
+
+| 想要的效果 | initOffset | toValue | 说明 |
+|----------|------------|---------|------|
+| 从隐藏绘制到显示 | pathLength | 0 | 标准绘制 |
+| 从显示擦除到隐藏 | 0 | pathLength | 标准擦除（倒着回）|
+| 从隐藏画到半显示 | pathLength | pathLength/2 | 画到一半 |
+| 从半显示画到完全显示 | pathLength/2 | 0 | 继续画完 |
+| 从半显示擦除到隐藏 | pathLength/2 | pathLength | 擦除剩余部分 |
+
+---
+
+## 总结
+
+1. **toValue 控制 stroke-dashoffset 的目标值**
+2. **显示比例 = 1 - (offset / pathLength)**
+3. **toValue 必须在 0 到 pathLength 之间**
+4. **"从尾巴开始消失"需要特殊技巧**（分段路径、遮罩或多路径叠加）

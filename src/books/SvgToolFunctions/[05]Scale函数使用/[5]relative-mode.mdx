@@ -1,0 +1,166 @@
+export const title = "相对缩放与绝对缩放"
+
+import { RelativeMode, AbsoluteMode, ModeComparison } from "./examples"
+
+# {title}
+
+`isRelativeScale` 参数控制缩放的计算方式，有两种不同的计算模式，需要根据场景选择合适的模式。
+
+---
+
+## 相对缩放模式（isRelativeScale: true，默认值）
+
+每个阶段的 `toValue` 是**相对于上一阶段终点**的增量缩放。
+
+### 工作原理
+
+```
+当前缩放 = 上一阶段缩放 × toValue
+```
+
+**示例：**
+
+```tsx
+genAnimateScale({
+  initScale: 1,
+  isRelativeScale: true,
+  timeline: [
+    { toValue: 2, durationSeconds: 1 },    // 1 × 2 = 2
+    { toValue: 0.5, durationSeconds: 1 },  // 2 × 0.5 = 1
+    { toValue: 1.5, durationSeconds: 1 }     // 1 × 1.5 = 1.5
+  ]
+})
+```
+
+**效果预览：**
+
+<RelativeMode />
+
+**说明**：1x → 2x → 1x（保持）→ 1.5x
+
+---
+
+## 绝对缩放模式（isRelativeScale: false）
+
+每个阶段的 `toValue` 是**相对于初始值**的绝对缩放。
+
+### 工作原理
+
+```
+当前缩放 = toValue（绝对坐标）
+```
+
+**示例：**
+
+```tsx
+genAnimateScale({
+  initScale: 1,
+  isRelativeScale: false,
+  timeline: [
+    { toValue: 2, durationSeconds: 1 },    // 缩放到 2 倍
+    { toValue: 2, durationSeconds: 1 },    // 保持 2 倍
+    { toValue: 1.5, durationSeconds: 1 }     // 缩小到 1.5 倍
+  ]
+})
+```
+
+**效果预览：**
+
+<AbsoluteMode />
+
+**说明**：1x → 2x → 保持 2x → 1.5x
+
+---
+
+## 两种模式对比
+
+虽然两个示例最终效果相同，但参数写法不同：
+
+| 阶段 | 相对模式 `toValue` | 实际缩放 | 绝对模式 `toValue` |
+|------|-------------------|---------|-------------------|
+| 初始 | - | 1x | - |
+| 第1段 | `2` | 1 × 2 = **2x** | `2` → **2x** |
+| 第2段 | `0.5` | 2 × 0.5 = **1x** | `2` → **2x** |
+| 第3段 | `1.5` | 1 × 1.5 = **1.5x** | `1.5` → **1.5x** |
+
+**效果预览对比：**
+
+<ModeComparison />
+
+**说明**：左侧蓝色：相对模式 | 右侧绿色：绝对模式
+
+---
+
+## 关键区别
+
+### 相对模式（推荐）
+
+```tsx
+// ✅ 保持大小很简单
+{ toValue: 1 }  // 相对于上一阶段，增量为 1（保持）
+```
+
+### 绝对模式
+
+```tsx
+// ❌ 保持大小需要重复上一个值
+{ toValue: 2 }  // 必须写绝对值 2（保持 2 倍）
+```
+
+---
+
+## 使用场景
+
+### 场景 1：单次缩放
+
+两种模式都可以，推荐相对模式（默认）：
+
+```tsx
+genAnimateScale({
+  timeline: [
+    { toValue: 2, durationSeconds: 2 }
+  ]
+})
+```
+
+### 场景 2：往返缩放
+
+相对模式更直观：
+
+```tsx
+genAnimateScale({
+  initScale: 1,
+  timeline: [
+    { toValue: 1.5, durationSeconds: 1 },    // 1 × 1.5 = 1.5 倍
+    { toValue: 0.7, durationSeconds: 1 }     // 1.5 × 0.7 = 1.05 倍
+  ]
+})
+```
+
+### 场景 3：复杂路径缩放
+
+相对模式更容易理解增量：
+
+```tsx
+genAnimateScale({
+  initScale: 1,
+  timeline: [
+    { toValue: 1.2, durationSeconds: 1 },   // 放大到 1.2 倍
+    { toValue: 0.8, durationSeconds: 1 },   // 缩小到 0.8 倍
+    { toValue: 1.2, durationSeconds: 1 },   // 再放大到 1.2 倍
+  ]
+})
+```
+
+---
+
+## 总结
+
+| 特性 | 相对模式 | 绝对模式 |
+|------|---------|---------|
+| **默认值** | ✅ `true` | `false` |
+| `toValue` 含义 | 增量缩放 | 绝对缩放 |
+| `保持大小` | `{ toValue: 1 }` | 需重复上一缩放值 |
+| `适用场景` | 大多数情况 | 需要精确控制绝对缩放 |
+
+**推荐**：使用相对模式（默认），更符合直觉，代码更简洁。

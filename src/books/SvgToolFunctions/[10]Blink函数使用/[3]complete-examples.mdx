@@ -1,0 +1,356 @@
+export const title = "完整示例与实战应用"
+
+# {title}
+
+本文档将通过实际应用场景展示 `genAnimateSoftBlink` 的各种用法，帮助你更好地理解如何在项目中使用闪烁动画。
+
+---
+
+## 示例 1：加载状态指示器
+
+**场景：** 在内容加载时显示闪烁的加载图标，告知用户正在处理。
+
+**代码示例：**
+
+```tsx
+import { genAnimateSoftBlink } from "@svg-anim/blink";
+
+const LoadingIndicator = () => {
+  return (
+    <svg width="200" height="200" viewBox="0 0 200 200">
+      {/* 三个圆点依次闪烁 */}
+      <circle cx="60" cy="100" r="15" fill="blue">
+        {genAnimateSoftBlink({
+          minOpacity: 0.3,
+          onceBlinkDurationSeconds: 1,
+          delay: 0
+        })}
+      </circle>
+      <circle cx="100" cy="100" r="15" fill="blue">
+        {genAnimateSoftBlink({
+          minOpacity: 0.3,
+          onceBlinkDurationSeconds: 1,
+          delay: 0.2
+        })}
+      </circle>
+      <circle cx="140" cy="100" r="15" fill="blue">
+        {genAnimateSoftBlink({
+          minOpacity: 0.3,
+          onceBlinkDurationSeconds: 1,
+          delay: 0.4
+        })}
+      </circle>
+    </svg>
+  );
+};
+```
+
+**效果说明：**
+- 三个圆点依次闪烁，形成波浪效果
+- 使用 `delay` 参数错开每个圆点的开始时间
+- 适中的闪烁速度（1 秒周期）和淡化程度（30%）
+
+---
+
+## 示例 2：提示徽章
+
+**场景：** 在图标上显示闪烁的提示徽章，吸引用户注意。
+
+**代码示例：**
+
+```tsx
+import { genAnimateSoftBlink } from "@svg-anim/blink";
+
+const NotificationBadge = () => {
+  return (
+    <svg width="200" height="200" viewBox="0 0 200 200">
+      {/* 铃铛图标 */}
+      <path
+        d="M100 50 L100 40 M100 40 C90 40 80 50 80 70 L70 80 L70 90 L80 90 L80 100 C80 115 90 125 100 125 C110 125 120 115 120 100 L120 90 L130 90 L130 80 L120 80 C120 60 110 50 100 50 Z"
+        fill="gray"
+      />
+
+      {/* 闪烁的红色徽章 */}
+      <g transform="translate(140, 60)">
+        <circle r="15" fill="red">
+          {genAnimateSoftBlink({
+            minOpacity: 0.5,
+            onceBlinkDurationSeconds: 1.5
+          })}
+        </circle>
+        <text x="0" y="5" textAnchor="middle" fill="white" fontSize="14">
+          3
+        </text>
+      </g>
+    </svg>
+  );
+};
+```
+
+**效果说明：**
+- 徽章轻柔闪烁（淡化到 50%）
+- 较慢的闪烁速度（1.5 秒周期）
+- 持续吸引注意但不会过于刺眼
+
+---
+
+## 示例 3：按钮交互反馈
+
+**场景：** 点击按钮后闪烁反馈，表示操作已执行。
+
+**代码示例：**
+
+```tsx
+import { genAnimateSoftBlink } from "@svg-anim/blink";
+
+const InteractiveButton = () => {
+  return (
+    <svg width="200" height="200" viewBox="0 0 200 200">
+      <g style={{ cursor: 'pointer' }}>
+        {/* 透明点击区域 */}
+        <rect width="200" height="200" fill="transparent" />
+
+        {/* 按钮背景 */}
+        <rect x="50" y="70" width="100" height="60" rx="10" fill="green">
+          {genAnimateSoftBlink({
+            beginType: 'click',
+            repeatCount: 2,
+            onceBlinkDurationSeconds: 0.5,
+            minOpacity: 0.4
+          })}
+        </rect>
+
+        {/* 按钮文字 */}
+        <text x="100" y="108" textAnchor="middle" fill="white" fontSize="20">
+          点击
+        </text>
+      </g>
+    </svg>
+  );
+};
+```
+
+**效果说明：**
+- 点击后按钮快速闪烁 2 次
+- 使用 `beginType: 'click'` 实现点击触发
+- 适中的淡化程度（40%）
+
+---
+
+## 示例 4：错误提示
+
+**场景：** 显示错误信息时使用快速闪烁吸引注意。
+
+**代码示例：**
+
+```tsx
+import { genAnimateSoftBlink } from "@svg-anim/blink";
+
+const ErrorMessage = () => {
+  return (
+    <svg width="200" height="200" viewBox="0 0 200 200">
+      {/* 错误图标背景圆 */}
+      <circle cx="100" cy="100" r="40" fill="#ffebee">
+        {genAnimateSoftBlink({
+          minOpacity: 0.2,
+          onceBlinkDurationSeconds: 0.8,
+          repeatCount: 5  // 闪烁 5 次后停止
+        })}
+      </circle>
+
+      {/* X 图标 */}
+      <g stroke="red" strokeWidth="4">
+        <line x1="85" y1="85" x2="115" y2="115" />
+        <line x1="115" y1="85" x2="85" y2="115" />
+      </g>
+    </svg>
+  );
+};
+```
+
+**效果说明：**
+- 快速闪烁（0.8 秒周期）
+- 闪烁 5 次后停止
+- 明显的视觉反馈
+
+---
+
+## 示例 5：装饰性闪烁星星
+
+**场景：** 背景中的装饰元素，使用微弱闪烁营造氛围。
+
+**代码示例：**
+
+```tsx
+import { genAnimateSoftBlink } from "@svg-anim/blink";
+
+const DecorativeStars = () => {
+  return (
+    <svg width="200" height="200" viewBox="0 0 200 200">
+      {/* 背景色 */}
+      <rect width="200" height="200" fill="#1a1a2e" />
+
+      {/* 多个星星，不同速度和强度闪烁 */}
+      <path
+        d="M40 30 L45 45 L60 45 L48 55 L53 70 L40 60 L27 70 L32 55 L20 45 L35 45 Z"
+        fill="yellow"
+      >
+        {genAnimateSoftBlink({
+          minOpacity: 0.7,
+          onceBlinkDurationSeconds: 2.5,
+          delay: 0
+        })}
+      </path>
+
+      <path
+        d="M160 50 L163 60 L173 60 L165 67 L168 77 L160 70 L152 77 L155 67 L147 60 L157 60 Z"
+        fill="yellow"
+      >
+        {genAnimateSoftBlink({
+          minOpacity: 0.6,
+          onceBlinkDurationSeconds: 3,
+          delay: 0.5
+        })}
+      </path>
+
+      <path
+        d="M80 120 L83 130 L93 130 L85 137 L88 147 L80 140 L72 147 L75 137 L67 130 L77 130 Z"
+        fill="yellow"
+      >
+        {genAnimateSoftBlink({
+          minOpacity: 0.8,
+          onceBlinkDurationSeconds: 2,
+          delay: 1
+        })}
+      </path>
+
+      <path
+        d="M140 140 L143 150 L153 150 L145 157 L148 167 L140 160 L132 167 L135 157 L127 150 L137 150 Z"
+        fill="yellow"
+      >
+        {genAnimateSoftBlink({
+          minOpacity: 0.7,
+          onceBlinkDurationSeconds: 2.8,
+          delay: 1.5
+        })}
+      </path>
+    </svg>
+  );
+};
+```
+
+**效果说明：**
+- 多个星星使用不同的闪烁参数
+- 不同的延迟时间创造错落有致的效果
+- 微弱的闪烁（淡化到 60-80%）不会干扰主内容
+
+---
+
+## 示例 6：答案揭示动画
+
+**场景：** 点击后揭示答案，答案闪烁出现（微信公众号常见应用）。
+
+**代码示例：**
+
+```tsx
+import { genAnimateSoftBlink } from "@svg-anim/blink";
+
+const AnswerReveal = () => {
+  return (
+    <svg width="200" height="200" viewBox="0 0 200 200">
+      {/* 问题背景 */}
+      <rect width="200" height="200" fill="#f5f5f5" />
+
+      {/* 问题文字 */}
+      <text x="100" y="80" textAnchor="middle" fontSize="18" fill="black">
+        问题：2+2=?
+      </text>
+
+      {/* 点击区域 */}
+      <g style={{ cursor: 'pointer' }}>
+        <rect width="200" height="200" fill="transparent" />
+
+        {/* 答案背景 */}
+        <rect x="60" y="100" width="80" height="50" rx="5" fill="#4CAF50">
+          {genAnimateSoftBlink({
+            beginType: 'click',
+            repeatCount: 3,
+            onceBlinkDurationSeconds: 0.6,
+            minOpacity: 0.3
+          })}
+        </rect>
+
+        {/* 答案文字 */}
+        <text x="100" y="133" textAnchor="middle" fontSize="24" fill="white">
+          答案：4
+        </text>
+      </g>
+    </svg>
+  );
+};
+```
+
+**效果说明：**
+- 点击后答案框闪烁 3 次
+- 快速闪烁（0.6 秒周期）
+- 绿色表示正确答案
+
+---
+
+## 参数选择速查表
+
+| 应用场景 | minOpacity | duration | repeatCount | delay | beginType |
+|---------|-----------|----------|-------------|-------|-----------|
+| **加载状态** | 0.3 | 1 | 0 | 0-0.5 | - |
+| **提示徽章** | 0.5 | 1.5 | 0 | 0 | - |
+| **按钮反馈** | 0.4 | 0.5 | 2 | 0 | 'click' |
+| **错误提示** | 0.2 | 0.8 | 5 | 0 | - |
+| **装饰元素** | 0.7 | 2-3 | 0 | 0-2 | - |
+| **答案揭示** | 0.3 | 0.6 | 3 | 0 | 'click' |
+
+---
+
+## 微信公众号最佳实践
+
+### 1. 点击区域的设置
+
+微信公众号中，点击事件需要在可点击的元素上触发：
+
+```tsx
+<svg viewBox="0 0 200 200">
+  {/* ✅ 正确：使用透明的点击区域 */}
+  <g style={{ cursor: 'pointer' }}>
+    <rect width="200" height="200" fill="transparent" />
+    <circle cx="100" cy="100" r="50" fill="blue">
+      {genAnimateSoftBlink({ beginType: 'click' })}
+    </circle>
+  </g>
+
+  {/* ❌ 错误：没有明确的点击区域 */}
+  <circle cx="100" cy="100" r="50" fill="blue">
+    {genAnimateSoftBlink({ beginType: 'click' })}
+  </circle>
+</svg>
+```
+
+### 2. 性能优化
+
+- 避免同时闪烁太多元素（建议不超过 5 个）
+- 装饰性闪烁使用较慢的速度和微弱的淡化
+- 使用 `repeatCount` 限制闪烁次数而不是无限循环
+
+### 3. 可访问性考虑
+
+- 避免过于快速的闪烁（duration 不要小于 0.5 秒）
+- 提供足够的对比度（minOpacity 不要低于 0.2）
+- 对于重要提示，使用其他方式（如颜色、文字）补充说明
+
+---
+
+## 下一步
+
+现在你已经掌握了 `genAnimateSoftBlink` 的各种用法和实际应用场景。你可以：
+
+1. **查看其他动画函数** - Translate、Rotate、Scale、Opacity、Skew、PathMotion、PathStroke
+2. **学习容器组件** - 了解如何组合多个动画
+3. **查看完整示例** - 参考项目中的实际应用案例

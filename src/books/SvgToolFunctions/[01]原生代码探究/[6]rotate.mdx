@@ -1,0 +1,421 @@
+export const title = "SVG rotate 变换"
+export const icon = "RotateCw"
+
+# {title}
+
+`rotate` 是 SVG 中用于旋转元素的变换,可以指定旋转角度和旋转中心点。
+
+## 基本语法
+
+```xml
+<element transform="rotate(angle cx cy)" />
+```
+
+| 参数 | 说明 | 示例 |
+|-----|------|------|
+| `angle` | 旋转角度(必需,单位度) | `rotate(45)` |
+| `cx` | 旋转中心 X 坐标(可选) | `rotate(45 100 100)` |
+| `cy` | 旋转中心 Y 坐标(可选) | `rotate(45 100 100)` |
+
+### 简单旋转(围绕原点)
+
+不指定中心点时,默认围绕**原点 (0, 0)** 旋转:
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 原点标记 -->
+  <circle cx="0" cy="0" r="5" fill="red" />
+
+  <!-- 原始矩形 -->
+  <rect x="50" y="20" width="60" height="30" fill="lightblue" />
+
+  <!-- 旋转 45 度(围绕原点) -->
+  <rect x="50" y="20" width="60" height="30" fill="blue" transform="rotate(45)" />
+</svg>
+```
+
+### 围绕指定点旋转
+
+指定旋转中心点:
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 旋转中心标记 -->
+  <circle cx="100" cy="100" r="5" fill="red" />
+
+  <!-- 原始矩形 -->
+  <rect x="70" y="70" width="60" height="30" fill="lightblue" />
+
+  <!-- 围绕 (100, 100) 旋转 45 度 -->
+  <rect x="70" y="70" width="60" height="30" fill="blue" transform="rotate(45 100 100)" />
+</svg>
+```
+
+## 旋转角度说明
+
+角度可以为正数或负数:
+
+| 角度 | 效果 | 说明 |
+|-----|------|------|
+| `0` | 不旋转 | 原始状态 |
+| `0 < a < 360` | 顺时针旋转 | 正值为顺时针 |
+| `-360 < a < 0` | 逆时针旋转 | 负值为逆时针 |
+| `a = 360` | 完整一圈 | 回到原始状态 |
+
+### 顺时针旋转
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 原始箭头 -->
+  <path d="M 30 30 L 70 30 L 70 20 L 90 35 L 70 50 L 70 40 L 30 40 Z" fill="lightblue" />
+
+  <!-- 顺时针旋转 45 度 -->
+  <path d="M 30 30 L 70 30 L 70 20 L 90 35 L 70 50 L 70 40 L 30 40 Z"
+        fill="blue" transform="rotate(45 100 50)" />
+
+  <!-- 顺时针旋转 90 度 -->
+  <path d="M 30 30 L 70 30 L 70 20 L 90 35 L 70 50 L 70 40 L 30 40 Z"
+        fill="darkblue" transform="rotate(90 100 120)" />
+</svg>
+```
+
+### 逆时针旋转
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 原始箭头 -->
+  <path d="M 30 50 L 70 50 L 70 40 L 90 55 L 70 70 L 70 60 L 30 60 Z" fill="lightblue" />
+
+  <!-- 逆时针旋转 30 度 -->
+  <path d="M 30 50 L 70 50 L 70 40 L 90 55 L 70 70 L 70 60 L 30 60 Z"
+        fill="blue" transform="rotate(-30 100 50)" />
+
+  <!-- 逆时针旋转 60 度 -->
+  <path d="M 30 50 L 70 50 L 70 40 L 90 55 L 70 70 L 70 60 L 30 60 Z"
+        fill="darkblue" transform="rotate(-60 100 120)" />
+</svg>
+```
+
+## 实际应用场景
+
+### 场景 1: 创建旋转对称图形
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 中心点 -->
+  <circle cx="100" cy="100" r="5" fill="red" />
+
+  <!-- 0 度 -->
+  <rect x="90" y="40" width="20" height="40" fill="blue" transform="rotate(0 100 100)" />
+
+  <!-- 45 度 -->
+  <rect x="90" y="40" width="20" height="40" fill="blue" transform="rotate(45 100 100)" />
+
+  <!-- 90 度 -->
+  <rect x="90" y="40" width="20" height="40" fill="blue" transform="rotate(90 100 100)" />
+
+  <!-- 135 度 -->
+  <rect x="90" y="40" width="20" height="40" fill="blue" transform="rotate(135 100 100)" />
+
+  <!-- 180 度 -->
+  <rect x="90" y="40" width="20" height="40" fill="blue" transform="rotate(180 100 100)" />
+
+  <!-- 225 度 -->
+  <rect x="90" y="40" width="20" height="40" fill="blue" transform="rotate(225 100 100)" />
+
+  <!-- 270 度 -->
+  <rect x="90" y="40" width="20" height="40" fill="blue" transform="rotate(270 100 100)" />
+
+  <!-- 315 度 -->
+  <rect x="90" y="40" width="20" height="40" fill="blue" transform="rotate(315 100 100)" />
+</svg>
+```
+
+### 场景 2: 时钟指针
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 表盘 -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="gray" stroke-width="2" />
+
+  <!-- 中心点 -->
+  <circle cx="100" cy="100" r="5" fill="black" />
+
+  <!-- 时针(指向 3 点方向,90 度) -->
+  <line x1="100" y1="100" x2="100" y2="50" stroke="black" stroke-width="4"
+        transform="rotate(90 100 100)" />
+
+  <!-- 分针(指向 12 点方向,0 度) -->
+  <line x1="100" y1="100" x2="100" y2="30" stroke="black" stroke-width="2" />
+</svg>
+```
+
+### 场景 3: 车轮旋转
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <!-- 轮圈 -->
+    <circle cx="0" cy="0" r="80" fill="none" stroke="gray" stroke-width="5" />
+
+    <!-- 轮辐 -->
+    <line x1="0" y1="-70" x2="0" y2="70" stroke="gray" stroke-width="3" />
+    <line x1="-70" y1="0" x2="70" y2="0" stroke="gray" stroke-width="3" />
+
+    <!-- 45 度轮辐 -->
+    <line x1="-50" y1="-50" x2="50" y2="50" stroke="gray" stroke-width="3" transform="rotate(45)" />
+    <line x1="-50" y1="50" x2="50" y2="-50" stroke="gray" stroke-width="3" transform="rotate(45)" />
+  </g>
+</svg>
+```
+
+### 场景 4: 文字沿圆形排列
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <text font-size="14" text-anchor="middle" fill="blue">
+      <tspan x="0" y="-60" transform="rotate(0)">北</tspan>
+      <tspan x="0" y="-60" transform="rotate(45)">东北</tspan>
+      <tspan x="0" y="-60" transform="rotate(90)">东</tspan>
+      <tspan x="0" y="-60" transform="rotate(135)">东南</tspan>
+      <tspan x="0" y="-60" transform="rotate(180)">南</tspan>
+      <tspan x="0" y="-60" transform="rotate(225)">西南</tspan>
+      <tspan x="0" y="-60" transform="rotate(270)">西</tspan>
+      <tspan x="0" y="-60" transform="rotate(315)">西北</tspan>
+    </text>
+  </g>
+</svg>
+```
+
+## 动画中的应用
+
+### 持续旋转
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <rect x="-40" y="-40" width="80" height="80" fill="blue">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0"
+        to="360"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+### 往复旋转
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <line x1="0" y1="0" x2="0" y2="-70" stroke="blue" stroke-width="4">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        values="-45; 45; -45"
+        dur="2s"
+        repeatCount="indefinite"
+      />
+    </line>
+  </g>
+</svg>
+```
+
+### 加速旋转
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <rect x="-30" y="-30" width="60" height="60" fill="blue">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0"
+        to="360"
+        dur="2s"
+        begin="0s"
+        repeatCount="indefinite"
+        calcMode="spline"
+        keySplines="0.4 0 0.2 1"
+        keyTimes="0; 1"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+### 多元素同步旋转
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <!-- 外圈 -->
+    <circle cx="0" cy="0" r="70" fill="none" stroke="lightblue" stroke-width="10">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0"
+        to="360"
+        dur="4s"
+        repeatCount="indefinite"
+      />
+    </circle>
+
+    <!-- 内圈 -->
+    <circle cx="0" cy="0" r="40" fill="none" stroke="blue" stroke-width="10">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="360"
+        to="0"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+    </circle>
+  </g>
+</svg>
+```
+
+## 复合变换
+
+rotate 与其他变换结合使用:
+
+### 先旋转后平移
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 先旋转 45 度,再平移 -->
+  <rect x="0" y="0" width="40" height="40" fill="blue"
+        transform="rotate(45) translate(100 50)" />
+</svg>
+```
+
+### 先平移后旋转
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 先平移到 (100, 50),再围绕原点旋转 -->
+  <rect x="0" y="0" width="40" height="40" fill="blue"
+        transform="translate(100 50) rotate(45)" />
+</svg>
+```
+
+### 围绕指定点缩放和旋转
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <rect x="-30" y="-30" width="60" height="60" fill="blue">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0"
+        to="360"
+        dur="4s"
+        repeatCount="indefinite"
+      />
+      <animateTransform
+        attributeName="transform"
+        type="scale"
+        values="0.5; 1; 0.5"
+        dur="2s"
+        repeatCount="indefinite"
+        additive="sum"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+## 旋转中心技巧
+
+### 方法 1: 直接指定中心点
+
+```xml
+<rect x="50" y="50" width="60" height="40" transform="rotate(45 80 70)" />
+<!-- 中心点在 (80, 70),即矩形中心 -->
+```
+
+### 方法 2: 使用 translate 先移动
+
+```xml
+<g transform="translate(100 100)">
+  <rect x="-30" y="-20" width="60" height="40" transform="rotate(45)" />
+</g>
+<!-- 先移动到 (100, 100),然后围绕原点旋转 -->
+```
+
+### 方法 3: 变换顺序技巧
+
+```xml
+<rect x="50" y="50" width="60" height="40"
+      transform="translate(100 100) rotate(45) translate(-100 -100)" />
+<!-- 移到中心,旋转,移回原位 -->
+```
+
+## 注意事项
+
+### 1. 旋转中心默认是原点
+
+不指定中心点时,元素围绕 (0, 0) 旋转,可能导致元素移出可视区域:
+
+```xml
+<!-- 可能会移出画布 -->
+<rect x="150" y="150" width="40" height="40" transform="rotate(45)" />
+
+<!-- 推荐:指定旋转中心 -->
+<rect x="150" y="150" width="40" height="40" transform="rotate(45 170 170)" />
+```
+
+### 2. 变换顺序很重要
+
+```xml
+<!-- 先旋转后平移 -->
+<rect transform="rotate(45) translate(100 50)" />
+
+<!-- 先平移后旋转(效果不同) -->
+<rect transform="translate(100 50) rotate(45)" />
+```
+
+### 3. 角度超过 360 度
+
+```xml
+<!-- 旋转 720 度 = 两圈 -->
+<rect transform="rotate(720 100 100)" />
+
+<!-- 旋转 -90 度 = 逆时针 90 度 -->
+<rect transform="rotate(-90 100 100)" />
+```
+
+### 4. 微信公众号兼容性
+
+rotate 在微信公众号中完全支持,可以放心使用。
+
+## 最佳实践
+
+1. **明确旋转中心**: 始终指定旋转中心点,避免意外的位置偏移
+2. **使用 translate**: 将元素移动到原点,旋转后再移回,便于控制
+3. **动画优化**: 使用 `animateTransform` 而非 `animate`
+4. **角度范围**: 动画中使用 0-360 度,避免累积大数值
+
+```xml
+<!-- 推荐的旋转动画写法 -->
+<g transform="translate(cx cy)">
+  <element>
+    <animateTransform
+      attributeName="transform"
+      type="rotate"
+      from="0"
+      to="360"
+      dur="3s"
+      repeatCount="indefinite"
+    />
+  </element>
+</g>
+```

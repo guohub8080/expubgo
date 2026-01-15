@@ -1,0 +1,173 @@
+export const title = "getImgSizeAsync"
+
+# {title}
+
+`getImgSizeAsync` 是一个用于异步获取图片尺寸的基础工具函数，是所有图片尺寸相关功能的底层实现。
+
+## 函数签名
+
+```typescript
+function getImgSizeAsync(url: string): {
+    w: number,         // 图片宽度
+    h: number,         // 图片高度
+    status: string,    // 状态：loading | error | success
+    isSuccess: boolean // 是否成功获取尺寸
+}
+```
+
+## 参数说明
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `url` | `string` | 图片的 URL 地址（支持本地路径和远程地址） |
+
+## 返回值
+
+返回一个包含图片尺寸和状态信息的对象：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `w` | `number` | 图片宽度（加载中或失败时为 0） |
+| `h` | `number` | 图片高度（加载中或失败时为 0） |
+| `status` | `string` | 加载状态：`"loading"` | `"error"` | `"success"` |
+| `isSuccess` | `boolean` | 是否成功获取尺寸 |
+
+## 工作原理
+
+该函数基于 `react-image-size` 库实现，内部使用 Hook 机制：
+
+```typescript
+import { isNil } from 'lodash';
+
+const [dimensions, { loading, error }] = useImageSize(url)
+
+// 状态判断
+if (loading)
+    return { w: 0, h: 0, isSuccess: false, status: "loading" }
+
+if (error)
+    return { w: 0, h: 0, isSuccess: false, status: "error" }
+
+// 使用 lodash 的 isNil 检查 null 或 undefined
+if (isNil(dimensions?.width))
+    return { w: 0, h: 0, isSuccess: false, status: "loading" }
+
+if (isNil(dimensions?.height))
+    return { w: 0, h: 0, isSuccess: false, status: "loading" }
+
+return {
+    w: dimensions.width,
+    h: dimensions.height,
+    isSuccess: true,
+    status: "success"
+}
+```
+
+**代码亮点**：
+- 使用 lodash 的 `isNil()` 函数同时检查 `null` 和 `undefined`
+- 简洁高效，语义清晰
+- 避免了复杂的逻辑判断，代码更易读
+
+## 使用示例
+
+### 基础用法
+
+```typescript
+import getImgSizeAsync from '@pub-utils/common/getImgSizeAsync';
+
+const MyComponent = () => {
+    const imgSize = getImgSizeAsync('/images/pic1.jpg');
+
+    if (imgSize.status === 'loading') {
+        return <div>正在加载图片尺寸...</div>;
+    }
+
+    if (imgSize.status === 'error') {
+        return <div>图片加载失败</div>;
+    }
+
+    return (
+        <div>
+            <p>图片尺寸：{imgSize.w} × {imgSize.h}</p>
+            <svg viewBox={`0 0 ${imgSize.w} ${imgSize.h}`}>
+                <image href="/images/pic1.jpg" width={imgSize.w} height={imgSize.h} />
+            </svg>
+        </div>
+    );
+};
+```
+
+### 结合 useMemo 实现响应式更新
+
+```typescript
+import { useMemo } from 'react';
+import getImgSizeAsync from '@pub-utils/common/getImgSizeAsync';
+
+const MyComponent = ({ imgUrl, manualW, manualH }) => {
+    const imgSizeAuto = getImgSizeAsync(imgUrl);
+
+    // 优先使用手动指定的尺寸，否则使用自动获取的尺寸
+    const imgSize = useMemo(() => {
+        if (manualW || manualH) {
+            return { w: manualW || 0, h: manualH || 0 };
+        }
+
+        if (imgSizeAuto.isSuccess) {
+            return { w: imgSizeAuto.w, h: imgSizeAuto.h };
+        }
+
+        return { w: 0, h: 0 };
+    }, [imgSizeAuto, manualW, manualH]);
+
+    return (
+        <svg viewBox={`0 0 ${imgSize.w} ${imgSize.h}`}>
+            <image href={imgUrl} width={imgSize.w} height={imgSize.h} />
+        </svg>
+    );
+};
+```
+
+## 状态说明
+
+| 状态 | 返回值 | 说明 |
+|------|--------|------|
+| `loading` | `{ w: 0, h: 0, isSuccess: false, status: "loading" }` | 图片正在加载中 |
+| `error` | `{ w: 0, h: 0, isSuccess: false, status: "error" }` | 图片加载失败（URL 无效、网络错误等） |
+| `success` | `{ w: 实际宽度, h: 实际高度, isSuccess: true, status: "success" }` | 成功获取图片尺寸 |
+
+## 应用场景
+
+- **动态 SVG viewBox** - 根据图片实际尺寸自动设置 SVG 的 viewBox，确保图片按原始比例显示
+- **图片预加载检查** - 在显示图片前检查尺寸，根据尺寸调整布局或样式
+- **响应式图片容器** - 根据图片尺寸动态调整容器大小，避免布局抖动
+- **图片验证** - 检查图片是否存在或可访问，验证图片尺寸是否符合要求
+
+## 注意事项
+
+⚠️ **这是 Hook 函数**
+- 必须在 React 组件内调用
+- 不能在普通函数或条件语句中使用
+
+⚠️ **初始值为 0**
+- 首次渲染时返回 `{ w: 0, h: 0 }`
+- 需要处理尺寸为 0 的情况
+
+⚠️ **异步加载**
+- 图片加载需要时间，不会立即返回实际尺寸
+- 建议显示加载状态
+
+⚠️ **CORS 限制**
+- 跨域图片可能无法获取尺寸
+- 建议使用同源图片或配置正确的 CORS
+
+## 相关函数
+
+- [`getImgSizeByDefault`](./get-img-size-by-default.mdx) - 带默认值的图片尺寸获取（基于此函数封装）
+- [`useImageSize`](https://github.com/TooTallNate/react-image-size) - 底层依赖的 React Hook
+- [`isNil`](https://lodash.com/docs/4.17.15#isNil) - Lodash 空值检查函数（检查 null 或 undefined）
+
+## 性能优化
+
+- 函数内部使用 `useImageSize` Hook，具有缓存机制
+- 同一 URL 的多次调用会复用缓存结果
+- 避免在循环中大量调用不同 URL

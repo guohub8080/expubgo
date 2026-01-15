@@ -1,0 +1,150 @@
+export const title = "函数介绍与基础示例"
+
+import { BasicOpacity } from "./examples"
+
+# {title}
+
+`genAnimateOpacity` 是 SVG 透明度动画的核心生成工具。本文将介绍函数签名、核心概念，并通过基础示例展示其基本用法。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimateOpacity } from '@svg-anim/opacity';
+
+genAnimateOpacity({
+  // ===== 必填参数 =====
+  timeline: OpacityTimelineSegment[],       // 必填：时间线段数组
+
+  // ===== 可选参数 =====
+  initOpacity?: number,                     // 初始透明度，默认 1
+  delay?: number,                           // 初始延迟（秒），默认 0
+  beginType?: SvgBeginEventType,               // 默认 undefined：动画开始事件类型
+  calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 动画计算模式，自动
+  freeze?: boolean,                         // 是否保持最终状态，默认 false
+  loopCount?: number,                       // 循环次数（0 = 无限），默认 1
+})
+```
+
+---
+
+## 核心概念
+
+### 初始透明度（initOpacity）
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `initOpacity` | `number` | `1` | 初始透明度值（0-1）|
+
+### 时间线段
+
+这是最核心的参数，定义动画的每个阶段。
+
+**OpacityTimelineSegment 类型：**
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `toValue` | `number` | 上一段透明度值 | 目标透明度值（0-1）|
+| `durationSeconds` | `number` | 必填 | 该段持续时间（秒）|
+| `keySplines` | `string` | `"0.42 0 0.58 1"` | 贝塞尔缓动参数（可选）|
+
+---
+
+## 透明度值说明
+
+| 值 | 效果 |
+|------|------|
+| `0` | 完全透明 |
+| `0.5` | 半透明 |
+| `1` | 完全不透明 |
+
+---
+
+## 基本用法
+
+创建一个淡出的圆形。
+
+**代码示例：**
+
+```tsx
+import { genAnimateOpacity } from "@svg-anim/opacity";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="40" fill="blue">
+    {genAnimateOpacity({
+      timeline: [
+        { toValue: 0, durationSeconds: 2 }
+      ]
+    })}
+  </circle>
+</svg>
+```
+
+**效果预览：**
+
+<BasicOpacity />
+
+**说明**：蓝色圆形从不透明淡出到完全透明
+
+---
+
+## 值模式说明
+
+`genAnimateOpacity` **只使用绝对值模式**，`toValue` 参数直接表示目标透明度值（0-1）。
+
+### 为什么没有相对模式？
+
+透明度动画不需要相对模式，原因如下：
+
+1. **透明度范围固定**：透明度值始终在 `0` 到 `1` 之间
+   - `0` = 完全透明
+   - `1` = 完全不透明
+
+2. **绝对值更直观**：
+   ```tsx
+   // ✅ 直观：从 0.5 变到 0.8
+   { toValue: 0.8, durationSeconds: 1 }
+
+   // ❌ 不直观：增加 0.3（可能超出范围）
+   { relativeValue: 0.3, durationSeconds: 1 }
+   ```
+
+3. **避免边界问题**：相对增量容易导致值超出 `0-1` 范围
+
+### 与缩放动画的对比
+
+| 动画类型 | 值范围 | 是否支持相对模式 |
+|---------|--------|----------------|
+| **透明度** | 固定 `0-1` | ❌ 不需要 |
+| **缩放** | 无限制（理论上） | ✅ 有意义 |
+
+缩放可以使用相对模式是因为"放大 2 倍"比"缩放到 3 倍"更直观，而透明度的"从 0.3 变到 0.8"已经很清晰。
+
+---
+
+## 常用默认值
+
+`genAnimateOpacity` 的设计让大多数参数都有合理的默认值，让你能快速创建动画。
+
+- **默认缓动** - 使用 `ease-in-out` 缓动
+  - `keySplines: "0.42 0 0.58 1"`
+  - 透明度变化平滑自然
+
+- **自动播放**（`beginType: undefined`）
+  - 动画加载后自动开始
+  - 如需点击触发，设置 `beginType: 'click'`
+
+- **单次播放**（`loopCount: 1`）
+  - 动画播放一次后停止
+  - 设置 `loopCount: 0` 实现无限循环
+
+---
+
+## 下一步
+
+现在你已经了解了 `genAnimateOpacity` 的基本用法。接下来将详细介绍各种透明度效果：
+- **淡入与淡出** - 基本透明度动画
+- **呼吸与闪烁** - 循环透明度效果
+- **时序控制** - 延迟、循环、冻结
+- **点击触发** - 交互式透明度动画

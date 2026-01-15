@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8"/>
+	<link rel="icon" type="image/svg+xml" href="/src/dev/assets/svgs/logoSvg/favicon.svg"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+	<meta name="referrer" content="no-referrer">
+	<title>ExPubGo</title>
+	<style>
+		.tmp-loading-wrapper {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: linear-gradient(180deg, #f5f7fa 0%, #c3cfe2 100%);
+			z-index: -1;
+			/* 加载页临时字体：写死系统栈即可，React 挂载后整个加载页会被替换 */
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+		}
+
+		.tmp-loading-inner {
+			text-align: center;
+			animation: tmp-loading-fadeIn 0.6s ease-out;
+		}
+
+		.tmp-loading-icon {
+			width: 120px;
+			height: 120px;
+			margin: 0 auto 16px;
+			animation: tmp-loading-float 3s ease-in-out infinite;
+		}
+
+		.tmp-loading-text-logo {
+			width: 180px;
+			height: 41px;
+			margin: 0 auto;
+		}
+
+		.tmp-loading-dots {
+			display: flex;
+			gap: 8px;
+			justify-content: center;
+			margin-top: 24px;
+		}
+
+		.tmp-loading-dot {
+			width: 8px;
+			height: 8px;
+			background: rgba(0, 0, 0, 0.5);
+			border-radius: 50%;
+			animation: tmp-loading-bounce 1.4s infinite ease-in-out;
+		}
+
+		.tmp-loading-dot:nth-child(1) { animation-delay: 0s; }
+		.tmp-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+		.tmp-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+		.tmp-loading-mirror-box {
+			opacity: 0;
+			animation: tmp-loading-fadeInUp 0.5s ease-out forwards;
+			margin: 32px auto 0;
+			padding: 22px 22px 20px;
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
+			gap: 14px;
+			width: calc(100% - 32px);
+			max-width: 640px;
+			box-sizing: border-box;
+		}
+
+		.tmp-loading-mirror-label {
+			font-size: 11px;
+			color: rgba(0, 0, 0, 0.4);
+			font-weight: 600;
+			letter-spacing: 1.2px;
+			text-transform: uppercase;
+			text-align: center;
+		}
+
+		.tmp-loading-mirror-grid {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 8px;
+			width: 100%;
+		}
+
+		.tmp-loading-mirror-item {
+			flex: 0 1 240px;
+			display: flex;
+			align-items: center;
+			gap: 16px;
+			padding: 10px 14px;
+			border-radius: 10px;
+			background: rgba(255, 255, 255, 0.55);
+			border: 1px solid rgba(0, 0, 0, 0.12);
+			transition: all 0.2s ease;
+			cursor: pointer;
+			min-width: 0;
+			box-sizing: border-box;
+		}
+
+		.tmp-loading-mirror-item:hover {
+			background: rgba(255, 255, 255, 0.95);
+			border-color: rgba(25, 118, 210, 0.5);
+			box-shadow: 0 6px 20px rgba(25, 118, 210, 0.3), 0 2px 6px rgba(25, 118, 210, 0.18);
+			transform: translateY(-1px);
+		}
+
+		.tmp-loading-mirror-icon {
+			width: 24px;
+			height: 24px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex-shrink: 0;
+		}
+
+		.tmp-loading-mirror-icon svg {
+			display: block;
+		}
+
+		.tmp-loading-mirror-info {
+			display: flex;
+			flex-direction: column;
+			gap: 3px;
+			min-width: 0;
+			flex: 1;
+			text-align: left;
+		}
+
+		.tmp-loading-mirror-platform {
+			font-size: 14px;
+			font-weight: 700;
+			color: rgba(0, 0, 0, 0.78);
+			line-height: 1.2;
+			letter-spacing: 0.2px;
+		}
+
+		.tmp-loading-mirror-url {
+			font-size: 12px;
+			color: #1976D2;
+			font-weight: 500;
+			line-height: 1.2;
+			font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+		}
+
+		@keyframes tmp-loading-float {
+			0%, 100% { transform: translateY(0px); }
+			50% { transform: translateY(-10px); }
+		}
+
+		@keyframes tmp-loading-bounce {
+			0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+			40% { transform: scale(1.2); opacity: 1; }
+		}
+
+		@keyframes tmp-loading-fadeIn {
+			from { opacity: 0; transform: translateY(20px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+
+		@keyframes tmp-loading-fadeInUp {
+			from { opacity: 0; transform: translateY(10px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+	</style>
+	<script type="module" src="/src/dev/main.tsx"></script>
+</head>
+<body>
+
+<div id="root">
+	<div class="tmp-loading-wrapper">
+		<div class="tmp-loading-inner">
+			<div class="tmp-loading-icon">
+				<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 595.3 596.1">
+					<path fill="#fff" d="M297.6,20.3L51.6,162.3v284.1l246,142,246-142V162.3L297.6,20.3Z"/>
+					<path fill="#1976D2" d="M106.3,225.4v189.4l164,94.7v-189.4l-164-94.7ZM243,51.8l54.7-31.6,246,142v31.6l-218.7,126.3v189.4s164-94.7,164-94.7v-63.1l-109.3,63.1v-63.1l164-94.7v189.4s-246,142-246,142L51.6,446.4V162.3l27.3-15.8,218.7,126.3,164-94.7L243,51.8Z"/>
+					<polygon fill="#4DD0E1" points="79 146.5 297.6 20.3 297.6 272.8 79 146.5"/>
+				</svg>
+			</div>
+			<div class="tmp-loading-text-logo">
+				<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 147.4 34.2">
+					<g fill="#1976D2">
+						<path d="M68.1,5.7c-.7,3.2-2.6,8.6-3.9,11.6-.6,1.6-1.9,2.8-3.6,3.1h-10.9s-2.9,9.6-2.9,9.6h0c0,0-1.2,4-1.2,4h-2.2c0,0-8.6-12.3-8.6-12.3l-4.5,4.4h-6.5l8.3-8.3-5.7-8.1h6.1l3.2,4.4,4.5-4.4h6.5l-8.2,8.3,4.1,6,4.4-14.3h6.1l-1.5,5h7c.3,0,.5-.6.6-.8.8-2.1,1.3-4.5,2.2-6.6.1-.2-.2-.6-.3-.6h-14.8l1.8-5.6.3-.2h17.1c2.4.7,3.2,2.7,2.6,5Z"/>
+						<polygon points="26.2 9.6 25.2 15.3 12.5 15.4 10.8 20.2 24.7 20.2 23.7 26 2.1 26 7.4 9.6 26.2 9.6"/>
+						<path d="M96.4.7l-2.4,7.5h9.5c1.5,0,2,1.6,1.8,2.8-.4,2.3-3,10.3-4,12.5s-2.1,2.5-3,2.5h-15.5L90.6.7h5.8ZM99,13.2h-6.6l-2.4,7.9h6.5l2.6-7.9Z"/>
+						<path d="M74.5,8.2l-4,12.9h6.6l4.1-12.9h5.6l-5.7,17.9h-15c-1.6-.2-2.2-1.7-1.8-3.1l4.7-14.7h5.6Z"/>
+					</g>
+					<g fill="#4DD0E1">
+						<path fill-rule="evenodd" d="M113.8,1c-1.1.3-2.5,1.2-3.1,2.2-.1.2-1,2.6-2,5.3s-2.3,6.6-3.1,8.7c-1.8,4.9-1.8,4.9-1.8,5.6,0,1.2.5,2.2,1.5,2.8l.6.4h8.1c7.7,0,8.1,0,8.2-.2.2-.5,5-14.4,5-14.5s-2.3-.1-5.1-.1h-5.1l-.8,2.4-.8,2.4h2c1.8,0,2,0,2,.3,0,.1-.3,1-.7,2l-.6,1.7h-3.5c-2.9,0-3.5,0-3.6-.1,0-.2,4.3-12.7,4.6-13,.2-.2.5-.2,3.7-.2s3.5,0,3.5.1,0,.4-.2.8c-.1.4-.2.7-.2.7,0,0,1.3,0,3,0h3s1.3-3.7,1.3-3.7c.7-2,1.3-3.7,1.3-3.7,0,0-16.6,0-17.1.1M131.3,9.4c-.7.3-1.6,1.2-2,1.9-.1.2-1.2,3.1-2.3,6.3-2.2,6.4-2.3,6.8-1.7,7.6.6.9.6.9,7.4.9,6.9,0,6.8,0,7.8-1,.8-.7.8-.9,1.8-3.6.5-1.4,1.3-3.7,1.9-5.2s1.1-3.1,1.3-3.6c.6-1.6.4-2.9-.6-3.4-.4-.2-.9-.2-6.6-.2h-6.2s-.7.3-.7.3M133.9,13.6c-.3.2-2.9,7.5-2.8,7.7,0,0,5.8.2,5.8,0,0,0,.5-1.5,1.2-3.4,1.4-4,1.5-4.2,1.4-4.4-.1-.3-5.3-.3-5.6,0"/>
+						<path d="M30.8.7l-1.3,5.9H8.2c.5-1.7,1.8-5.9,3.8-5.9s18.8,0,18.8,0Z"/>
+					</g>
+				</svg>
+			</div>
+			<div class="tmp-loading-dots">
+				<div class="tmp-loading-dot"></div>
+				<div class="tmp-loading-dot"></div>
+				<div class="tmp-loading-dot"></div>
+			</div>
+			<div class="tmp-loading-mirror-box">
+				<div class="tmp-loading-mirror-label">加载较慢？尝试以下镜像</div>
+				<div class="tmp-loading-mirror-grid">
+					<div class="tmp-loading-mirror-item" onclick="window.open('https://guohub8080.github.io/expubgo/','_blank','noopener')">
+						<div class="tmp-loading-mirror-icon">
+							<svg width="20" height="20" viewBox="0 0 512 512" fill="none">
+								<path fill="#181717" d="M256 32C132.3 32 32 134.9 32 261.7c0 101.5 64.2 187.5 153.2 217.9a17.56 17.56 0 003.8.4c8.3 0 11.5-6.1 11.5-11.4 0-5.5-.2-19.9-.3-39.1a102.4 102.4 0 01-22.6 2.7c-43.1 0-52.9-33.5-52.9-33.5-10.2-26.5-24.9-33.6-24.9-33.6-19.5-13.7-.1-14.1 1.4-14.1h.1c22.5 2 34.3 23.8 34.3 23.8 11.2 19.6 26.2 25.1 39.6 25.1a63 63 0 0025.6-6c2-14.8 7.8-24.9 14.2-30.7-49.7-5.8-102-25.5-102-113.5 0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8a18.64 18.64 0 015-.5c8.1 0 26.4 3.1 56.6 24.1a208.21 208.21 0 01112.2 0c30.2-21 48.5-24.1 56.6-24.1a18.64 18.64 0 015 .5c12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6 0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5 0 30.7-.3 55.5-.3 63 0 5.4 3.1 11.5 11.4 11.5a19.35 19.35 0 004-.4C415.9 449.2 480 363.1 480 261.7 480 134.9 379.7 32 256 32z"/>
+							</svg>
+						</div>
+						<div class="tmp-loading-mirror-info">
+							<div class="tmp-loading-mirror-platform">GitHub Pages</div>
+							<div class="tmp-loading-mirror-url">guohub8080/expubgo</div>
+						</div>
+					</div>
+					<div class="tmp-loading-mirror-item" onclick="window.open('https://expubgo.pages.dev','_blank','noopener')">
+						<div class="tmp-loading-mirror-icon">
+							<svg width="24" height="24" viewBox="0 0 128 128" fill="none">
+								<path fill="#f38020" d="M87.295 89.022c.763-2.617.472-5.015-.8-6.796c-1.163-1.635-3.125-2.58-5.488-2.689l-44.737-.581c-.291 0-.545-.145-.691-.363s-.182-.509-.109-.8c.145-.436.581-.763 1.054-.8l45.137-.581c5.342-.254 11.157-4.579 13.192-9.885l2.58-6.723c.109-.291.145-.581.073-.872c-2.906-13.158-14.644-22.97-28.672-22.97c-12.938 0-23.913 8.359-27.838 19.952a13.35 13.35 0 0 0-9.267-2.58c-6.215.618-11.193 5.597-11.811 11.811c-.145 1.599-.036 3.162.327 4.615C10.104 70.051 2 78.337 2 88.549c0 .909.073 1.817.182 2.726a.895.895 0 0 0 .872.763h82.57c.472 0 .909-.327 1.054-.8z"/>
+								<path fill="#faae40" d="M101.542 60.275c-.4 0-.836 0-1.236.036c-.291 0-.545.218-.654.509l-1.744 6.069c-.763 2.617-.472 5.015.8 6.796c1.163 1.635 3.125 2.58 5.488 2.689l9.522.581c.291 0 .545.145.691.363s.182.545.109.8c-.145.436-.581.763-1.054.8l-9.924.582c-5.379.254-11.157 4.579-13.192 9.885l-.727 1.853c-.145.363.109.727.509.727h34.089c.4 0 .763-.254.872-.654c.581-2.108.909-4.325.909-6.614c0-13.447-10.975-24.422-24.458-24.422"/>
+							</svg>
+						</div>
+						<div class="tmp-loading-mirror-info">
+							<div class="tmp-loading-mirror-platform">Cloudflare Pages</div>
+							<div class="tmp-loading-mirror-url">expubgo.pages.dev</div>
+						</div>
+					</div>
+					<div class="tmp-loading-mirror-item" onclick="window.open('https://expubgo.netlify.app','_blank','noopener')">
+						<div class="tmp-loading-mirror-icon">
+							<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<path fill="#00bfa5" d="m11.25 2.232l-.127.127v4.567l.127.129h1.526l.126-.13V2.36l-.126-.127H11.25zM6.69 5.455L5.643 6.5v.21l1.6 1.6h1.108l.148-.148V7.055l-1.6-1.6zM1.026 11.11l-.127.127v1.528l.127.127h6.09l.127-.127v-1.528l-.127-.127zm15.858 0l-.127.127v1.528l.127.127h6.09l.127-.127v-1.528l-.127-.127zm-9.64 4.58l-1.6 1.6v.21l1.045 1.046h.21l1.6-1.6v-1.109l-.148-.146zm4.005 1.256l-.127.13v4.566l.127.127h1.526l.126-.127v-4.567l-.126-.129z"/>
+								<path fill="#00897b" d="M14.855 15.172h-1.523l-.127-.127V11.48c0-.634-.249-1.125-1.013-1.142c-.394-.01-.844 0-1.325.019l-.072.074v4.61l-.127.128H9.146l-.128-.127V8.956l.128-.127h3.425a2.41 2.41 0 0 1 2.41 2.41v3.806z"/>
+							</svg>
+						</div>
+						<div class="tmp-loading-mirror-info">
+							<div class="tmp-loading-mirror-platform">Netlify</div>
+							<div class="tmp-loading-mirror-url">expubgo.netlify.app</div>
+						</div>
+					</div>
+					<div class="tmp-loading-mirror-item" onclick="window.open('https://expubgo.vercel.app','_blank','noopener')">
+						<div class="tmp-loading-mirror-icon">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+								<path fill="#000" d="M23 20.048H1L12 0.752z"/>
+							</svg>
+						</div>
+						<div class="tmp-loading-mirror-info">
+							<div class="tmp-loading-mirror-platform">Vercel</div>
+							<div class="tmp-loading-mirror-url">expubgo.vercel.app</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+</body>
+</html>

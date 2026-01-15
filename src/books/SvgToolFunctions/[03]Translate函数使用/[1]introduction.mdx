@@ -1,0 +1,122 @@
+export const title = "函数介绍与基础示例"
+
+import { genAnimateTranslate } from "@svg-anim/translate"
+import { ReplayButton } from "./examples/ReplayButton"
+import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper"
+
+# {title}
+
+`genAnimateTranslate` 是 SVG 位移动画的核心生成工具。本文将介绍函数签名、核心概念，并通过基础示例展示其基本用法。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimateTranslate } from '@svg-anim/translate';
+
+genAnimateTranslate({
+  // ===== 必填参数 =====
+  timeline: TranslateTimelineSegment[],       // 必填：时间线段数组
+
+  // ===== 可选参数 =====
+  initValue?: { x: number, y: number },      // 初始坐标，默认 { x: 0, y: 0 }
+  delay?: number,                            // 初始延迟（秒），默认 0
+  additive?: boolean,                        // 是否累加变换，默认 true
+  beginType?: SvgBeginEventType,                // 默认 undefined：动画开始事件类型
+  calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 动画计算模式，自动
+  freeze?: boolean,                          // 是否保持最终状态，默认 false
+  loopCount?: number,                        // 循环次数（0 = 无限），默认 1
+  isRelativeMove?: boolean,                  // 是否使用相对移动，默认 true
+})
+```
+
+---
+
+## 核心概念
+
+### 初始坐标（initValue）
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `x` | `number` | `0` | X 起始坐标（可选） |
+| `y` | `number` | `0` | Y 起始坐标（可选） |
+
+### 时间线段
+
+这是最核心的参数，定义动画的每个阶段。
+
+**TranslateTimelineSegment 类型：**
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `toValue` | `Partial<Point2D>` | 上一段位置 | 目标位置（可只指定 x 或 y）|
+| `durationSeconds` | `number` | 必填 | 该段持续时间（秒）|
+| `keySplines` | `string` | `"0.42 0 0.58 1"` | 贝塞尔缓动参数（可选）|
+
+**基础示例：**
+
+```tsx
+import { genAnimateTranslate } from '@svg-anim/translate';
+
+export const BasicUsage = () => {
+    return (
+        <svg width="300" height="100" viewBox="0 0 300 100">
+            <circle cx="50" cy="50" r="20" fill="blue">
+                {genAnimateTranslate({
+                    initValue: { x: 0, y: 0 },
+                    timeline: [
+                        { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+                    ]
+                })}
+            </circle>
+        </svg>
+    );
+};
+```
+
+**效果预览：**
+
+<ReplayButton>
+  <SvgWrapper>
+    <svg width="300" height="100" viewBox="0 0 300 100">
+      <circle cx="50" cy="50" r="20" fill="blue">
+        {genAnimateTranslate({
+          initValue: { x: 0, y: 0 },
+          timeline: [
+            { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+          ]
+        })}
+      </circle>
+    </svg>
+  </SvgWrapper>
+</ReplayButton>
+
+**说明**：这是最基础的用法，圆形从左侧向右移动 200px
+
+---
+
+## 常用默认值
+
+`genAnimateTranslate` 的设计让大多数参数都有合理的默认值，让你能快速创建动画。
+
+- **相对移动模式**（`isRelativeMove: true`）- 推荐使用
+  - `toValue` 是相对于上一阶段的增量
+  - 更符合直觉："移动多少"
+  - 示例：向右 100px，然后向左 100px
+
+- **累加模式**（`additive: true`）
+  - 可以与旋转、缩放动画同时进行
+  - 自动叠加到其他变换上
+
+---
+
+## 下一步
+
+现在你已经了解了 `genAnimateTransform` 的基本用法。接下来将详细介绍各种位移效果：
+- **单向移动** - 四个方向的移动
+- **往返运动** - 往返运动
+- **多段路径** - 复杂路径
+- **速度对比** - 速度对比效果
+- **动画时序控制** - 控制动画行为
+- **相对移动与累积移动** - 高级技巧

@@ -1,0 +1,265 @@
+export const title = "SVG 渲染顺序与缩放控制"
+export const icon = "Layers"
+
+# {title}
+
+了解 SVG 的渲染顺序和 `preserveAspectRatio` 属性对于创建正确的图形和动画至关重要。
+
+## 渲染顺序
+
+SVG 元素按照**文档顺序**从上到下渲染，后绘制的元素会覆盖先绘制的元素。
+
+### 基本规则
+
+```
+第一个定义的元素 → 最底层（最后被看到）
+最后定义的元素   → 最顶层（最先被看到）
+```
+
+### 示例：重叠效果
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 红色圆形（底层） -->
+  <circle cx="100" cy="100" r="60" fill="red" />
+
+  <!-- 绿色圆形（中层） -->
+  <circle cx="100" cy="100" r="45" fill="green" />
+
+  <!-- 蓝色圆形（顶层） -->
+  <circle cx="100" cy="100" r="30" fill="blue" />
+</svg>
+```
+
+### 示例：动画层级
+
+动画不会改变元素的渲染顺序，只是改变其视觉属性：
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 底层：静态矩形 -->
+  <rect x="50" y="50" width="100" height="100" fill="lightblue" />
+
+  <!-- 顶层：移动的圆形 -->
+  <circle cx="20" cy="100" r="20" fill="red">
+    <animate attributeName="cx" from="20" to="180" dur="2s" repeatCount="indefinite" />
+  </circle>
+</svg>
+```
+
+即使圆形移动到矩形下方，由于它在代码中后定义，仍然会显示在矩形上方。
+
+## z-index 的替代方案
+
+SVG 没有 `z-index` 属性，控制层级的方法：
+
+### 方法 1：调整元素顺序
+
+最简单的方法是将需要显示在顶部的元素放在代码后面：
+
+```xml
+<!-- ❌ 错误：想要圆形在上层但放在了前面 -->
+<circle cx="100" cy="100" r="50" fill="red" />
+<rect x="50" y="50" width="100" height="100" fill="blue" />
+
+<!-- ✅ 正确：圆形在后定义，显示在上层 -->
+<rect x="50" y="50" width="100" height="100" fill="blue" />
+<circle cx="100" cy="100" r="50" fill="red" />
+```
+
+### 方法 2：使用 `<g>` 分组
+
+将相关元素分组，整体调整层级：
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 背景组（底层） -->
+  <g id="background">
+    <rect x="0" y="0" width="200" height="200" fill="#f0f0f0" />
+    <circle cx="50" cy="50" r="30" fill="lightblue" />
+  </g>
+
+  <!-- 内容组（顶层） -->
+  <g id="content">
+    <rect x="75" y="75" width="50" height="50" fill="orange" />
+    <text x="100" y="105" text-anchor="middle" font-size="14">内容</text>
+  </g>
+</svg>
+```
+
+### 方法 3：动态调整（动画中）
+
+使用 JavaScript 可以动态调整元素顺序，但微信公众号不支持 JavaScript。
+
+在微信公众号中，如果需要动态改变层级，建议：
+- 使用多个隐藏元素，通过 `opacity` 切换显示
+- 预先设计好所有可能的层级顺序
+
+## preserveAspectRatio
+
+`preserveAspectRatio` 属性控制 SVG 内容如何适应 viewBox。
+
+### 语法格式
+
+```xml
+<svg
+  viewBox="0 0 200 100"
+  preserveAspectRatio="xMidYMid meet"
+  width="400"
+  height="200"
+>
+```
+
+### 参数格式
+
+```
+preserveAspectRatio="alignment meetOrSlice"
+```
+
+**alignment（对齐方式）**：
+
+| 值 | X 对齐 | Y 对齐 | 说明 |
+|-----|--------|--------|------|
+| `xMinYMin` | 左边缘 | 上边缘 | 对齐到左上角 |
+| `xMidYMin` | 居中 | 上边缘 | 对齐到顶部居中 |
+| `xMaxYMin` | 右边缘 | 上边缘 | 对齐到右上角 |
+| `xMinYMid` | 左边缘 | 居中 | 对齐到左侧居中 |
+| `xMidYMid` | 居中 | 居中 | 居中对齐（默认） |
+| `xMaxYMid` | 右边缘 | 居中 | 对齐到右侧居中 |
+| `xMinYMax` | 左边缘 | 下边缘 | 对齐到左下角 |
+| `xMidYMax` | 居中 | 下边缘 | 对齐到底部居中 |
+| `xMaxYMax` | 右边缘 | 下边缘 | 对齐到右下角 |
+| `none` | - | - | 强制拉伸填充 |
+
+**meetOrSlice（缩放方式）**：
+
+| 值 | 说明 |
+|-----|------|
+| `meet` | 缩放以完全显示（默认），保持比例 |
+| `slice` | 缩放以完全填充，保持比例，可能裁剪 |
+
+### meet：完全显示
+
+默认值，确保整个 viewBox 可见：
+
+```xml
+<!-- 宽高比不同的容器 -->
+<svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet" width="400" height="400">
+  <rect x="0" y="0" width="200" height="100" fill="lightblue" />
+  <circle cx="100" cy="50" r="40" fill="blue" />
+</svg>
+```
+
+容器 400x400，内容 200x100（2:1），meet 会缩放内容以完全显示，两侧留空白。
+
+### slice：完全填充
+
+缩放以填满容器，可能裁剪内容：
+
+```xml
+<svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" width="400" height="400">
+  <rect x="0" y="0" width="200" height="100" fill="lightblue" />
+  <circle cx="100" cy="50" r="40" fill="blue" />
+</svg>
+```
+
+容器 400x400，内容 200x100（2:1），slice 会放大内容以填满容器，上下部分被裁剪。
+
+### none：强制拉伸
+
+忽略比例，强制拉伸到容器大小：
+
+```xml
+<svg viewBox="0 0 200 100" preserveAspectRatio="none" width="400" height="400">
+  <rect x="0" y="0" width="200" height="100" fill="lightblue" />
+  <circle cx="100" cy="50" r="40" fill="blue" />
+</svg>
+```
+
+圆形会被拉伸成椭圆，矩形变成正方形。
+
+### 对齐方式示例
+
+**xMidYMid（居中，默认）**：
+
+```xml
+<svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet" width="400" height="400">
+  <rect width="200" height="100" fill="lightblue" />
+</svg>
+```
+
+内容居中显示。
+
+**xMinYMin（左上角）**：
+
+```xml
+<svg viewBox="0 0 200 100" preserveAspectRatio="xMinYMin meet" width="400" height="400">
+  <rect width="200" height="100" fill="lightblue" />
+</svg>
+```
+
+内容对齐到左上角。
+
+**xMaxYMax（右下角）**：
+
+```xml
+<svg viewBox="0 0 200 100" preserveAspectRatio="xMaxYMax meet" width="400" height="400">
+  <rect width="200" height="100" fill="lightblue" />
+</svg>
+```
+
+内容对齐到右下角。
+
+### 实际应用场景
+
+**场景 1：响应式图标**
+
+```xml
+<!-- 图标保持比例，完全显示 -->
+<svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" width="100" height="100">
+  <path d="M12 2L2 22h20L12 2z" fill="blue" />
+</svg>
+```
+
+**场景 2：全屏背景**
+
+```xml
+<!-- 背景图片填满容器，允许裁剪 -->
+<svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+  <image href="background.jpg" width="1920" height="1080" />
+</svg>
+```
+
+**场景 3：强制适配容器**
+
+```xml
+<!-- 拉伸以填满容器 -->
+<svg viewBox="0 0 100 50" preserveAspectRatio="none" width="100%" height="100%">
+  <rect width="100" height="50" fill="lightblue" />
+</svg>
+```
+
+## 微信公众号注意事项
+
+### 不支持的特性
+
+- ❌ JavaScript 动态调整层级
+- ❌ `z-index` 样式（SVG 不支持）
+
+### 最佳实践
+
+1. **预先设计层级**：在编写代码时就确定好元素的顺序
+2. **使用分组**：用 `<g>` 组织相关元素
+3. **设置默认值**：微信环境建议使用 `xMidYMid meet`
+
+```xml
+<!-- 推荐配置 -->
+<svg
+  viewBox="0 0 750 1334"
+  preserveAspectRatio="xMidYMid meet"
+  width="100%"
+  height="auto"
+>
+</svg>
+```
+

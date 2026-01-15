@@ -1,0 +1,317 @@
+export const title = "元素边界ElementBounds"
+export const icon = "BookOpen"
+
+# {title}
+
+`elementBounds` 用于描述 SVG 元素的位置和尺寸，配合 `getOriginNumByText` 函数自动计算变换原点坐标。
+
+## 什么是 ElementBounds？
+
+`ElementBoundsType` 是一个描述元素边界的类型，包含以下属性：
+
+- `x?`: 元素左上角 X 坐标（可选，默认 0）
+- `y?`: 元素左上角 Y 坐标（可选，默认 0）
+- `w`: 元素宽度（必填）
+- `h`: 元素高度（必填）
+
+```typescript
+type ElementBoundsType = {
+  x?: number;  // 左上角 X 坐标，默认 0
+  y?: number;  // 左上角 Y 坐标，默认 0
+  w: number;   // 宽度（必填）
+  h: number;   // 高度（必填）
+}
+```
+
+## 为什么需要 ElementBounds？
+
+SVG 的旋转、缩放等变换默认以坐标原点 `(0, 0)` 为中心。但通常我们希望：
+
+- ✅ **以元素自身的中心**为变换原点
+- ✅ **以元素的某个角落或边缘**为变换原点
+
+`elementBounds` 提供元素的位置和尺寸信息，让函数能够**自动计算**出正确的变换原点坐标。
+
+## 完整示例：elementBounds 是如何工作的？
+
+### 基本用法
+
+```tsx
+<svg viewBox="0 0 400 200">
+  {/* 一个图片，位置在 (100, 50)，尺寸 80x80 */}
+  <image x="100" y="50" width="80" height="80" href="pic.png">
+    {genAnimateScale({
+      origin: 'center',
+      elementBounds: { x: 100, y: 50, w: 80, h: 80 },  // ← 注意这里的值
+      timeline: [
+        { durationSeconds: 1, toValue: 1.5 },
+        { durationSeconds: 1, toValue: 1 }
+      ],
+      loopCount: 0
+    })}
+  </image>
+</svg>
+```
+
+### elementBounds 计算过程
+
+```javascript
+// 1. 根据 elementBounds 和 origin: 'center' 计算中心点
+centerX = x + w/2 = 100 + 80/2 = 140
+centerY = y + h/2 = 50 + 80/2 = 90
+
+// 2. 生成三个 animateTransform 的 values 值
+// 第一个：平移到中心
+values="140 90;140 90;140 90"
+
+// 第二个：缩放
+values="1 1;1.5 1.5;1 1"
+
+// 第三个：平移回去
+values="-140 -90;-140 -90;-140 -90"
+```
+
+### 可视化说明
+
+```
+SVG 坐标系：
+┌─────────────────────────────────────────┐
+│ (0,0)                                   │
+│                                         │
+│         ┌─────────────┐                 │
+│         │             │                 │
+│         │   图片      │  80x80          │
+│         │   中心点     │                 │
+│         │    ●        │                 │
+│         └─────────────┘                 │
+│       ↑(100,50)                         │
+│                                         │
+│       中心点坐标：(140, 90)              │
+│       = (100 + 40, 50 + 40)             │
+└─────────────────────────────────────────┘
+```
+
+### 关键点：elementBounds 必须匹配元素的实际位置
+
+```tsx
+// ✅ 正确：elementBounds 和 image 的 x,y,w,h 完全一致
+<image x="100" y="50" width="80" height="80">
+  {genAnimateScale({
+    elementBounds: { x: 100, y: 50, w: 80, h: 80 }  // 匹配！
+  })}
+</image>
+
+// ❌ 错误：elementBounds 不匹配
+<image x="100" y="50" width="80" height="80">
+  {genAnimateScale({
+    elementBounds: { x: 0, y: 0, w: 80, h: 80 }  // 不匹配！缩放中心会错
+  })}
+</image>
+```
+
+### 不同 origin 的效果对比
+
+同样的 `elementBounds: { x: 100, y: 50, w: 80, h: 80 }`，不同的 `origin` 会产生不同的效果：
+
+```tsx
+// origin: 'center' → 缩放中心 (140, 90)
+// 元素从自己的中心放大缩小
+
+// origin: 'topLeft' → 缩放中心 (100, 50)
+// 元素从左上角放大，向右下角扩散
+
+// origin: 'bottomRight' → 缩放中心 (180, 130)
+// 元素从右下角放大，向左上角扩散
+```
+
+## 支持的快捷位置（OriginPosition）
+
+`getOriginNumByText` 函数支持 10 种快捷位置：
+
+假设元素位置为 `x: 50, y: 70`，尺寸为 `w: 80, h: 60`：
+
+| 位置名称 | 计算公式 | 示例结果 |
+|----------|----------|----------|
+| topLeft | [x, y] | [50, 70] |
+| topCenter | [x + w/2, y] | [90, 70] |
+| topRight | [x + w, y] | [130, 70] |
+| centerLeft | [x, y + h/2] | [50, 100] |
+| **center** | [x + w/2, y + h/2] | **[90, 100]** |
+| centerRight | [x + w, y + h/2] | [130, 100] |
+| bottomLeft | [x, y + h] | [50, 130] |
+| bottomCenter | [x + w/2, y + h] | [90, 130] |
+| bottomRight | [x + w, y + h] | [130, 130] |
+| origin | [0, 0] | [0, 0] |
+
+## 使用示例
+
+### 旋转动画 - 不同原点的效果
+
+#### origin: 'center' 绕中心旋转
+
+```typescript
+genAnimateRotate({
+  origin: 'center',
+  elementBounds: { x: 157, y: 30, w: 60, h: 60 },
+  timeline: [{ durationSeconds: 3, toValue: 360 }],
+  loopCount: 0
+})
+```
+
+#### origin: 'topLeft' 绕左上角旋转
+
+```typescript
+genAnimateRotate({
+  origin: 'topLeft',
+  elementBounds: { x: 60, y: 20, w: 60, h: 60 },
+  timeline: [{ durationSeconds: 3, toValue: 360 }],
+  loopCount: 0
+})
+```
+
+#### origin: 'bottomCenter' 绕底部中心旋转（钟摆效果）
+
+```typescript
+genAnimateRotate({
+  initAngle: -30,
+  origin: 'bottomCenter',
+  elementBounds: { x: 157, y: 20, w: 60, h: 60 },
+  timeline: [
+    { durationSeconds: 1.5, toValue: 30 },
+    { durationSeconds: 1.5, toValue: -30 }
+  ],
+  loopCount: 0
+})
+```
+
+### 缩放动画 - 不同原点的效果
+
+#### origin: 'center' 从中心缩放
+
+```typescript
+genAnimateScale({
+  origin: 'center',
+  elementBounds: { x: 157, y: 30, w: 60, h: 60 },
+  timeline: [
+    { durationSeconds: 1, toValue: 1.3 },
+    { durationSeconds: 1, toValue: 1 }
+  ],
+  loopCount: 0
+})
+```
+
+#### origin: 'topLeft' 从左上角缩放
+
+```typescript
+genAnimateScale({
+  origin: 'topLeft',
+  elementBounds: { x: 60, y: 20, w: 60, h: 60 },
+  timeline: [
+    { durationSeconds: 1, toValue: 1.5 },
+    { durationSeconds: 1, toValue: 1 }
+  ],
+  loopCount: 0
+})
+```
+
+#### origin: 'bottomRight' 从右下角缩放
+
+```typescript
+genAnimateScale({
+  origin: 'bottomRight',
+  elementBounds: { x: 240, y: 20, w: 60, h: 60 },
+  timeline: [
+    { durationSeconds: 1, toValue: 1.5 },
+    { durationSeconds: 1, toValue: 1 }
+  ],
+  loopCount: 0
+})
+```
+
+## CSS 辅助函数：快速实现中心变换
+
+如果你**只需要中心点变换**，且不想手动提供 `elementBounds`，可以使用 CSS 辅助函数：
+
+- 💡 `getCenterRotateStyle()` - 旋转中心为元素中心
+- 💡 `getCenterScaleStyle()` - 缩放中心为元素中心
+
+这两个函数通过 CSS 的 `transform-origin` 和 `transform-box` 实现中心变换。
+
+### getCenterRotateStyle() 中心旋转
+
+使用 CSS 方式实现中心旋转，无需手动计算坐标。
+
+**函数返回值：**
+
+```typescript
+{
+  transformOrigin: 'center',
+  transformBox: 'fill-box'
+}
+```
+
+- `transformOrigin: 'center'` - 设置变换原点为元素中心
+- `transformBox: 'fill-box'` - 让原点计算基于元素的填充边界（而不是视口）
+
+```typescript
+// ✅ 简洁方式：使用 CSS 辅助函数
+<g style={getCenterRotateStyle()}>
+  <image href={pic1} x={157} y={30} width={60} height={60}>
+    {genAnimateRotate({
+      origin: 'center',  // 不需要 elementBounds
+      timeline: [{ durationSeconds: 3, toValue: 360 }],
+      loopCount: 0
+    })}
+  </image>
+</g>
+```
+
+### getCenterScaleStyle() 中心缩放
+
+使用 CSS 方式实现中心缩放。
+
+与 `getCenterRotateStyle()` 返回值相同，两者都是通过 CSS 设置变换原点为元素中心。
+
+```typescript
+// ✅ 简洁方式：使用 CSS 辅助函数
+<g style={getCenterScaleStyle()}>
+  <image href={pic1} x={157} y={30} width={60} height={60}>
+    {genAnimateScale({
+      origin: 'center',  // 不需要 elementBounds
+      timeline: [
+        { durationSeconds: 1, toValue: 1.3 },
+        { durationSeconds: 1, toValue: 1 }
+      ],
+      loopCount: 0
+    })}
+  </image>
+</g>
+```
+
+### CSS 方式 vs ElementBounds 方式
+
+| 对比项 | CSS 方式<br/>`getCenterRotateStyle()` | ElementBounds 方式<br/>`elementBounds + origin` |
+|--------|--------------------------------------|------------------------------------------|
+| 代码简洁度 | ✅ 非常简洁，一行代码 | ⚠️ 需要提供位置和尺寸信息 |
+| 支持的原点 | ⚠️ 只支持 `center` | ✅ 支持 10 种快捷位置 + 自定义坐标 |
+| 技术依赖 | ⚠️ 依赖 CSS 支持 | ✅ 纯 SVG，兼容性更好 |
+| 精确控制 | ⚠️ 由浏览器自动计算 | ✅ 完全精确控制 |
+| 推荐场景 | 快速原型、简单中心动画 | 生产环境、复杂变换 |
+
+**选择建议：**
+- 快速开发或只需要中心点变换：使用 `getCenterRotateStyle()` 或 `getCenterScaleStyle()`
+- 需要其他原点（如角落、边缘）或生产环境：使用 `elementBounds` 方式
+
+## 哪些动画使用 ElementBounds？
+
+- **旋转动画（genAnimateRotate）** - 指定旋转中心
+- **缩放动画（genAnimateScale）** - 指定缩放中心
+- 未来可能支持：斜切动画（genAnimateSkewX/Y）
+
+## 三种使用方式对比
+
+| 方式 | 优点 | 缺点 | 适用场景 |
+|------|------|------|----------|
+| `origin: 'center'`<br/>+ `elementBounds` | ✅ 纯 SVG 实现<br/>✅ 精确控制<br/>✅ 支持 9 种快捷位置 | ⚠️ 需要提供尺寸信息 | **推荐使用** |
+| `origin: 'center'`<br/>+ `getCenterRotateStyle()` | ✅ 代码简洁<br/>✅ 自适应元素大小 | ⚠️ 依赖 CSS<br/>⚠️ 只支持 center | 快速原型 |
+| `origin: [x, y]` | ✅ 完全自定义 | ⚠️ 需手动计算坐标 | 特殊需求 |

@@ -1,0 +1,99 @@
+export const title = "多段路径"
+
+import {
+  RectanglePath,
+  DiagonalBounce,
+  LShapePath
+} from "./examples"
+
+# {title}
+
+多段路径可以创建复杂的移动轨迹，包括矩形路径、对角线往返、L形路径。
+
+---
+
+## 矩形路径移动
+
+元素沿矩形的四条边移动，最后回到起点。
+
+**代码示例：**
+
+```tsx
+genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    { toValue: { x: 100, y: 0 }, durationSeconds: 0.8 },   // 右：沿上边移动 100
+    { toValue: { x: 0, y: 50 }, durationSeconds: 0.8 },    // 下：沿右边移动 50
+    { toValue: { x: -100, y: 0 }, durationSeconds: 0.8 },  // 左：沿下边移动 100
+    { toValue: { x: 0, y: -50 }, durationSeconds: 0.8 }     // 上：沿左边回到起点
+  ]
+})
+```
+
+**效果预览：**
+
+<RectanglePath />
+
+**说明**：棕色矩形沿矩形路径：右→下→左→上，最后回到起点
+
+---
+
+## 对角线往返
+
+元素沿对角线往返移动。
+
+**代码示例：**
+
+```tsx
+genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    { toValue: { x: 200, y: 90 }, durationSeconds: 1.5 },   // 向右下移动
+    { toValue: { x: -200, y: -90 }, durationSeconds: 1.5 }  // 返回左上
+  ],
+  loopCount: 0
+})
+```
+
+**效果预览：**
+
+<DiagonalBounce />
+
+**说明**：靛蓝圆形沿对角线往返移动
+
+---
+
+## L形路径
+
+元素先向一个方向移动，再向另一个方向移动，形成 L 形轨迹。
+
+**代码示例：**
+
+```tsx
+genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    { toValue: { x: 110, y: 0 }, durationSeconds: 1 },   // 向右移动 110
+    { toValue: { x: 0, y: 60 }, durationSeconds: 1 }     // 向下移动 60
+  ],
+  freeze: true
+})
+```
+
+**效果预览：**
+
+<LShapePath />
+
+**说明**：深红色矩形先向右移动，再向下移动，形成 L 形路径
+
+---
+
+## 总结
+
+多段路径可以组合多个方向的移动，创建复杂的运动轨迹。
+
+---
+
+## 下一步
+
+- **相对移动与累积移动** - 相对移动模式和累积移动模式的对比

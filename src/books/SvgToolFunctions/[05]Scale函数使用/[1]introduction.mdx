@@ -1,0 +1,120 @@
+export const title = "函数介绍与基础示例"
+
+import { BasicScale } from "./examples"
+
+# {title}
+
+`genAnimateScale` 是 SVG 缩放动画的核心生成工具。本文将介绍函数签名、核心概念，并通过基础示例展示其基本用法。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimateScale } from '@svg-anim/scale';
+
+genAnimateScale({
+  // ===== 必填参数 =====
+  timeline: ScaleTimelineSegment[],         // 必填：时间线段数组
+
+  // ===== 可选参数 =====
+  initScale?: number,                        // 初始缩放，默认 1
+  delay?: number,                            // 初始延迟（秒），默认 0
+  additive?: boolean,                        // 是否累加变换，默认 true
+  beginType?: SvgBeginEventType,                // 默认 undefined：动画开始事件类型
+  calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 动画计算模式，自动
+  freeze?: boolean,                          // 是否保持最终状态，默认 false
+  loopCount?: number,                        // 循环次数（0 = 无限），默认 1
+  isRelativeScale?: boolean,                // 是否相对缩放，默认 true
+  origin?: ScaleOrigin,                      // 缩放中心点，默认 'center'
+  elementBounds?: ElementBoundsType,         // 元素边界信息（用于快捷位置）
+})
+```
+
+---
+
+## 核心概念
+
+### 初始缩放（initScale）
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `initScale` | `number` | `1` | 初始缩放值（可选）|
+
+### 时间线段
+
+这是最核心的参数，定义动画的每个阶段。
+
+**ScaleTimelineSegment 类型：**
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `toValue` | `number` | 上一段缩放值 | 目标缩放值（1 = 原大小） |
+| `durationSeconds` | `number` | 必填 | 该段持续时间（秒）|
+| `keySplines` | `string` | `"0.42 0 0.58 1"` | 贝塞尔缓动参数（可选）|
+
+---
+
+## 缩放值说明
+
+| 值 | 效果 |
+|------|------|
+| `0.5` | 缩小到一半 |
+| `1` | 原始大小（默认）|
+| `2` | 放大 2 倍 |
+| `3` | 放大 3 倍 |
+
+---
+
+## 基本用法
+
+创建一个放大 2 倍的方块。
+
+**代码示例：**
+
+```tsx
+import { genAnimateScale } from "@svg-anim/scale";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <rect x="75" y="75" width="50" height="50" fill="blue">
+    {genAnimateScale({
+      origin: [100, 100],
+      timeline: [
+        { toValue: 2, durationSeconds: 2 }
+      ]
+    })}
+  </rect>
+</svg>
+```
+
+**效果预览：**
+
+<BasicScale />
+
+**说明**：蓝色方块从原始大小放大到 2 倍
+
+---
+
+## 常用默认值
+
+`genAnimateScale` 的设计让大多数参数都有合理的默认值，让你能快速创建动画。
+
+- **相对缩放模式**（`isRelativeScale: true`）- 推荐使用
+  - `toValue` 是相对于上一阶段的增量缩放
+  - 更符合直觉："放大多少"
+  - 示例：从 1 放大到 2，再回到 1
+
+- **累加模式**（`additive: true`）
+  - 可以与旋转、位移动画同时进行
+  - 自动叠加到其他变换上
+
+---
+
+## 下一步
+
+现在你已经了解了 `genAnimateScale` 的基本用法。接下来将详细介绍各种缩放效果：
+- **放大与缩小** - 基本缩放效果
+- **往返缩放** - 来回缩放动画
+- **缩放中心点** - 自定义缩放轴心
+- **相对缩放与绝对缩放** - 深入理解 isRelativeScale 参数
+- **缩放时序控制** - 延迟、循环、冻结

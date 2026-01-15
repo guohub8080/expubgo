@@ -1,0 +1,216 @@
+export const title = "覆盖进入 CoverIn"
+export const icon = "Layers"
+
+import { BasicExample, ComprehensiveExample, GridExample } from "./examples"
+
+# {title}
+
+图片依次滑入覆盖，后来的图片覆盖之前的图片，形成层层刷新的效果
+
+## 核心特点
+
+- ✅ 支持四个方向滑入（L/R/T/B）
+- ✅ 每张图片独立配置滑入时长和停留时长
+- ✅ 自定义贝塞尔曲线控制动画缓动
+- ✅ 自动循环播放
+
+---
+
+## 原理说明
+
+### 核心机制
+
+`CoverIn` 基于 **SVG animateTransform** 实现图片覆盖效果：
+
+1. **图片叠加**：所有图片通过 `<foreignObject>` 叠加在同一位置
+2. **变换动画**：每张图片有独立的 `<animateTransform type="translate">` 控制位移
+3. **方向滑入**：新图片从指定方向（L/R/T/B）平移进入，覆盖旧图片
+4. **时间分段**：通过计算每张图的开始时间，实现依次滑入的效果
+
+### 动画时间线
+
+**第一轮（一次性）**：
+- 第1张图：静止显示
+- 第2张图：滑入 + 停留
+- 第3张图：滑入 + 停留
+- ...
+
+**第二轮开始（无限循环）**：
+- 第1张图：滑入 + 停留
+- 第2张图：滑入 + 停留
+- 第3张图：滑入 + 停留
+- ...
+
+两组动画无缝衔接，实现平滑循环效果。
+
+### 方向与初始位置
+
+| 方向 | 初始位置 | 滑入方向 |
+|------|----------|----------|
+| `L` (左) | `x = -viewBoxW` | 从左向右 |
+| `R` (右) | `x = viewBoxW` | 从右向左 |
+| `T` (上) | `y = -viewBoxH` | 从上向下 |
+| `B` (下) | `y = viewBoxH` | 从下向上 |
+
+---
+
+## 参数说明
+
+### Props
+
+| 参数 | 类型 | 说明 | 示例 |
+|------|------|------|------|
+| `pics` | `Array<PicConfig>` | 图片配置数组 | 见下方表 |
+| `viewBoxW` | `number` | 画布宽度（可选）| `300` |
+| `viewBoxH` | `number` | 画布高度（可选）| `300` |
+| `mp` | `mpProps` | 边距样式 | `{ t: 0, r: 0, b: 0, l: 0 }` |
+
+### PicConfig
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `url` | `string` | 必填 | 图片地址 |
+| `direction` | `"L" \| "R" \| "T" \| "B"` | `"B"` | 滑入方向 |
+| `coverInDuration` | `number` | `0.5` | 滑入时长（秒）|
+| `stayDuration` | `number` | `0.5` | 停留时长（秒）|
+| `keySplines` | `string` | `"0.42 0 0.58 1"` | 贝塞尔曲线 |
+
+---
+
+## 使用示例
+
+### 基本示例
+
+默认从上往下滑入，使用默认缓动：
+
+```tsx
+import { CoverIn } from '@pub-svg/C3_MultiDisplay/CoverIn';
+
+<CoverIn
+    pics={[
+        { url: pic1 },
+        { url: pic2 },
+        { url: pic3 },
+    ]}
+/>
+```
+
+<BasicExample />
+
+---
+
+### 综合应用
+
+结合方向、时长、缓动函数的完整示例：
+
+```tsx
+import { getEaseBezier, getPowerBezier, getLinearBezier } from '@pub-utils/getBezier';
+
+<CoverIn
+    pics={[
+        {
+            url: pic1,
+            direction: "B",
+            coverInDuration: 0.8,
+            stayDuration: 1.2,
+            keySplines: getEaseBezier({ isIn: true, isOut: true })
+        },
+        {
+            url: pic2,
+            direction: "R",
+            coverInDuration: 0.6,
+            stayDuration: 1,
+            keySplines: getPowerBezier({ power: 2, isIn: true, isOut: true })
+        },
+        {
+            url: pic3,
+            direction: "T",
+            coverInDuration: 0.7,
+            stayDuration: 1.5,
+            keySplines: getEaseBezier({ isIn: false, isOut: true })
+        },
+        {
+            url: pic4,
+            direction: "L",
+            coverInDuration: 0.5,
+            stayDuration: 0.8,
+            keySplines: getLinearBezier()
+        },
+    ]}
+/>
+```
+
+<ComprehensiveExample />
+
+---
+
+### 田字格多画布组合
+
+四个画布组成田字格布局，各自使用不同的方向、时长、图片数量和缓动函数：
+
+```tsx
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 0 }}>
+    {/* 左上：3张图 */}
+    <CoverIn pics={[
+        { url: pic1, direction: "B", coverInDuration: 0.5, ... },
+        { url: pic2, direction: "R", coverInDuration: 0.7, ... },
+        { url: pic3, direction: "T", coverInDuration: 0.4, ... }
+    ]} />
+
+    {/* 右上：4张图 */}
+    <CoverIn pics={[
+        { url: pic4, direction: "L", coverInDuration: 0.6, ... },
+        { url: pic5, direction: "B", coverInDuration: 0.9, ... },
+        { url: pic6, direction: "R", coverInDuration: 0.5, ... },
+        { url: pic1, direction: "T", coverInDuration: 0.8, ... }
+    ]} />
+
+    {/* 左下：2张图 */}
+    <CoverIn pics={[
+        { url: pic2, direction: "R", coverInDuration: 1.0, ... },
+        { url: pic3, direction: "B", coverInDuration: 0.4, ... }
+    ]} />
+
+    {/* 右下：5张图 */}
+    <CoverIn pics={[
+        { url: pic4, direction: "T", coverInDuration: 0.3, ... },
+        { url: pic5, direction: "L", coverInDuration: 0.8, ... },
+        { url: pic6, direction: "B", coverInDuration: 0.6, ... },
+        { url: pic1, direction: "R", coverInDuration: 0.9, ... },
+        { url: pic2, direction: "T", coverInDuration: 0.5, ... }
+    ]} />
+</div>
+```
+
+<GridExample />
+
+---
+
+## 使用技巧
+
+### 💡 推荐实践
+
+- **方向选择**：B（从上往下）适合大多数场景，自然流畅
+- **时长设置**：滑入时长 0.3-0.8 秒，停留时长根据内容调整
+- **缓动函数**：默认的 ease-in-out 适合大多数场景
+- **图片数量**：建议 3-5 张，过多会影响节奏感
+- **覆盖效果**：后来的图片会完全覆盖之前的图片
+- **自动循环**：组件会自动循环播放，无需额外配置
+
+### ⚠️ 注意事项
+
+- 方向参数：`T`-从下往上, `B`-从上往下, `L`-从右往左, `R`-从左往右
+- 第一轮播放时，第一张图不会滑入，直接显示
+- 从第二轮开始，所有图片都会滑入
+- 图片会按照数组顺序依次覆盖
+- 如果只提供 1 张图片，会自动复制为 2 张以实现动画效果
+
+---
+
+## 相关链接
+
+- [贝塞尔缓动函数 Bezier](../[02]基本工具函数/[6]bezier.mdx)
+- [推入切换 AnyPush](./[1]any-push/index.mdx)
+- [遮罩切出 CoverOut](./[3]cover-out.mdx)
+- [淡入淡出 FadeSwitch](./[4]fade-switch.mdx)
+- [硬切 HardCutSwitch](./[5]hard-cut-switch.mdx)

@@ -1,0 +1,415 @@
+export const title = "位移动画 translate"
+
+# {title}
+
+`genAnimateTranslate` 是 SVG 位移动画的生成工具，可以创建 `<animateTransform type="translate">` 元素。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimateTranslate } from '@svg-anim/translate';
+
+genAnimateTranslate({
+  initValue?: { x: number, y: number },  // 默认 { x: 0, y: 0 }
+  timeline: TranslateTimelineSegment[],  // 必填：时间线段数组
+  delay?: number,                        // 默认 0：初始延迟（秒）
+  additive?: boolean,                    // 默认 true：是否累加变换
+  beginType?: SvgBeginEventType,            // 默认 undefined：动画开始事件类型
+  calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 自动：动画计算模式
+  freeze?: boolean,                      // 默认 false：是否保持最终状态
+  loopCount?: number,                    // 默认 1：循环次数（0 = 无限）
+  isRelativeMove?: boolean,              // 默认 true：是否使用相对移动
+})
+```
+
+### TranslateTimelineSegment 类型
+
+```tsx
+interface TranslateTimelineSegment {
+  toValue?: Partial<Point2D>,           // 默认上一段位置：目标位置
+  durationSeconds: number,               // 必填：该段持续时间（秒）
+  keySplines?: string,                   // 默认 "0.42 0 0.58 1"：贝塞尔缓动参数
+}
+```
+
+---
+
+## 使用示例
+
+### 简单的向右平移
+
+```tsx
+<svg width="300" height="100">
+  <circle cx="50" cy="50" r="20" fill="blue">
+    {genAnimateTranslate({
+      initValue: { x: 0, y: 0 },
+      timeline: [
+        { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+      ]
+    })}
+  </circle>
+</svg>
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 0; 200 0"
+  keyTimes="0; 1"
+  dur="2s"
+  calcMode="linear"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+**效果**：圆形从 (50, 50) 向右移动 200px，到达 (250, 50)
+
+---
+
+### 往返移动（先右后左）
+
+```tsx
+{genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },  // 向右
+    { toValue: { x: 0, y: 0 }, durationSeconds: 1 }     // 向左
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 0; 100 0; 0 0"
+  keyTimes="0; 0.5; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 对角线移动
+
+```tsx
+{genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    { toValue: { x: 100, y: 50 }, durationSeconds: 2 }
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 0; 100 50"
+  keyTimes="0; 1"
+  keySplines="0.42 0 0.58 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 无限循环浮动
+
+```tsx
+{genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    { toValue: { x: 0, y: -10 }, durationSeconds: 1 },  // 上浮
+    { toValue: { x: 0, y: 0 }, durationSeconds: 1 }     // 回落
+  ],
+  loopCount: 0  // 无限循环
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 0; 0 -10; 0 0"
+  keyTimes="0; 0.5; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 复杂路径（多段移动）
+
+```tsx
+{genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    { toValue: { x: 50, y: 0 }, durationSeconds: 0.5 },   // 右
+    { toValue: { x: 50, y: 50 }, durationSeconds: 0.5 }, // 下
+    { toValue: { x: 0, y: 50 }, durationSeconds: 0.5 },  // 左
+    { toValue: { x: 0, y: 0 }, durationSeconds: 0.5 }    // 上（回到原点）
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 0; 50 0; 50 50; 0 50; 0 0"
+  keyTimes="0; 0.25; 0.5; 0.75; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 相对移动模式（isRelativeMove: true，默认）
+
+每个阶段的 `toValue` 是相对于**上一阶段**的增量位移：
+
+```tsx
+{genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  isRelativeMove: true,
+  timeline: [
+    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },  // 移动到 (100, 0)
+    { toValue: { x: 0, y: 0 }, durationSeconds: 1 },    // 保持在 (100, 0)，不移动
+    { toValue: { x: 50, y: 0 }, durationSeconds: 1 }    // 移动到 (150, 0)，增量为 (50, 0)
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 0; 100 0; 100 0; 150 0"
+  keyTimes="0; 0.333; 0.667; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="3s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 累积移动模式（isRelativeMove: false）
+
+每个阶段的 `toValue` 是相对于**初始位置**的绝对坐标：
+
+```tsx
+{genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  isRelativeMove: false,
+  timeline: [
+    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },  // 移动到 (100, 0)
+    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },  // 保持在 (100, 0)
+    { toValue: { x: 150, y: 0 }, durationSeconds: 1 }   // 移动到 (150, 0)，绝对坐标
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 0; 100 0; 100 0; 150 0"
+  keyTimes="0; 0.333; 0.667; 1"
+  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
+  dur="3s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 配合贝塞尔缓动
+
+```tsx
+import { getEaseBezier, getBounceBezier } from '@pub-utils/getBezier';
+
+{genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    {
+      toValue: { x: 100, y: 0 },
+      keySplines: getEaseBezier({ isIn: true, isOut: true }),
+      durationSeconds: 1
+    },
+    {
+      toValue: { x: 100, y: 50 },
+      keySplines: getBounceBezier(),
+      durationSeconds: 1
+    }
+  ]
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 0; 100 0; 100 50"
+  keyTimes="0; 0.5; 1"
+  keySplines="0.42 0 1 1; 0.68 -0.55 0.265 1.55"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 单轴移动
+
+可以只指定 X 或 Y 轴的移动：
+
+```tsx
+// 只在 X 轴移动
+{genAnimateTranslate({
+  timeline: [
+    { toValue: { x: 100 }, durationSeconds: 1 }  // Y 保持不变
+  ]
+})}
+
+// 只在 Y 轴移动
+{genAnimateTranslate({
+  timeline: [
+    { toValue: { y: 50 }, durationSeconds: 1 }  // X 保持不变
+  ]
+})}
+```
+
+**生成的 SVG 代码（X 轴移动）：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 0; 100 0"
+  keyTimes="0; 1"
+  keySplines="0.42 0 0.58 1"
+  dur="1s"
+  calcMode="spline"
+  repeatCount="1"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+### 完整示例：浮动的云朵
+
+```tsx
+import { genAnimateTranslate } from '@svg-anim/translate';
+import { getEaseBezier } from '@pub-utils/getBezier';
+
+const FloatingCloud = () => {
+  return (
+    <svg width="400" height="200" viewBox="0 0 400 200">
+      {/* 云朵主体 */}
+      <g fill="white">
+        <ellipse cx="100" cy="100" rx="50" ry="30" />
+        <ellipse cx="130" cy="90" rx="40" ry="25" />
+        <ellipse cx="70" cy="90" rx="35" ry="20" />
+      </g>
+
+      {/* 缓慢浮动动画 */}
+      {genAnimateTranslate({
+        initValue: { x: 0, y: 0 },
+        timeline: [
+          {
+            toValue: { x: 200, y: 0 },
+            keySplines: getEaseBezier({ isIn: true, isOut: false }),
+            durationSeconds: 10
+          }
+        ],
+        loopCount: 0
+      })}
+    </svg>
+  );
+};
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="translate"
+  values="0 0; 200 0"
+  keyTimes="0; 1"
+  keySplines="0.42 0 1 1"
+  dur="10s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
+/>
+```
+
+---
+
+## 注意事项
+
+### additive 属性
+
+- **推荐使用 `additive: true`**（默认）：动画会与其他变换叠加
+- 使用 `additive: false`：动画会替换其他变换（可能导致冲突）
+
+### freeze 属性
+
+- **`freeze: false`**（默认）：动画结束后回到原始状态
+- **`freeze: true`**：动画结束后停留在最后一帧
+

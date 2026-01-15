@@ -1,0 +1,334 @@
+export const title = "时序控制与循环"
+
+import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
+
+# {title}
+
+`genAnimateBreathe` 提供了丰富的时序控制选项，包括延迟启动、循环次数控制、点击触发等，让你能够精确控制呼吸动画的时机和次数。
+
+---
+
+## 延迟启动
+
+使用 `delay` 参数让动画在指定时间后自动开始。
+
+### 基础延迟
+
+**代码示例：**
+
+```tsx
+{genAnimateBreathe({
+  delay: 2,  // 延迟 2 秒后开始
+  onceBreatheDurationSeconds: 2
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1;1.1;1"
+  dur="2s"
+  begin="2s"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.42 0 0.58 1;0.42 0 0.58 1"
+/>
+```
+
+**效果预览：**
+
+<DelayBreathe />
+
+**说明：** 页面加载 2 秒后，圆形开始呼吸。
+
+---
+
+## 循环次数控制
+
+使用 `repeatCount` 参数控制动画重复次数。
+
+### 有限次数循环
+
+**代码示例：**
+
+```tsx
+{genAnimateBreathe({
+  repeatCount: 3,  // 呼吸 3 次后停止
+  onceBreatheDurationSeconds: 2
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1;1.1;1"
+  dur="2s"
+  repeatCount="3"
+/>
+```
+
+**效果预览：**
+
+<LimitedBreathe />
+
+**说明：** 圆形呼吸 3 次后停止在初始大小状态。
+
+---
+
+### 无限循环
+
+**代码示例：**
+
+```tsx
+{genAnimateBreathe({
+  repeatCount: 0,  // 0 表示无限循环
+  onceBreatheDurationSeconds: 2
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1;1.1;1"
+  dur="2s"
+  repeatCount="indefinite"
+/>
+```
+
+**说明：** 圆形持续呼吸，不会停止（默认行为）。
+
+---
+
+## 点击触发
+
+使用 `beginType: 'click'` 参数让动画在点击时开始。
+
+### 基础点击触发
+
+**代码示例：**
+
+```tsx
+{genAnimateBreathe({
+  beginType: 'click',
+  onceBreatheDurationSeconds: 2
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1;1.1;1"
+  dur="2s"
+  begin="click"
+  repeatCount="indefinite"
+  calcMode="spline"
+  keySplines="0.42 0 0.58 1;0.42 0 0.58 1"
+/>
+```
+
+**效果预览：**
+
+<ClickBreathe />
+
+**说明：** 点击圆形后，开始无限循环呼吸。
+
+---
+
+### 点击触发 + 延迟
+
+**代码示例：**
+
+```tsx
+{genAnimateBreathe({
+  beginType: 'click',
+  delay: 0.5,  // 点击后延迟 0.5 秒开始
+  onceBreatheDurationSeconds: 2
+})}
+```
+
+**生成的 SVG 代码：**
+
+```xml
+<animateTransform
+  attributeName="transform"
+  type="scale"
+  values="1;1.1;1"
+  dur="2s"
+  begin="click+0.5s"
+  repeatCount="indefinite"
+/>
+```
+
+**说明：** 点击圆形后，等待 0.5 秒，然后开始呼吸。
+
+---
+
+## 参数组合示例
+
+### 呼吸 3 次后停止
+
+**代码示例：**
+
+```tsx
+{genAnimateBreathe({
+  repeatCount: 3,
+  onceBreatheDurationSeconds: 1.5,
+  toScale: 1.15
+})}
+```
+
+**效果：** 快速呼吸 3 次后停止
+
+---
+
+### 延迟 1 秒后呼吸 5 次
+
+**代码示例：**
+
+```tsx
+{genAnimateBreathe({
+  delay: 1,
+  repeatCount: 5,
+  onceBreatheDurationSeconds: 2,
+  toScale: 1.1
+})}
+```
+
+**效果：** 延迟 1 秒后开始，呼吸 5 次后停止
+
+---
+
+### 点击后呼吸 2 次并保持
+
+**代码示例：**
+
+```tsx
+{genAnimateBreathe({
+  beginType: 'click',
+  repeatCount: 2,
+  onceBreatheDurationSeconds: 2.5,
+  toScale: 1.12
+})}
+```
+
+**效果：** 点击后呼吸 2 次
+
+---
+
+## 时序控制最佳实践
+
+### 场景 1：加载动画
+
+**需求：** 页面加载后立即开始呼吸，持续到内容加载完成
+
+**推荐参数：**
+
+```tsx
+{genAnimateBreathe({
+  repeatCount: 0,  // 无限循环
+  onceBreatheDurationSeconds: 2,
+  toScale: 1.1
+})}
+```
+
+---
+
+### 场景 2：提示动画
+
+**需求：** 页面加载后延迟 2 秒，呼吸 3 次引起注意
+
+**推荐参数：**
+
+```tsx
+{genAnimateBreathe({
+  delay: 2,
+  repeatCount: 3,
+  onceBreatheDurationSeconds: 1.5,
+  toScale: 1.15
+})}
+```
+
+---
+
+### 场景 3：交互反馈
+
+**需求：** 点击后呼吸 2 次，表示操作成功
+
+**推荐参数：**
+
+```tsx
+{genAnimateBreathe({
+  beginType: 'click',
+  repeatCount: 2,
+  onceBreatheDurationSeconds: 2,
+  toScale: 1.12
+})}
+```
+
+---
+
+### 场景 4：装饰效果
+
+**需求：** 延迟 1 秒后开始无限循环的轻柔呼吸
+
+**推荐参数：**
+
+```tsx
+{genAnimateBreathe({
+  delay: 1,
+  repeatCount: 0,
+  onceBreatheDurationSeconds: 3,
+  toScale: 1.05
+})}
+```
+
+---
+
+## 微信公众号注意事项
+
+### 点击触发在微信中的应用
+
+微信公众号对 `begin="click"` 有良好支持，常用于：
+
+- **答案揭示** - 点击后内容呼吸显示
+- **选项卡切换** - 点击后内容呼吸切换
+- **互动反馈** - 点击后按钮呼吸确认
+
+**完整示例：**
+
+```tsx
+<svg viewBox="0 0 200 200">
+  <g style={{ cursor: 'pointer', transformOrigin: 'center', transformBox: 'fill-box' }}>
+    <rect width="200" height="200" fill="transparent" />
+    <circle cx="100" cy="100" r="50" fill="blue">
+      {genAnimateBreathe({
+        beginType: 'click',
+        repeatCount: 3,
+        onceBreatheDurationSeconds: 1.5
+      })}
+    </circle>
+  </g>
+</svg>
+```
+
+---
+
+## 下一步
+
+现在你已经掌握了时序控制的各种用法。接下来将学习：
+
+- **自定义缓动** - 使用不同的缓动曲线创建特殊效果
+- **组合动画** - 与其他动画（旋转、位移等）组合使用
+- **完整示例** - 实际应用场景的综合案例

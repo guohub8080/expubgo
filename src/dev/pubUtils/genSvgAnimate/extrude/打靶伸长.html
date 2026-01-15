@@ -1,0 +1,128 @@
+<!-- ============================================================
+     打靶伸长动画 - 注释版
+
+     核心原理：
+     1. 点击后，靶球左右来回移动（待机动画）
+     2. 点击后 1 秒，靶球向右平移 300px（击中目标）
+     3. 同时 SVG 宽度伸长，露出底层图片
+     4. 靶球闪烁 3 次（opacity: 1→0→1→0→1→0）
+     ============================================================ -->
+
+<section
+  name="preview-123"
+  style="-webkit-touch-callout:none;user-select:text;overflow: hidden;text-align: center;line-height: 0;">
+
+  <section
+    label="404.tech_svg_E2编辑器_打靶伸长"
+    style="overflow: hidden;margin-top:0;">
+
+    <!-- ============================================================
+         零高度容器：包含底层图片（height: 0）
+         ============================================================ -->
+    <section
+      style="text-align: center;height: 0; line-height: 0;"
+      label="404.tech_svg_5A">
+
+      <!-- 底层图片1 -->
+      <svg
+        name="0"
+        style="background-image: url('https://oss.e2.cool/node0/20251229/23/01/0/2005655474069835776.jpg');background-size: 100%;background-repeat: no-repeat;display: inline;"
+        viewBox="0 0 300 500"></svg>
+
+      <!-- 底层图片2（无缝衔接） -->
+      <svg
+        label="404.tech_svg_E2编辑器_无缝图_深色模式高亮"
+        style="background-image: url('https://oss.e2.cool/node0/20251229/23/02/0/2005655602319069184.jpg'); background-size: 100%; background-repeat: no-repeat; display: block; line-height: 0;transform:scale(1); margin-top:0"
+        viewBox="0 0 300 500"></svg>
+    </section>
+
+    <!-- ============================================================
+         动画控制层：靶球的移动和闪烁动画
+         ============================================================ -->
+    <section
+      style="transform: rotateZ(0deg);text-align: center;line-height: 0;pointer-events: none;">
+
+      <svg viewBox="0 0 300 497" style="max-width: none !important;pointer-events: none;">
+
+        <!-- ==========================================
+             主动画1：宽度伸长（露出底层图片）
+             begin="click+1s"：点击后 1 秒开始伸长
+             values="100%;266.56669999999997%;266.56669999999997%"
+             - 几乎瞬间伸长到 266.57%
+             ========================================== -->
+        <animate
+          attributeName="width"
+          fill="freeze"
+          restart="never"
+          calcMode="spline"
+          keySplines="0.42 0 0.58 1.0; 0.42 0 0.58 1.0"
+          keyTimes="0;0.001;1"
+          values="100%;266.56669999999997%;266.56669999999997%"
+          dur="5000s"
+          begin="click+1s"></animate>
+
+        <!-- ==========================================
+             靶球组：包含移动、闪烁、平移动画
+             ========================================== -->
+        <g>
+
+          <!-- 闪烁动画：opacity: 1→0→1→0→1→0（3 次） -->
+          <animate
+            attributeName="opacity"
+            values="1;0;1;0;1;0"
+            begin="click"
+            dur="1s"
+            fill="freeze"
+            restart="never"></animate>
+
+          <!-- ==========================================
+               击中动画：点击后 1 秒向右平移 300px
+               type="translate" additive="sum"
+               values="0 0;300 0"
+               ========================================== -->
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            values="0 0;300 0"
+            begin="click+1s"
+            dur="0.00001s"
+            additive="sum"
+            fill="freeze"
+            restart="never"></animateTransform>
+
+          <!-- ==========================================
+               待机动画：左右来回移动（直到点击）
+               type="translate" additive="sum"
+               values="0 0;-100 0;0 0"
+               end="click"：点击时停止
+               repeatCount="indefinite"：无限循环
+               ========================================== -->
+          <g>
+            <animateTransform
+              attributeName="transform"
+              type="translate"
+              values="0 0;-100 0;0 0"
+              end="click"
+              dur="3s"
+              additive="sum"
+              repeatCount="indefinite"
+              fill="freeze"></animateTransform>
+
+            <!-- ==========================================
+                 靶球：定位在 (200, 330)
+                 foreignObject 包含 150x150 的图片
+                 ========================================== -->
+            <g transform="translate(200,330)" pointer-events="painted">
+              <foreignObject width="150" height="150" x="-75" y="-75">
+                <svg
+                  label="404.tech_svg_ball"
+                  style="background-image: url('https://oss.e2.cool/node0/20251229/22/08/0/2005642130734714880.jpg');background-size: 100%;background-repeat: no-repeat;display: inline;pointer-events: painted;"
+                  viewBox="0 0 300 300"></svg>
+              </foreignObject>
+            </g>
+          </g>
+        </g>
+      </svg>
+    </section>
+  </section>
+</section>

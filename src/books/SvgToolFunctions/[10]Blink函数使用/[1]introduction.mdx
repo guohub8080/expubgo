@@ -1,0 +1,269 @@
+export const title = "函数介绍与基础示例"
+
+import { BasicBlink, GentleBlink, NormalBlink, FastBlink, SlowBlink, SubtleBlink, DeepBlink } from "./examples"
+
+# {title}
+
+`genAnimateSoftBlink` 是专门用于创建闪烁/淡入淡出效果的预设动画工具。闪烁动画是一种透明度循环变化的效果，常用于吸引注意力、加载状态、错误提示等场景。
+
+---
+
+## 函数签名
+
+```tsx
+import { genAnimateSoftBlink } from '@svg-anim/blink';
+
+genAnimateSoftBlink({
+  maxOpacity?: number,               // 默认 1：最大透明度（0-1）
+  minOpacity?: number,               // 默认 0.2：最小透明度（0-1）
+  onceBlinkDurationSeconds?: number, // 默认 1.2：一次闪烁时长（秒）
+  keySplines?: string,               // 默认 '0.45 0 0.55 1'：缓动曲线
+  repeatCount?: number,              // 默认 0：循环次数（0 = 无限）
+  delay?: number,                    // 默认 0：初始延迟（秒）
+  beginType?: SvgBeginEventType,        // 默认 undefined：动画开始事件类型
+})
+```
+
+---
+
+## 核心概念
+
+### 闪烁动画的原理
+
+闪烁动画是通过在最大透明度和最小透明度之间循环变化实现的。一个完整的闪烁周期包含两个阶段：
+
+1. **淡出阶段**：从 `maxOpacity` → `minOpacity`
+2. **淡入阶段**：从 `minOpacity` → `maxOpacity`
+
+生成的 SVG `<animate>` 元素使用 `values` 属性定义三个关键帧：
+
+```xml
+<animate
+  attributeName="opacity"
+  values="1; 0.2; 1"        <!-- 三个关键帧：完全显示 → 淡出 → 完全显示 -->
+  dur="1.2s"                <!-- 完整周期时长 -->
+  repeatCount="indefinite"  <!-- 无限循环 -->
+/>
+```
+
+### 参数详解
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `maxOpacity` | `number` | `1` | 最大透明度（0-1）|
+| `minOpacity` | `number` | `0.2` | 最小透明度（0-1）|
+| `onceBlinkDurationSeconds` | `number` | `1.2` | 一次闪烁周期时长（秒）|
+| `keySplines` | `string` | `'0.45 0 0.55 1'` | 贝塞尔缓动曲线 |
+| `repeatCount` | `number` | `0` | 重复次数（0 = 无限循环）|
+| `delay` | `number` | `0` | 初始延迟（秒）|
+| `beginType` | `SvgBeginEventType` | `undefined` | 动画开始事件类型 |
+
+---
+
+## 基本用法
+
+### 最简单的闪烁效果
+
+使用默认参数创建标准闪烁效果。
+
+**代码示例：**
+
+```tsx
+import { genAnimateSoftBlink } from "@svg-anim/blink";
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <path
+    d="M100 20 L120 80 L180 80 L130 120 L150 180 L100 140 L50 180 L70 120 L20 80 L80 80 Z"
+    fill="yellow"
+  >
+    {genAnimateSoftBlink()}
+  </path>
+</svg>
+```
+
+**效果预览：**
+
+<NormalBlink />
+
+**说明：** 星星在完全透明度（1）和默认最小透明度（0.2）之间循环闪烁，周期为 1.2 秒。
+
+---
+
+## 闪烁强度控制
+
+通过调整 `minOpacity` 参数控制闪烁的强度：
+
+### 轻柔闪烁（淡化到 50%）
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  minOpacity: 0.5,
+  onceBlinkDurationSeconds: 2
+})}
+```
+
+**效果预览：**
+
+<GentleBlink />
+
+**说明：** 透明度在 1 到 0.5 之间变化，变化幅度较小，适合装饰性元素。
+
+---
+
+### 微弱闪烁（淡化到 70%）
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  minOpacity: 0.7,
+  onceBlinkDurationSeconds: 2
+})}
+```
+
+**效果预览：**
+
+<SubtleBlink />
+
+**说明：** 透明度在 1 到 0.7 之间变化，非常轻微的闪烁效果。
+
+---
+
+### 深度淡化（淡化到 10%）
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  minOpacity: 0.1,
+  onceBlinkDurationSeconds: 2.5
+})}
+```
+
+**效果预览：**
+
+<DeepBlink />
+
+**说明：** 透明度在 1 到 0.1 之间变化，几乎完全消失，适合明显的提示效果。
+
+---
+
+## 闪烁速度控制
+
+通过调整 `duration` 参数控制闪烁的速度：
+
+### 快速闪烁（0.8 秒周期）
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  minOpacity: 0.3,
+  onceBlinkDurationSeconds: 0.8
+})}
+```
+
+**效果预览：**
+
+<FastBlink />
+
+**说明：** 闪烁频率较高，适合用于警告、提示等需要引起注意的场景。
+
+---
+
+### 慢速闪烁（3 秒周期）
+
+**代码示例：**
+
+```tsx
+{genAnimateSoftBlink({
+  minOpacity: 0.2,
+  onceBlinkDurationSeconds: 3
+})}
+```
+
+**效果预览：**
+
+<SlowBlink />
+
+**说明：** 闪烁频率较低，适合用于装饰性元素或营造氛围。
+
+---
+
+## 闪烁效果选择指南
+
+| 场景 | 推荐参数 | 效果描述 |
+|------|---------|---------|
+| **警告提示** | `minOpacity: 0, onceBlinkDurationSeconds: 0.5` | 快速完全闪烁，强烈视觉冲击 |
+| **装饰元素** | `minOpacity: 0.7, onceBlinkDurationSeconds: 2` | 轻微闪烁，不干扰主内容 |
+| **加载状态** | `minOpacity: 0.3, onceBlinkDurationSeconds: 1` | 中等闪烁，表示正在进行 |
+| **错误提示** | `minOpacity: 0.2, onceBlinkDurationSeconds: 0.8` | 快速明显闪烁，引起注意 |
+| **氛围营造** | `minOpacity: 0.5, onceBlinkDurationSeconds: 3` | 慢速轻柔闪烁，柔和效果 |
+
+---
+
+## 预设效果
+
+`softBlinkPresets` 提供了 7 种常用预设：
+
+```tsx
+import { softBlinkPresets } from '@svg-anim/blink';
+
+// 轻柔淡入淡出
+softBlinkPresets.gentle()     // minOpacity: 0.5, onceBlinkDurationSeconds: 2
+
+// 标准淡入淡出
+softBlinkPresets.normal()     // minOpacity: 0.2, onceBlinkDurationSeconds: 1.2
+
+// 深度淡化
+softBlinkPresets.deep()       // minOpacity: 0.1, onceBlinkDurationSeconds: 2.5
+
+// 快速闪烁
+softBlinkPresets.fast()       // minOpacity: 0.3, onceBlinkDurationSeconds: 0.8
+
+// 慢速淡化
+softBlinkPresets.slow()       // minOpacity: 0.2, onceBlinkDurationSeconds: 3
+
+// 微弱淡化
+softBlinkPresets.subtle()     // minOpacity: 0.7, onceBlinkDurationSeconds: 2
+
+// 闪烁效果（完全消失）
+softBlinkPresets.blink()      // minOpacity: 0, onceBlinkDurationSeconds: 0.5
+```
+
+---
+
+## 注意事项
+
+### 透明度范围
+
+- `maxOpacity` 和 `minOpacity` 都必须在 `0` 到 `1` 之间
+- `maxOpacity` 应该大于 `minOpacity`
+- 推荐设置 `maxOpacity: 1`，保持完全不透明的起始状态
+
+### 闪烁频率建议
+
+- **快速闪烁**（duration < 1s）：适合用于提示、警告
+- **中速闪烁**（duration 1-2s）：适合用于加载、状态指示
+- **慢速闪烁**（duration > 2s）：适合用于装饰、氛围
+
+### 微信公众号兼容性
+
+✅ **完全兼容** - 使用的是标准 SMIL 动画元素和属性：
+- `<animate>` 元素
+- `attributeName="opacity"`
+- `values` 属性
+- `dur` 和 `repeatCount` 属性
+
+---
+
+## 下一步
+
+现在你已经了解了 `genAnimateSoftBlink` 的基本用法和闪烁强度/速度控制。接下来将学习：
+
+- **时序控制** - 延迟启动、循环次数、保持最终状态
+- **点击触发** - 交互式闪烁效果
+- **自定义缓动** - 使用不同的缓动曲线创建特殊效果
+- **完整示例** - 实际应用场景的综合案例

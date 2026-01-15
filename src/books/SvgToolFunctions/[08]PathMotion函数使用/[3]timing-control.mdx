@@ -1,0 +1,286 @@
+export const title = "时序控制详解"
+
+import { ClickMotion, ClickDelay } from "./examples"
+
+# {title}
+
+`genAnimatePathMotion` 提供了丰富的时序控制参数，包括延迟、触发方式、循环、最终状态等。
+
+---
+
+## 基础时序参数
+
+### 动画时长（durationSeconds）
+
+控制路径运动的持续时间。
+
+```tsx
+import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+
+{genAnimatePathMotion({
+  path: "M 50 100 L 350 100",
+  durationSeconds: 3,  // 3秒完成运动
+  rotate: 'auto'
+})}
+```
+
+**建议时长：**
+- 短距离（`<200px`）：1-2秒
+- 中距离（`200-500px`）：2-4秒
+- 长距离（`>500px`）：4-8秒
+
+---
+
+### 初始延迟（delay）
+
+动画开始前的等待时间。
+
+```tsx
+{genAnimatePathMotion({
+  path: "M 50 100 L 350 100",
+  durationSeconds: 3,
+  delay: 2,  // 延迟2秒后开始
+  rotate: 'auto'
+})}
+```
+
+**应用场景：**
+- 错峰动画：多个元素依次运动
+- 序列动画：等待其他动画完成后再开始
+
+---
+
+## 触发方式
+
+### 自动播放（默认）
+
+动画加载后自动开始。
+
+```tsx
+{genAnimatePathMotion({
+  path: "M 50 100 L 350 100",
+  beginType: undefined,  // 默认值
+  rotate: 'auto'
+})}
+```
+
+---
+
+### 点击触发（beginType）
+
+用户点击后动画才开始。
+
+```tsx
+import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+
+<svg width="400" height="200" viewBox="0 0 400 200">
+  {/* 弯曲路径参考线 */}
+  <path
+    d="M 50 100 C 100 50, 150 50, 200 100 S 300 150, 350 100"
+    stroke="#e5e7eb"
+    strokeWidth="2"
+    strokeDasharray="5,5"
+    fill="none"
+  />
+
+  {/* 圆球定位在路径起点 */}
+  <g transform="translate(50, 100)">
+    <circle r="12" fill="#ef4444" />
+    {genAnimatePathMotion({
+      path: "m 0 0 c 50 -50, 100 -50, 150 0 s 100 50, 150 0",
+      durationSeconds: 3,
+      beginType: 'click',
+      rotate: 0
+    })}
+  </g>
+</svg>
+```
+
+**效果预览：**
+
+<ClickMotion />
+
+**说明：**点击红色圆形开始动画，沿弯曲路径运动
+
+---
+
+### 点击触发 + 延迟
+
+点击后等待指定时间再开始：
+
+```tsx
+import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+
+<svg width="400" height="200" viewBox="0 0 400 200">
+  {/* 弯曲路径参考线 */}
+  <path
+    d="M 50 100 C 100 50, 150 50, 200 100 S 300 150, 350 100"
+    stroke="#e5e7eb"
+    strokeWidth="2"
+    strokeDasharray="5,5"
+    fill="none"
+  />
+
+  {/* 点击触发 + 延迟1秒 */}
+  <g transform="translate(50, 100)">
+    <circle r="12" fill="#f59e0b" />
+    {genAnimatePathMotion({
+      path: "m 0 0 c 50 -50, 100 -50, 150 0 s 100 50, 150 0",
+      durationSeconds: 3,
+      delay: 1,
+      beginType: 'click',
+      rotate: 0
+    })}
+  </g>
+</svg>
+```
+
+**效果预览：**
+
+<ClickDelay />
+
+**说明：**点击橙色圆形，等待1秒后开始运动
+
+---
+
+## 循环控制
+
+### 无限循环（默认）
+
+```tsx
+{genAnimatePathMotion({
+  path: "M 50 100 L 350 100",
+  rotate: 'auto'
+  // loopCount 默认为 0（无限循环）
+})}
+```
+
+---
+
+### 单次播放（loopCount: 1）
+
+```tsx
+{genAnimatePathMotion({
+  path: "M 50 100 L 350 100",
+  durationSeconds: 3,
+  loopCount: 1,  // 单次播放
+  rotate: 'auto'
+})}
+```
+
+---
+
+### 指定循环次数
+
+```tsx
+{genAnimatePathMotion({
+  path: "M 50 100 L 350 100",
+  loopCount: 3,  // 循环3次
+  rotate: 'auto'
+})}
+```
+
+---
+
+## 最终状态
+
+### 返回起点（freeze: false，默认）
+
+动画结束后元素返回起点。
+
+```tsx
+{genAnimatePathMotion({
+  path: "M 50 100 L 350 100",
+  freeze: false,  // 默认值
+  rotate: 'auto'
+})}
+```
+
+---
+
+### 停留终点（freeze: true）
+
+动画结束后元素停留在终点。
+
+```tsx
+{genAnimatePathMotion({
+  path: "M 50 100 L 350 100",
+  freeze: true,  // 停留终点
+  rotate: 'auto'
+})}
+```
+
+---
+
+## 组合示例：错峰动画
+
+多个元素依次沿同一路径运动：
+
+```tsx
+import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+
+<svg width="400" height="100" viewBox="0 0 400 100">
+  {/* 路径参考线 */}
+  <path d="M 50 50 L 350 50" stroke="#e5e7eb" strokeWidth="2" strokeDasharray="5,5" fill="none" />
+
+  {/* 元素1：立即开始 */}
+  <circle r="12" fill="#3b82f6">
+    {genAnimatePathMotion({
+      path: "M 50 50 L 350 50",
+      durationSeconds: 2,
+      delay: 0,
+      rotate: 0
+    })}
+  </circle>
+
+  {/* 元素2：延迟1秒 */}
+  <circle r="12" fill="#ef4444">
+    {genAnimatePathMotion({
+      path: "M 50 50 L 350 50",
+      durationSeconds: 2,
+      delay: 1,
+      rotate: 0
+    })}
+  </circle>
+
+  {/* 元素3：延迟2秒 */}
+  <circle r="12" fill="#10b981">
+    {genAnimatePathMotion({
+      path: "M 50 50 L 350 50",
+      durationSeconds: 2,
+      delay: 2,
+      rotate: 0
+    })}
+  </circle>
+</svg>
+```
+
+---
+
+## 时序参数速查表
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `durationSeconds` | number | `6` | 动画时长（秒） |
+| `delay` | number | `0` | 初始延迟（秒） |
+| `beginType` | SvgBeginEventType | `undefined` | 是否点击触发 |
+| `freeze` | boolean | `false` | 是否保持最终状态 |
+| `loopCount` | number | `0` | 循环次数（0=无限） |
+
+> 💡 缓动相关参数（calcMode、keySplines）请查看缓动效果对比章节
+
+---
+
+## 注意事项
+
+⚠️ **delay 与 beginType**
+
+- `delay` 在点击触发时表示"点击后延迟"
+- 自动播放时表示"加载后延迟"
+
+⚠️ **循环与 freeze**
+
+- 无限循环（默认）时 `freeze` 参数无效
+- 指定循环次数时 `freeze` 决定最终状态
+
+> 💡 关于缓动效果（ease、ease-in 等）的详细说明，请查看缓动效果对比章节

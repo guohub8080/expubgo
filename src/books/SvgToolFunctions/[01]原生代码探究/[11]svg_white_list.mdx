@@ -1,0 +1,116 @@
+export const title = "微信公众号 SVG 白名单标准"
+export const icon = "Shield"
+
+# {title}
+
+微信公众号 SVG 动画遵循**《中华人民共和国融媒体SVG交互设计技术规范》**（复旦大学新媒体研究机构与微信团队联合制定，2016年）。
+
+白名单机制：不在白名单中的元素和属性会被**直接删除**。
+
+## 支持的动画元素
+
+| 元素 | 说明 |
+|-----|------|
+| `<animate>` | 基础属性动画 |
+| `<animateTransform>` | 变换动画（translate/rotate/scale/skewX/skewY） |
+| `<set>` | 状态切换 |
+| `<animateMotion>` | 路径动画（部分支持） |
+
+## 支持的 attributeName
+
+| 分类 | 支持的属性 |
+|-----|-----------|
+| 位置 | `x`, `y`, `cx`, `cy` |
+| 尺寸 | `width`, `height`, `r`, `rx`, `ry` |
+| 外观 | `fill`, `stroke`, `stroke-width` |
+| 变换 | `transform` |
+| 显示 | `opacity` |
+
+## 动画控制属性
+
+| 属性 | 说明 | 示例值 |
+|-----|------|--------|
+| `dur` | 持续时间 | `2s`, `500ms` |
+| `begin` | 开始时间 | `0s`, `1s`, `click` |
+| `end` | 结束时间 | `5s`, `indefinite` |
+| `repeatCount` | 重复次数 | `3`, `indefinite` |
+| `repeatDur` | 重复总时长 | `10s` |
+| `fill` | 结束状态 | `freeze`, `remove` |
+| `restart` | 重启行为 | `always`, `whenNotActive` |
+| `calcMode` | 计算模式 | `linear`, `discrete`, `paced`, `spline` |
+| `keyTimes` | 时间点 | `0;0.5;1` |
+| `keySplines` | 缓动曲线 | `0.42 0 1 1;0 0 0.58 1` |
+| `values` | 关键值 | `0;100;0` |
+| `additive` | 值叠加 | `sum`, `replace` |
+| `accumulate` | 重复累积 | `sum`, `none` |
+
+## 交互事件
+
+| 触发方式 | begin 值 |
+|---------|----------|
+| 点击 | `click` |
+| 悬停 | `mouseover` |
+| 移出 | `mouseout` |
+| 时间延迟 | `1s` |
+
+事件优先级：点击 > 悬停 > 时间
+
+## 限制
+
+| 特性 | 状态 |
+|-----|------|
+| `id` 属性 | ❌ 被过滤 |
+| JavaScript | ❌ 完全禁用 |
+| 外部资源 | ❌ 被过滤 |
+| 复杂路径动画 | ⚠️ 有限支持 |
+
+## 最佳实践
+
+**避免使用 id**
+```xml
+<!-- ❌ 不推荐 -->
+<animate id="myAnim" attributeName="x" to="100" />
+
+<!-- ✅ 推荐 -->
+<animate attributeName="x" to="100" />
+```
+
+**使用 click 触发**
+```xml
+<animate
+  attributeName="opacity"
+  values="0;1"
+  dur="1s"
+  begin="click"
+  fill="freeze"
+/>
+```
+
+**组合动画**
+```xml
+<rect x="75" y="75" width="50" height="50">
+  <animateTransform
+    attributeName="transform"
+    type="rotate"
+    from="0 100 100"
+    to="360 100 100"
+    dur="4s"
+    repeatCount="indefinite"
+  />
+  <animateTransform
+    attributeName="transform"
+    type="scale"
+    values="1;1.5;1"
+    dur="2s"
+    repeatCount="indefinite"
+    additive="sum"
+  />
+</rect>
+```
+
+## 参考资源
+
+- [中华人民共和国融媒体SVG交互设计技术规范](https://www.fudan.design/svg.html) - 官方技术规范
+- [SVG 交互图文设计开发必读入门规则](https://zhuanlan.zhihu.com/p/29151913974)
+- [微信 SVG AttributeName 白名单（2023版）](https://www.sohu.com/a/745340968_121759104)
+- [微信公众号 SVG 白名单详细列表](https://www.zer0n.cn/archives/wechatsvg)

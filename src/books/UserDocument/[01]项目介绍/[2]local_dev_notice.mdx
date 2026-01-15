@@ -1,0 +1,84 @@
+export const title = "本地开发须知"
+
+## 本地开发微信图片代理配置
+
+本项目开发环境中配置了微信图片代理功能，需要使用浏览器插件 **ModHeader** 来模拟微信公众号的 Referer 请求头，才能正常加载微信 CDN 图片（mmbiz.qpic.cn）。
+
+### 什么是 ModHeader
+
+ModHeader 是一个浏览器扩展插件，用于修改 HTTP 请求和响应头。在本项目中，我们需要用它来添加 `Referer` 头，让微信 CDN 服务器认为图片请求来自微信公众号，从而正常返回图片。
+
+### 安装 ModHeader
+
+根据你的浏览器选择安装：
+
+- **Chrome/Edge**: [Chrome Web Store](https://chrome.google.com/webstore/detail/modheader/idgpnmonknjnojddfkpgkljpfnnfcklj)
+- **Firefox**: [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/modheader/)
+
+### 配置步骤
+
+1. **打开 ModHeader**
+   - 点击浏览器工具栏中的 ModHeader 图标
+
+2. **创建新的 Profile**
+   - 点击 "+" 按钮添加新配置
+   - 名称：本地开发（或任意名称）
+
+3. **添加请求头**
+   - 点击 "Add header" 按钮
+   - 配置如下：
+     - **Name**: `Referer`
+     - **Value**: `https://mp.weixin.qq.com/`
+     - 勾选 "Enabled"
+
+4. **设置 URL 过滤器**
+   - 点击 "Add URL filter"
+   - 配置如下：
+     - **URL Regex**: `.*mmbiz.qpic.cn/.*`
+     - 勾选 "Enabled"
+
+### 配置导入
+
+你可以直接复制以下配置并导入到 ModHeader 中：
+
+```json
+[
+  {
+    "backgroundColor": "#04a93d",
+    "headers": [
+      {
+        "enabled": true,
+        "name": "Referer",
+        "sendEmptyHeader": false,
+        "value": "https://mp.weixin.qq.com/"
+      }
+    ],
+    "shortTitle": "1",
+    "textColor": "#ffffff",
+    "title": "Profile 1",
+    "urlFilters": [
+      {
+        "enabled": true,
+        "urlRegex": ".*mmbiz.qpic.cn/.*"
+      }
+    ],
+    "version": 2
+  }
+]
+```
+
+### 验证配置
+
+配置完成后：
+
+1. 刷新开发页面
+2. 检查微信 CDN 图片是否正常显示
+3. 打开浏览器开发者工具（F12），查看 Network 面板
+4. 找到 `mmbiz.qpic.cn` 的请求，确认请求头中包含 `Referer: https://mp.weixin.qq.com/`
+
+### 注意事项
+
+- 此配置仅在本地开发环境需要，生产环境图片会通过其他方式处理
+- 如果不配置 ModHeader，微信 CDN 图片将无法加载（显示为裂图）
+- 配置后需要刷新页面才能生效
+- 开发完成后可以关闭该 Profile，不影响正常网页浏览

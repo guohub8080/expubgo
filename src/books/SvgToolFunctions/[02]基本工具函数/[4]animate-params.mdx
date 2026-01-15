@@ -1,0 +1,152 @@
+export const title = "SVG动画参数指南"
+export const icon = "BookOpen"
+
+# {title}
+
+介绍通用参数 additive、freeze、动画如何重播，以及各 gen 函数的推荐设置。
+
+## additive（叠加）
+
+控制该动画是否与元素现有的 transform/属性动画进行叠加。
+
+- **sum**：与现有变换叠加（推荐用于 transform 类动画的组合，例如多段 translate/scale/rotate 同时进行）
+- **默认建议**：库内部在需要组合变换时会启用 `additive="sum"`。调用方通常无需显式设置
+
+```xml
+<!-- 多段变换组合时使用 additive="sum" -->
+<animateTransform type="translate" additive="sum" ... />
+<animateTransform type="scale"      additive="sum" ... />
+<animateTransform type="translate" additive="sum" ... />
+```
+
+## freeze（保留最终状态）
+
+控制动画结束后元素是否保持在最后一帧的状态。
+
+可用元素：`animate`、`animateTransform`、`animateMotion`、`set` 均支持 `fill` 属性（`freeze`/`remove`）。
+
+- **false**（默认）：动画结束后回到原始状态，适合循环或往返动效
+- **true**：动画结束后停留在最后一帧，适合一次性入场或状态切换
+
+**与 loopCount 的关系**：
+
+- 当 `loopCount: 0`（无限循环）时，动画不会结束，`freeze` 自然也不会生效
+- 想定格需使用有限播放（通常 1 次）+ `freeze: true`
+
+**本库取舍**：
+
+- 入场/状态切换推荐：`loopCount: 1, freeze: true`
+- 呼吸/闪烁/旋转等循环推荐：`loopCount: 0`（无需 `freeze`）
+
+```typescript
+// 一次性入场后保持
+{genAnimateScale({
+  timeline: [{ durationSeconds: 0.6, toValue: 1.2 }],
+  freeze: true
+})}
+```
+
+## 动画如何重新开始播放
+
+常见的三种重播方式：
+
+1. **React 重新挂载**：给包含动画的节点设置随参数变化的 `key`，变更时强制重新渲染，动画从头开始
+2. **事件触发**：设置 `begin="click"` 或库参数 `beginType: 'click'`，点击后重播
+3. **脚本触发**：给动画元素设置 `id` 并在脚本中调用 `document.getElementById(id).beginElement()`
+
+```typescript
+// 方式1：React key 变更
+<g key={[dur, easing, loopCount].join('-')}>
+  {genAnimateTranslate({...})}
+</g>
+
+// 方式2：点击触发
+{genAnimateScale({ timeline: [...], beginType: 'click' })}
+
+// 方式3：脚本触发（需要 id）
+<animateTransform id="scaleAnim" begin="indefinite" ... />
+// 脚本：document.getElementById('scaleAnim')?.beginElement();
+```
+
+## 微信公众号编辑器环境（不支持 id）
+
+在部分平台（如公众号编辑器）中无法使用 `id` 和脚本重播，推荐以下两种方式：
+
+- **变更 key 重新挂载**：通过 React 的 `key` 强制重新渲染，动画从头开始；无需 `id` 或脚本权限
+- **点击触发**：使用 `beginType: 'click'`，用户点击目标元素即可播放/重播
+
+```typescript
+// 无 id 环境：推荐 1）变更 key 重播
+<g key={[dur, easing, loopCount, version].join('-')}>
+  {genAnimateScale({ timeline: [...], loopCount: 1, freeze: true })}
+</g>
+// 变更 version 触发重播
+
+// 或 2）点击触发（无需 id）
+{genAnimateScale({ timeline: [...], beginType: 'click', loopCount: 1 })}
+```
+
+## 推荐设置（各 gen* 函数）
+
+### genAnimateTranslate
+
+- 循环动效：`loopCount: 0`；过渡动效：`loopCount: 1`
+- 与其他变换组合：内部已处理叠加；调用方一般不必设置 `additive`
+- 需要停在终点：`freeze: true`
+
+### genAnimateScale
+
+- 任意原点缩放：无需额外样式；库内部以 translate-scale-translate 组合保证原点正确
+- 简单中心缩放：也可用 `getCenterScaleStyle()` 辅助 CSS 原点
+- 呼吸/脉动：`loopCount: 0`；一次性放大入场：`freeze: true`
+
+### genAnimateRotate
+
+- 围绕任意点旋转：与缩放类似，优先传入 `elementBounds` 或使用相应 origin 方案
+- 无缝旋转（转圈）：通常 `loopCount: 0` + 线性缓动
+
+### genAnimateOpacity
+
+- 淡入后保持：`freeze: true`
+- 循环闪烁：`loopCount: 0`
+
+## 常见模板示例
+
+### 呼吸缩放
+
+```typescript
+{genAnimateScale({
+  initScale: 1,
+  timeline: [
+    { durationSeconds: 1.2, toValue: 1.15, keySplines: getEaseBezier({ isIn: true, isOut: true }) },
+    { durationSeconds: 1.2, toValue: 1 }
+  ],
+  loopCount: 0
+})}
+```
+
+### 一次性放大入场
+
+```typescript
+{genAnimateScale({
+  initScale: 0,
+  timeline: [
+    { durationSeconds: 0.6, toValue: 1, keySplines: getEaseBezier({ isIn: true, isOut: true }) }
+  ],
+  loopCount: 1,
+  freeze: true
+})}
+```
+
+### 持续旋转
+
+```typescript
+{genAnimateRotate({
+  origin: 'center',
+  elementBounds: { x: 50, y: 50, w: 100, h: 100 },
+  timeline: [
+    { durationSeconds: 3, toValue: 360, keySplines: getLinearBezier() }
+  ],
+  loopCount: 0
+})}
+```

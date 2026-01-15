@@ -1,0 +1,197 @@
+export const title = "缓动KeySplines"
+export const icon = "BookOpen"
+
+# {title}
+
+缓动函数控制动画的速度变化，让动画更自然流畅。
+
+## 什么是 KeySplines
+
+在 SVG SMIL 动画中，`keySplines` 属性用于定义贝塞尔曲线控制点，实现非线性的动画速度变化。它类似于 CSS 中的 `transition-timing-function`，但使用贝塞尔曲线的语法。
+
+`keySplines` 的值由 4 个数字组成：`x1 y1 x2 y2`，分别表示三次贝塞尔曲线的两个控制点坐标。所有坐标值都在 0-1 范围内。
+
+## 基础缓动类型
+
+### Linear - 线性（匀速）
+
+最简单的缓动方式，动画以恒定速度执行。
+
+```typescript
+getLinearBezier() // 返回 "0 0 1 1"
+```
+
+**使用场景**：
+- 轮播图的自动切换
+- 加载动画的旋转
+- 需要持续、稳定的运动效果
+
+---
+
+### Ease - 基础缓动
+
+最常用的缓动效果，开始慢、中间快、结束慢。
+
+**参数说明**：
+- `isIn: true` - 开始时加速（Ease In）
+- `isOut: true` - 结束时减速（Ease Out）
+- 两者都为 true - Ease In Out（先加速后减速）
+
+```typescript
+getEaseBezier({ isIn: false, isOut: true })  // "0.42 0 1 1" (ease-out)
+getEaseBezier({ isIn: true, isOut: false })   // "0 0 0.58 1" (ease-in)
+getEaseBezier({ isIn: true, isOut: true })    // "0.42 0 0.58 1" (ease-in-out)
+```
+
+**使用场景**：
+- 元素进入/退出视野
+- 按钮点击反馈
+- 一般的交互动画
+
+### Power - 强力缓动
+
+可调节 power 值的缓动效果，power 值越大，加速度变化越明显。
+
+**参数说明**：
+- `power: 1-5` - 缓动强度，值越大加速度变化越明显
+- `isIn/isOut` - 控制加速/减速方向
+
+```typescript
+getPowerBezier({ power: 2, isIn: false, isOut: true })
+getPowerBezier({ power: 4, isIn: true, isOut: true })
+```
+
+**使用场景**：
+- 强调性的动画效果
+- 游戏中的元素移动
+- 需要明显速度变化的场景
+
+### Circle - 圆形缓动
+
+基于圆的缓动曲线，变化更加平滑自然。
+
+```typescript
+getCircleBezier({ isIn: false, isOut: true })  // "0.075 0.82 0.165 1" (circ-out)
+getCircleBezier({ isIn: true, isOut: false })   // "0.6 0.04 0.98 0.335" (circ-in)
+getCircleBezier({ isIn: true, isOut: true })    // "0.785 0.135 0.15 0.86" (circ-in-out)
+```
+
+**特点**：
+- 比标准缓动更柔和
+- 适合需要细腻变化的场景
+- 加速度变化像圆周运动一样平滑
+
+**使用场景**：
+- 精致的 UI 动画
+- 背景元素的移动
+- 需要高品质视觉效果的场合
+
+### Expo - 指数缓动
+
+极快的速度变化，类似指数函数的效果。
+
+```typescript
+getExpoBezier({ isIn: false, isOut: true })  // "0.19 1 0.22 1" (expo-out)
+getExpoBezier({ isIn: true, isOut: false })   // "0.95 0.05 0.795 0.035" (expo-in)
+getExpoBezier({ isIn: true, isOut: true })    // "1 0 0 1" (expo-in-out)
+```
+
+**特点**：
+- 开始或结束时几乎瞬间完成
+- 适合需要快速响应的场景
+- 视觉冲击力强
+
+**使用场景**：
+- 快速弹出/收起面板
+- 警告或提示动画
+- 需要快速反馈的交互
+
+### Sine - 正弦缓动
+
+最柔和的速度变化，基于正弦函数。
+
+```typescript
+getSineBezier({ isIn: false, isOut: true })  // "0.39 0.575 0.565 1" (sine-out)
+getSineBezier({ isIn: true, isOut: false })   // "0.47 0 0.745 0.715" (sine-in)
+getSineBezier({ isIn: true, isOut: true })    // "0.445 0.05 0.55 0.95" (sine-in-out)
+```
+
+**特点**：
+- 所有缓动中最柔和
+- 速度变化最小
+- 视觉上最舒适
+
+**使用场景**：
+- 长时间的动画效果
+- 背景或装饰性动画
+- 需要优雅、流畅效果的场合
+
+## 如何使用
+
+### 在 animate 元素中使用
+
+```xml
+<image href="sprite.png" width="30" height="30">
+    <animate
+        attributeName="x"
+        from="0"
+        to="345"
+        dur="2s"
+        keySplines="0.42 0 1 1"
+        calcMode="spline"
+    />
+</image>
+```
+
+### 在 animateTransform 中使用
+
+```xml
+<image href="sprite.png" width="30" height="30">
+    <animateTransform
+        attributeName="transform"
+        type="translate"
+        from="0 0"
+        to="345 0"
+        dur="2s"
+        keySplines="0.42 0 1 1"
+        calcMode="spline"
+    />
+</image>
+```
+
+### 多段动画使用
+
+```xml
+<image href="sprite.png" width="30" height="30">
+    <animate
+        attributeName="x"
+        values="0;345;0"
+        keyTimes="0;0.5;1"
+        keySplines="0.42 0 1 1;0 0 0.58 1"
+        dur="4s"
+        calcMode="spline"
+    />
+</image>
+```
+
+**注意**：`keySplines` 的数量必须比 `keyTimes` 少一个。
+
+## 动画类型示例
+
+每个缓动函数可以应用到不同类型的动画：
+
+- **位移（Translate）**：元素位置变化
+- **缩放（Scale）**：元素大小变化
+- **透明度（Opacity）**：元素显示/隐藏
+- **旋转（Rotate）**：元素旋转效果
+
+## 选择建议
+
+| 场景 | 推荐缓动 | 原因 |
+|------|----------|------|
+| 进入/退出画面 | Ease Out | 结束时平滑，视觉舒适 |
+| 持续移动 | Linear | 速度恒定，不突兀 |
+| 强调效果 | Power 3-4 | 变化明显，吸引注意 |
+| 精致动画 | Circle | 平滑自然，品质高 |
+| 快速响应 | Expo Out | 快速完成，反馈及时 |
+| 背景装饰 | Sine | 柔和优雅，不干扰 |

@@ -1,0 +1,466 @@
+export const title = "SVG 笛卡尔坐标系变换"
+export const icon = "Axis3D"
+
+# {title}
+
+SVG 默认使用屏幕坐标系(Y 轴向下),通过 `scale(1, -1)` 变换可以实现笛卡尔坐标系(Y 轴向上),这在绘制数学函数、几何图形时非常有用。
+
+## 坐标系对比
+
+### 屏幕坐标系(SVG 默认)
+
+```
+(0,0) ───────────────► X
+  │
+  │
+  │
+  ▼
+  Y
+```
+
+- **原点**: 左上角
+- **X 轴**: 向右为正
+- **Y 轴**: 向下为正
+
+### 笛卡尔坐标系(数学常用)
+
+```
+  ▲
+  │
+  │
+  │
+(0,0) ───────────────► X
+```
+
+- **原点**: 左下角(或其他位置)
+- **X 轴**: 向右为正
+- **Y 轴**: 向上为正
+
+## scale(1, -1) 是否必须配合 translate?
+
+**不是必须的！** `scale(1, -1)` 可以独立使用,配合 `translate` 只是为了将原点移到更合适的位置。
+
+### 独立使用 scale(1, -1)
+
+只使用 `scale(1, -1)` 不配合 `translate`,原点仍在左上角,Y 轴向上增长:
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="scale(1 -1)">
+    <!-- 原点仍在 (0, 0),但 Y 轴向上 -->
+    <line x1="0" y1="0" x2="180" y2="0" stroke="blue" stroke-width="2" />
+    <line x1="0" y1="0" x2="0" y2="180" stroke="green" stroke-width="2" />
+
+    <!-- 正 Y 坐标 (50, 50) 在左上角 -->
+    <circle cx="50" cy="50" r="5" fill="red" />
+
+    <!-- 负 Y 坐标 (50, -50) 在下方 -->
+    <circle cx="50" cy="-50" r="5" fill="blue" />
+  </g>
+</svg>
+```
+
+**问题**: 正 Y 坐标在左上角,负 Y 坐标在下方,不够直观。
+
+### 配合 translate 使用
+
+先 `translate` 移动原点,再 `scale(1, -1)` 翻转 Y 轴:
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 原点移到左下角 (0, 200),然后翻转 Y 轴 -->
+  <g transform="translate(0 200) scale(1 -1)">
+    <!-- 原点在左下角,Y 轴向上 -->
+    <line x1="0" y1="0" x2="180" y2="0" stroke="blue" stroke-width="2" />
+    <line x1="0" y1="0" x2="0" y2="180" stroke="green" stroke-width="2" />
+
+    <!-- 正 Y 坐标 (50, 50) 在上方 -->
+    <circle cx="50" cy="50" r="5" fill="red" />
+
+    <!-- 正 Y 坐标 (50, 150) 更高 -->
+    <circle cx="50" cy="150" r="5" fill="blue" />
+  </g>
+</svg>
+```
+
+**好处**: 符合数学坐标系习惯,正 Y 坐标向上,在画布内可见。
+
+### 常见原点位置
+
+| 用途 | 变换 | 说明 |
+|-----|------|------|
+| 左下角原点 | `translate(0 height) scale(1 -1)` | 最接近数学坐标,正 Y 向上 |
+| 底部居中原点 | `translate(width/2 height) scale(1 -1)` | 适合对称图形 |
+| 中心原点 | `translate(width/2 height/2) scale(1 -1)` | 四象限完整显示 |
+| 左上角原点 | `scale(1 -1)` | 不推荐,正 Y 在画布外 |
+
+## 实际应用场景
+
+### 场景 1: 绘制数学函数
+
+在笛卡尔坐标系中绘制函数更直观:
+
+```xml
+<svg viewBox="0 0 400 300" width="400" height="300">
+  <!-- 坐标变换:原点移到 (200, 250),Y 轴翻转 -->
+  <g transform="translate(200 250) scale(1 -1)">
+    <!-- 网格线 -->
+    <g stroke="#e0e0e0" stroke-width="1">
+      <!-- 垂直线 -->
+      <line x1="-180" y1="0" x2="-180" y2="200" />
+      <line x1="-140" y1="0" x2="-140" y2="200" />
+      <line x1="-100" y1="0" x2="-100" y2="200" />
+      <line x1="-60" y1="0" x2="-60" y2="200" />
+      <line x1="-20" y1="0" x2="-20" y2="200" />
+      <line x1="20" y1="0" x2="20" y2="200" />
+      <line x1="60" y1="0" x2="60" y2="200" />
+      <line x1="100" y1="0" x2="100" y2="200" />
+      <line x1="140" y1="0" x2="140" y2="200" />
+      <line x1="180" y1="0" x2="180" y2="200" />
+
+      <!-- 水平线 -->
+      <line x1="-180" y1="20" x2="180" y2="20" />
+      <line x1="-180" y1="60" x2="180" y2="60" />
+      <line x1="-180" y1="100" x2="180" y2="100" />
+      <line x1="-180" y1="140" x2="180" y2="140" />
+      <line x1="-180" y1="180" x2="180" y2="180" />
+    </g>
+
+    <!-- X 轴 -->
+    <line x1="-180" y1="0" x2="180" y2="0" stroke="black" stroke-width="2" />
+
+    <!-- Y 轴 -->
+    <line x1="0" y1="0" x2="0" y2="200" stroke="black" stroke-width="2" />
+
+    <!-- y = x²/20 (抛物线) -->
+    <polyline
+      fill="none"
+      stroke="blue"
+      stroke-width="2"
+      points="
+        -80,320 -60,180 -40,80 -20,20
+        0,0
+        20,20 40,80 60,180 80,320
+      "
+      opacity="0.5"
+    />
+
+    <!-- y = 2x (直线) -->
+    <line x1="-80" y1="-160" x2="80" y2="160" stroke="red" stroke-width="2" />
+
+    <!-- 坐标轴标签(需要翻转回来) -->
+    <g transform="scale(1 -1)">
+      <text x="185" y="5" font-size="14" fill="black">X</text>
+      <text x="-10" y="215" font-size="14" fill="black">Y</text>
+      <text x="10" y="15" font-size="12" fill="gray">O</text>
+    </g>
+  </g>
+</svg>
+```
+
+### 场景 2: 绘制几何图形
+
+笛卡尔坐标系更适合绘制对称几何图形:
+
+```xml
+<svg viewBox="0 0 300 300" width="300" height="300">
+  <g transform="translate(150 150) scale(1 -1)">
+    <!-- 坐标轴 -->
+    <line x1="-140" y1="0" x2="140" y2="0" stroke="#ccc" stroke-width="1" />
+    <line x1="0" y1="-140" x2="0" y2="140" stroke="#ccc" stroke-width="1" />
+
+    <!-- 圆 x² + y² = 3600 (r=60) -->
+    <circle cx="0" cy="0" r="60" fill="none" stroke="blue" stroke-width="2" />
+
+    <!-- 正方形 (|x| ≤ 40, |y| ≤ 40) -->
+    <rect x="-40" y="-40" width="80" height="80" fill="none" stroke="green" stroke-width="2" />
+
+    <!-- 三角形顶点 -->
+    <polygon points="0,80 -70,-40 70,-40" fill="none" stroke="red" stroke-width="2" />
+
+    <!-- 标签 -->
+    <g transform="scale(1 -1)">
+      <text x="70" y="-5" font-size="12" fill="blue">圆形</text>
+      <text x="-45" y="55" font-size="12" fill="green">正方形</text>
+      <text x="-20" y="95" font-size="12" fill="red">三角形</text>
+    </g>
+  </g>
+</svg>
+```
+
+### 场景 3: 向量运算
+
+笛卡尔坐标系下向量更符合数学直觉:
+
+```xml
+<svg viewBox="0 0 400 300" width="400" height="300">
+  <g transform="translate(200 150) scale(1 -1)">
+    <!-- 坐标轴 -->
+    <line x1="-180" y1="0" x2="180" y2="0" stroke="#ddd" stroke-width="1" />
+    <line x1="0" y1="-120" x2="0" y2="120" stroke="#ddd" stroke-width="1" />
+
+    <!-- 向量 a = (60, 80) -->
+    <line x1="0" y1="0" x2="60" y2="80" stroke="blue" stroke-width="3" marker-end="url(#arrowBlue)" />
+    <text x="70" y="90" font-size="14" fill="blue" transform="scale(1 -1)">a(60,80)</text>
+
+    <!-- 向量 b = (80, 40) -->
+    <line x1="0" y1="0" x2="80" y2="40" stroke="red" stroke-width="3" marker-end="url(#arrowRed)" />
+    <text x="90" y="50" font-size="14" fill="red" transform="scale(1 -1)">b(80,40)</text>
+
+    <!-- 向量和 a + b = (140, 120) -->
+    <line x1="0" y1="0" x2="140" y2="120" stroke="green" stroke-width="3" stroke-dasharray="5,5" marker-end="url(#arrowGreen)" />
+    <text x="150" y="130" font-size="14" fill="green" transform="scale(1 -1)">a+b</text>
+
+    <!-- 箭头定义 -->
+    <defs>
+      <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="blue" />
+      </marker>
+      <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="red" />
+      </marker>
+      <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="green" />
+      </marker>
+    </defs>
+  </g>
+</svg>
+```
+
+### 场景 4: 极坐标图形
+
+笛卡尔坐标系下绘制极坐标图形更直观:
+
+```xml
+<svg viewBox="0 0 300 300" width="300" height="300">
+  <g transform="translate(150 150) scale(1 -1)">
+    <!-- 同心圆(极坐标网格) -->
+    <circle cx="0" cy="0" r="40" fill="none" stroke="#ddd" stroke-width="1" />
+    <circle cx="0" cy="0" r="80" fill="none" stroke="#ddd" stroke-width="1" />
+    <circle cx="0" cy="0" r="120" fill="none" stroke="#ddd" stroke-width="1" />
+
+    <!-- 放射线 -->
+    <line x1="0" y1="0" x2="120" y2="0" stroke="#ddd" stroke-width="1" transform="rotate(0)" />
+    <line x1="0" y1="0" x2="120" y2="0" stroke="#ddd" stroke-width="1" transform="rotate(30)" />
+    <line x1="0" y1="0" x2="120" y2="0" stroke="#ddd" stroke-width="1" transform="rotate(60)" />
+    <line x1="0" y1="0" x2="120" y2="0" stroke="#ddd" stroke-width="1" transform="rotate(90)" />
+    <line x1="0" y1="0" x2="120" y2="0" stroke="#ddd" stroke-width="1" transform="rotate(120)" />
+    <line x1="0" y1="0" x2="120" y2="0" stroke="#ddd" stroke-width="1" transform="rotate(150)" />
+
+    <!-- 心形线 r = 100(1 - sin(θ)) -->
+    <polyline
+      fill="none"
+      stroke="red"
+      stroke-width="2"
+      points="
+        0,0
+        20,20 40,35 60,45 80,50
+        100,50 120,45 140,35 160,20
+        180,0 160,-20 140,-35 120,-45
+        100,-50 80,-50 60,-45 40,-35
+        20,-20 0,0
+      "
+    />
+
+    <!-- 标签 -->
+    <g transform="scale(1 -1)">
+      <text x="-140" y="-130" font-size="12" fill="gray">r = 40</text>
+      <text x="-100" y="-90" font-size="12" fill="gray">r = 80</text>
+      <text x="-60" y="-50" font-size="12" fill="gray">r = 120</text>
+      <text x="20" y="15" font-size="12" fill="red">心形线</text>
+    </g>
+  </g>
+</svg>
+```
+
+## 文字处理
+
+Y 轴翻转后,文字也会倒置,需要再次翻转:
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100) scale(1 -1)">
+    <!-- 图形元素 -->
+    <rect x="-50" y="-50" width="100" height="100" fill="lightblue" />
+
+    <!-- 文字需要翻转回来 -->
+    <text x="0" y="0" font-size="16" text-anchor="middle" transform="scale(1 -1)">
+      笛卡尔坐标系
+    </text>
+  </g>
+</svg>
+```
+
+## 常用模板
+
+### 模板 1: 基础笛卡尔坐标系
+
+```xml
+<svg viewBox="0 0 400 300" width="400" height="300">
+  <g transform="translate(200 250) scale(1 -1)">
+    <!-- 你的绘图代码 -->
+    <!-- 原点在 (200, 250),Y 轴向上 -->
+  </g>
+</svg>
+```
+
+### 模板 2: 带网格的坐标系
+
+```xml
+<svg viewBox="0 0 400 300" width="400" height="300">
+  <g transform="translate(200 150) scale(1 -1)">
+    <!-- 网格 -->
+    <defs>
+      <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f0f0f0" stroke-width="1"/>
+      </pattern>
+    </defs>
+    <rect x="-180" y="-120" width="360" height="240" fill="url(#grid)" />
+
+    <!-- 坐标轴 -->
+    <line x1="-180" y1="0" x2="180" y2="0" stroke="black" stroke-width="1" />
+    <line x1="0" y1="-120" x2="0" y2="120" stroke="black" stroke-width="1" />
+  </g>
+</svg>
+```
+
+### 模板 3: 四象限坐标图
+
+```xml
+<svg viewBox="0 0 400 300" width="400" height="300">
+  <g transform="translate(200 150) scale(1 -1)">
+    <!-- 坐标轴 -->
+    <line x1="-180" y1="0" x2="180" y2="0" stroke="black" stroke-width="1" />
+    <line x1="0" y1="-120" x2="0" y2="120" stroke="black" stroke-width="1" />
+
+    <!-- 象限标签 -->
+    <g transform="scale(1 -1)">
+      <text x="100" y="-100" font-size="14" fill="#999">第一象限(+,+)</text>
+      <text x="-180" y="-100" font-size="14" fill="#999">第二象限(-,+)</text>
+      <text x="-180" y="100" font-size="14" fill="#999">第三象限(-,-)</text>
+      <text x="100" y="100" font-size="14" fill="#999">第四象限(+,-)</text>
+    </g>
+  </g>
+</svg>
+```
+
+## 动画应用
+
+### 旋转动画(笛卡尔坐标系)
+
+在笛卡尔坐标系中,旋转方向更符合直觉:
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100) scale(1 -1)">
+    <!-- 逆时针旋转(正角度) -->
+    <rect x="-30" y="-30" width="60" height="60" fill="blue">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0"
+        to="360"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+### 抛物线运动
+
+```xml
+<svg viewBox="0 0 400 300" width="400" height="300">
+  <g transform="translate(50 250) scale(1 -1)">
+    <!-- 地面 -->
+    <line x1="0" y1="0" x2="300" y2="0" stroke="black" stroke-width="2" />
+
+    <!-- 抛物线轨迹 -->
+    <circle cx="0" cy="0" r="10" fill="blue">
+      <animate
+        attributeName="cx"
+        from="0"
+        to="280"
+        dur="2s"
+        repeatCount="indefinite"
+      />
+      <animate
+        attributeName="cy"
+        values="0; 120; 0"
+        dur="2s"
+        repeatCount="indefinite"
+      />
+    </circle>
+  </g>
+</svg>
+```
+
+## 注意事项
+
+### 1. 原点位置选择
+
+根据实际需求选择合适的原点位置:
+
+```xml
+<!-- 左下角原点:适合绘制从底部开始的图形 -->
+<g transform="translate(0 200) scale(1 -1)">
+
+<!-- 中心原点:适合对称图形 -->
+<g transform="translate(100 100) scale(1 -1)">
+
+<!-- 左上角原点:不推荐,正 Y 坐标不可见 -->
+<g transform="scale(1 -1)">
+```
+
+### 2. 文字翻转
+
+Y 轴翻转后,文字会倒置,需要再次翻转:
+
+```xml
+<g transform="scale(1 -1)">
+  <text transform="scale(1 -1)">正常文字</text>
+</g>
+```
+
+### 3. 渐变和图案
+
+渐变和图案也需要考虑坐标系方向:
+
+```xml
+<defs>
+  <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" style="stop-color:rgb(255,255,0);stop-opacity:1" />
+    <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1" />
+  </linearGradient>
+</defs>
+
+<g transform="scale(1 -1)">
+  <rect x="10" y="10" width="80" height="80" fill="url(#grad1)" />
+</g>
+```
+
+### 4. 微信公众号兼容性
+
+笛卡尔坐标系变换在微信公众号中完全支持,可以放心使用。
+
+## 最佳实践
+
+1. **先平移后翻转**: 先 `translate` 到合适位置,再 `scale(1, -1)` 翻转
+2. **文字单独处理**: 文字元素单独 `scale(1, -1)` 翻转回来
+3. **使用分组**: 用 `<g>` 包裹所有需要笛卡尔坐标系的元素
+4. **注释说明**: 标注原点位置和坐标系类型
+
+```xml
+<!-- 推荐的笛卡尔坐标系模板 -->
+<g transform="translate(200 150) scale(1 -1)">
+  <!-- 原点在画布中心 (200, 150) -->
+
+  <!-- 绘图代码 -->
+
+  <!-- 文字标签(翻转回来) -->
+  <g transform="scale(1 -1)">
+    <text x="0" y="0">标签</text>
+  </g>
+</g>
+```

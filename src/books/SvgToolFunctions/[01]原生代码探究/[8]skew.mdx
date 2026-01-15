@@ -1,0 +1,477 @@
+export const title = "SVG skew 变换"
+export const icon = "Tilt"
+
+# {title}
+
+`skew` 是 SVG 中用于倾斜变换的工具,可以实现元素的斜切效果,常用于创建平行四边形、菱形或特殊视觉效果。
+
+## 基本语法
+
+```xml
+<element transform="skewX(angle)" />
+<element transform="skewY(angle)" />
+```
+
+| 参数 | 说明 | 示例 |
+|-----|------|------|
+| `angle` | 倾斜角度(单位度) | `skewX(30)` |
+| `skewX` | 沿 X 轴方向倾斜 | `skewX(45)` |
+| `skewY` | 沿 Y 轴方向倾斜 | `skewY(30)` |
+
+## skewX - X 轴倾斜
+
+沿 X 轴方向倾斜,元素在 Y 轴方向保持不变,X 轴方向按角度倾斜:
+
+### 基本示例
+
+```xml
+<svg viewBox="0 0 200 150" width="200" height="150">
+  <!-- 原始矩形 -->
+  <rect x="20" y="20" width="80" height="50" fill="lightblue" />
+
+  <!-- X 轴倾斜 30 度 -->
+  <rect x="20" y="80" width="80" height="50" fill="blue" transform="skewX(30)" />
+</svg>
+```
+
+### 不同角度对比
+
+```xml
+<svg viewBox="0 0 300 200" width="300" height="200">
+  <!-- 原始 -->
+  <rect x="20" y="20" width="60" height="40" fill="lightblue" />
+  <text x="50" y="75" font-size="12" text-anchor="middle">0°</text>
+
+  <!-- 15 度 -->
+  <rect x="100" y="20" width="60" height="40" fill="blue" transform="skewX(15)" />
+  <text x="130" y="75" font-size="12" text-anchor="middle">15°</text>
+
+  <!-- 30 度 -->
+  <rect x="180" y="20" width="60" height="40" fill="darkblue" transform="skewX(30)" />
+  <text x="210" y="75" font-size="12" text-anchor="middle">30°</text>
+
+  <!-- -20 度(反向倾斜) -->
+  <rect x="20" y="100" width="60" height="40" fill="green" transform="skewX(-20)" />
+  <text x="50" y="155" font-size="12" text-anchor="middle">-20°</text>
+
+  <!-- 45 度 -->
+  <rect x="100" y="100" width="60" height="40" fill="red" transform="skewX(45)" />
+  <text x="130" y="155" font-size="12" text-anchor="middle">45°</text>
+</svg>
+```
+
+### skewX 原理说明
+
+`skewX(angle)` 将元素的顶部和底部边缘沿 X 轴方向移动:
+
+- **角度为正**: 顶部向右移动,底部保持不变
+- **角度为负**: 顶部向左移动,底部保持不变
+- **倾斜量**: `tan(angle) × 高度`
+
+```xml
+<svg viewBox="0 0 200 150" width="200" height="150">
+  <!-- 原始矩形 -->
+  <rect x="50" y="20" width="60" height="40" fill="none" stroke="gray" stroke-width="1" stroke-dasharray="3,3" />
+
+  <!-- 倾斜后的矩形 -->
+  <rect x="50" y="20" width="60" height="40" fill="lightblue" transform="skewX(30)" />
+
+  <!-- 辅助线 -->
+  <line x1="50" y1="20" x2="50" y2="60" stroke="red" stroke-width="1" />
+  <line x1="110" y1="20" x2="110" y2="60" stroke="red" stroke-width="1" stroke-dasharray="3,3" />
+  <line x1="50" y1="60" x2="110" y2="60" stroke="blue" stroke-width="2" />
+  <line x1="50" y1="20" x2="145" y2="20" stroke="green" stroke-width="2" />
+
+  <!-- 说明 -->
+  <text x="100" y="130" font-size="10" text-anchor="middle">skewX(30)</text>
+</svg>
+```
+
+## skewY - Y 轴倾斜
+
+沿 Y 轴方向倾斜,元素在 X 轴方向保持不变,Y 轴方向按角度倾斜:
+
+### 基本示例
+
+```xml
+<svg viewBox="0 0 200 150" width="200" height="150">
+  <!-- 原始矩形 -->
+  <rect x="20" y="20" width="80" height="50" fill="lightblue" />
+
+  <!-- Y 轴倾斜 30 度 -->
+  <rect x="20" y="80" width="80" height="50" fill="blue" transform="skewY(30)" />
+</svg>
+```
+
+### 不同角度对比
+
+```xml
+<svg viewBox="0 0 300 200" width="300" height="200">
+  <!-- 原始 -->
+  <rect x="20" y="20" width="60" height="40" fill="lightblue" />
+  <text x="50" y="75" font-size="12" text-anchor="middle">0°</text>
+
+  <!-- 15 度 -->
+  <rect x="100" y="20" width="60" height="40" fill="blue" transform="skewY(15)" />
+  <text x="130" y="75" font-size="12" text-anchor="middle">15°</text>
+
+  <!-- 30 度 -->
+  <rect x="180" y="20" width="60" height="40" fill="darkblue" transform="skewY(30)" />
+  <text x="210" y="75" font-size="12" text-anchor="middle">30°</text>
+
+  <!-- -20 度 -->
+  <rect x="20" y="100" width="60" height="40" fill="green" transform="skewY(-20)" />
+  <text x="50" y="155" font-size="12" text-anchor="middle">-20°</text>
+
+  <!-- 45 度 -->
+  <rect x="100" y="100" width="60" height="40" fill="red" transform="skewY(45)" />
+  <text x="130" y="155" font-size="12" text-anchor="middle">45°</text>
+</svg>
+```
+
+### skewY 原理说明
+
+`skewY(angle)` 将元素的左侧和右侧边缘沿 Y 轴方向移动:
+
+- **角度为正**: 左侧向上移动,右侧保持不变
+- **角度为负**: 左侧向下移动,右侧保持不变
+- **倾斜量**: `tan(angle) × 宽度`
+
+```xml
+<svg viewBox="0 0 200 150" width="200" height="150">
+  <!-- 原始矩形 -->
+  <rect x="50" y="20" width="60" height="40" fill="none" stroke="gray" stroke-width="1" stroke-dasharray="3,3" />
+
+  <!-- 倾斜后的矩形 -->
+  <rect x="50" y="20" width="60" height="40" fill="lightblue" transform="skewY(30)" />
+
+  <!-- 辅助线 -->
+  <line x1="50" y1="20" x2="110" y2="20" stroke="red" stroke-width="1" />
+  <line x1="50" y1="60" x2="110" y2="60" stroke="red" stroke-width="1" stroke-dasharray="3,3" />
+  <line x1="110" y1="20" x2="110" y2="60" stroke="blue" stroke-width="2" />
+  <line x1="50" y1="20" x2="50" y2="63" stroke="green" stroke-width="2" />
+
+  <!-- 说明 -->
+  <text x="100" y="130" font-size="10" text-anchor="middle">skewY(30)</text>
+</svg>
+```
+
+## 双向倾斜
+
+同时使用 `skewX` 和 `skewY`:
+
+```xml
+<svg viewBox="0 0 300 200" width="300" height="200">
+  <!-- 原始 -->
+  <rect x="20" y="20" width="80" height="50" fill="lightblue" />
+  <text x="60" y="85" font-size="12" text-anchor="middle">原始</text>
+
+  <!-- 仅 skewX -->
+  <rect x="20" y="100" width="80" height="50" fill="blue" transform="skewX(20)" />
+  <text x="60" y="165" font-size="12" text-anchor="middle">skewX(20)</text>
+
+  <!-- 仅 skewY -->
+  <rect x="120" y="20" width="80" height="50" fill="green" transform="skewY(15)" />
+  <text x="160" y="85" font-size="12" text-anchor="middle">skewY(15)</text>
+
+  <!-- 双向倾斜 -->
+  <rect x="120" y="100" width="80" height="50" fill="red" transform="skewX(20) skewY(15)" />
+  <text x="160" y="165" font-size="12" text-anchor="middle">skewX(20) skewY(15)</text>
+</svg>
+```
+
+## 实际应用场景
+
+### 场景 1: 平行四边形
+
+使用 skew 创建平行四边形:
+
+```xml
+<svg viewBox="0 0 200 150" width="200" height="150">
+  <!-- 标准矩形 -->
+  <rect x="20" y="20" width="80" height="50" fill="lightblue" />
+
+  <!-- 平行四边形 (使用 skewX) -->
+  <rect x="20" y="80" width="80" height="50" fill="blue" transform="skewX(-20)" />
+</svg>
+```
+
+### 场景 2: 3D 透视效果
+
+使用 skew 模拟 3D 透视:
+
+```xml
+<svg viewBox="0 0 300 200" width="300" height="200">
+  <!-- 地面 -->
+  <rect x="50" y="150" width="200" height="10" fill="#ddd" />
+
+  <!-- 立方体前面 -->
+  <rect x="100" y="100" width="80" height="50" fill="blue" />
+
+  <!-- 立方体顶面 (使用 skewY 和 skewX) -->
+  <g>
+    <polygon points="100,100 180,100 200,80 120,80" fill="lightblue" transform="skewY(-20) skewX(10)" />
+  </g>
+
+  <!-- 立方体右面 (使用 skewX) -->
+  <g>
+    <polygon points="180,100 200,80 200,130 180,150" fill="darkblue" transform="skewX(20)" />
+  </g>
+</svg>
+```
+
+### 场景 3: 斜向文字
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <!-- 正常文字 -->
+  <text x="20" y="30" font-size="18" fill="blue">正常文字</text>
+
+  <!-- 倾斜文字 -->
+  <text x="20" y="60" font-size="18" fill="red" transform="skewX(-20)">倾斜文字</text>
+
+  <!-- 反向倾斜 -->
+  <text x="20" y="90" font-size="18" fill="green" transform="skewX(20)">反向倾斜</text>
+</svg>
+```
+
+### 场景 4: 阴影效果
+
+使用 skew 创建投影效果:
+
+```xml
+<svg viewBox="0 0 200 120" width="200" height="120">
+  <!-- 卡片阴影 -->
+  <rect x="55" y="55" width="80" height="50" fill="rgba(0,0,0,0.3)" transform="skewX(-40) skewY(10)" />
+
+  <!-- 卡片主体 -->
+  <rect x="50" y="50" width="80" height="50" fill="white" stroke="#ddd" stroke-width="1" />
+
+  <!-- 卡片内容 -->
+  <text x="90" y="80" font-size="14" text-anchor="middle" fill="black">Card</text>
+</svg>
+```
+
+### 场景 5: 斜向分割线
+
+```xml
+<svg viewBox="0 0 200 100" width="200" height="100">
+  <!-- 背景区域 -->
+  <rect x="0" y="0" width="200" height="100" fill="#f0f0f0" />
+
+  <!-- 斜向分割区域 -->
+  <rect x="0" y="0" width="200" height="100" fill="blue" transform="skewX(-20)" />
+
+  <!-- 文字 -->
+  <text x="20" y="50" font-size="16" fill="white">Skewed Section</text>
+</svg>
+```
+
+## 动画中的应用
+
+### 倾斜动画
+
+```xml
+<svg viewBox="0 0 200 150" width="200" height="150">
+  <rect x="50" y="50" width="100" height="50" fill="blue">
+    <animateTransform
+      attributeName="transform"
+      type="skewX"
+      values="-20; 20; -20"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </rect>
+</svg>
+```
+
+### 弹性倾斜效果
+
+```xml
+<svg viewBox="0 0 200 150" width="200" height="150">
+  <rect x="50" y="50" width="100" height="50" fill="blue">
+    <animateTransform
+      attributeName="transform"
+      type="skewX"
+      values="0; 30; 0; -30; 0"
+      keyTimes="0; 0.25; 0.5; 0.75; 1"
+      dur="3s"
+      repeatCount="indefinite"
+    />
+  </rect>
+</svg>
+```
+
+### hover 触发的倾斜(需要 CSS 或 JavaScript)
+
+微信公众号不支持 CSS hover,但可以使用动画模拟:
+
+```xml
+<svg viewBox="0 0 200 150" width="200" height="150">
+  <rect x="50" y="50" width="100" height="50" fill="blue">
+    <animateTransform
+      attributeName="transform"
+      type="skewX"
+      values="0; -15; 0"
+      keyTimes="0; 0.1; 1"
+      dur="2s"
+      begin="click"
+      fill="freeze"
+    />
+  </rect>
+  <text x="100" y="130" font-size="12" text-anchor="middle">点击矩形</text>
+</svg>
+```
+
+## 复合变换
+
+skew 与其他变换结合使用:
+
+### 旋转 + 倾斜
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <rect x="50" y="50" width="100" height="60" fill="blue" transform="rotate(15) skewX(20)" />
+</svg>
+```
+
+### 平移 + 倾斜 + 缩放
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <rect x="0" y="0" width="80" height="50" fill="blue" transform="translate(60 75) skewX(-15) scale(1.2)" />
+</svg>
+```
+
+### 倾斜 + 旋转动画
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <rect x="-50" y="-30" width="100" height="60" fill="blue" transform="skewX(20)">
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0"
+        to="360"
+        dur="4s"
+        repeatCount="indefinite"
+        additive="sum"
+      />
+    </rect>
+  </g>
+</svg>
+```
+
+## 注意事项
+
+### 1. 倾斜角度限制
+
+角度过大可能导致元素过度变形:
+
+```xml
+<!-- 不推荐:角度过大 -->
+<rect transform="skewX(80)" />
+
+<!-- 推荐:适中角度 -->
+<rect transform="skewX(30)" />
+```
+
+### 2. 变换原点
+
+skew 默认从原点开始倾斜,可能导致元素位置偏移:
+
+```xml
+<!-- 问题:倾斜后位置不对 -->
+<rect x="50" y="50" width="100" height="50" transform="skewX(30)" />
+
+<!-- 解决:先调整原点 -->
+<rect x="50" y="50" width="100" height="50" transform="translate(100 75) skewX(30) translate(-100 -75)" />
+```
+
+### 3. 文字可读性
+
+过度倾斜会影响文字可读性:
+
+```xml
+<!-- 可读性好 -->
+<text transform="skewX(-10)">轻微倾斜</text>
+
+<!-- 可读性差 -->
+<text transform="skewX(-40)">过度倾斜</text>
+```
+
+### 4. 微信公众号兼容性
+
+skew 在微信公众号中完全支持,可以放心使用。
+
+## 实用技巧
+
+### 技巧 1: 菱形效果
+
+使用 skew 创建菱形:
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <!-- 方法 1:skewX + skewY -->
+  <rect x="80" y="80" width="40" height="40" fill="blue" transform="skewX(45) skewY(45)" />
+
+  <!-- 方法 2:rotate 更简单 -->
+  <rect x="120" y="80" width="30" height="30" fill="red" transform="rotate(45 135 95)" />
+</svg>
+```
+
+### 技巧 2: 平行四边形按钮
+
+```xml
+<svg viewBox="0 0 200 80" width="200" height="80">
+  <!-- 按钮背景 -->
+  <rect x="20" y="20" width="160" height="40" fill="blue" transform="skewX(-20)" />
+
+  <!-- 按钮文字(需要反向倾斜) -->
+  <text x="100" y="45" font-size="16" text-anchor="middle" fill="white" transform="skewX(-20)">Button</text>
+</svg>
+```
+
+### 技巧 3: 3D 盒子
+
+```xml
+<svg viewBox="0 0 200 200" width="200" height="200">
+  <g transform="translate(100 100)">
+    <!-- 前面 -->
+    <rect x="-40" y="-40" width="80" height="80" fill="blue" />
+
+    <!-- 顶面 -->
+    <g transform="skewY(20)">
+      <rect x="-40" y="-40" width="80" height="40" fill="lightblue" />
+    </g>
+
+    <!-- 右面 -->
+    <g transform="skewX(20)">
+      <rect x="40" y="-40" width="40" height="80" fill="darkblue" />
+    </g>
+  </g>
+</svg>
+```
+
+## 最佳实践
+
+1. **适度倾斜**: 倾斜角度建议在 -30° 到 30° 之间
+2. **文字处理**: 文字倾斜时注意保持可读性
+3. **原点调整**: 使用 `translate` 配合 skew 实现从指定点倾斜
+4. **复合变换**: 注意变换顺序,skew 与其他变换结合时效果不同
+
+```xml
+<!-- 推荐的倾斜动画 -->
+<g transform="translate(cx cy)">
+  <element transform="skewX(angle)">
+    <animateTransform
+      attributeName="transform"
+      type="skewX"
+      values="-15; 15; -15"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </element>
+</g>
+```

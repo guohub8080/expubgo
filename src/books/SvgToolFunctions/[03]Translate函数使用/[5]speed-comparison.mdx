@@ -1,0 +1,107 @@
+export const title = "速度对比与特殊效果"
+
+import { SpeedComparison, EasingComparison } from "./examples"
+
+# {title}
+
+通过速度和缓动曲线，可以创造出各种有趣的动画效果，如速度对比和加速/减速效果。
+
+---
+
+## 不同速度对比
+
+三个圆形以不同的速度向右移动，直观对比速度差异。
+
+**代码示例：**
+
+```tsx
+// 慢速：移动 420px，用时 4 秒
+genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    { toValue: { x: 420, y: 0 }, durationSeconds: 4 },
+    { toValue: { x: 0, y: 0 }, durationSeconds: 0.3 }
+  ],
+  loopCount: 0
+})
+
+// 中速：移动 420px，用时 2 秒
+genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    { toValue: { x: 420, y: 0 }, durationSeconds: 2 },
+    { toValue: { x: 0, y: 0 }, durationSeconds: 0.3 }
+  ],
+  loopCount: 0
+})
+
+// 快速：移动 420px，用时 0.5 秒
+genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    { toValue: { x: 420, y: 0 }, durationSeconds: 0.5 },
+    { toValue: { x: 0, y: 0 }, durationSeconds: 0.3 }
+  ],
+  loopCount: 0
+})
+```
+
+**效果预览：**
+
+<SpeedComparison />
+
+**说明**：速度 = 距离 / 时间，距离相同但时间不同，速度就不同
+
+---
+
+## 加速与减速效果对比
+
+使用不同的缓动曲线，可以创造出加速和减速的动画效果。
+
+**代码示例：**
+
+```tsx
+import { genAnimateTranslate } from "@svg-anim/translate";
+import { getEaseBezier } from "@pub-utils/getBezier";
+
+// 加速效果（先慢后快）
+genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    { toValue: { x: 430, y: 0 }, durationSeconds: 2, keySplines: getEaseBezier({ isIn: true }) }
+  ],
+  freeze: true
+})
+
+// 减速效果（先快后慢）
+genAnimateTranslate({
+  initValue: { x: 0, y: 0 },
+  timeline: [
+    { toValue: { x: 430, y: 0 }, durationSeconds: 2, keySplines: getEaseBezier({ isOut: true }) }
+  ],
+  freeze: true
+})
+```
+
+**效果预览：**
+
+<EasingComparison />
+
+**说明**：两个圆用相同时长移动相同距离，但缓动曲线不同，产生加速和减速效果的对比
+
+---
+
+## 弹球运动
+
+模拟弹球抛出的轨迹，沿着斜线往返运动。
+
+```tsx
+// 相对移动模式（isRelativeMove: true，默认值）
+<svg width="400" height="300" viewBox="0 0 400 300">
+  <line x1="50" y1="250" x2="350" y2="50" stroke="#ccc" strokeWidth="2" />
+  <circle cx="50" cy="250" r="15" fill="#3498db">
+    {genAnimateTranslate({
+      initValue: { x: 0, y: 0 },
+      timeline: [
+        { toValue: { x: 300, y: -200 }, durationSeconds: 1.5 },
+        { toValue: { x: 0, y: 0 }, durationSeconds:

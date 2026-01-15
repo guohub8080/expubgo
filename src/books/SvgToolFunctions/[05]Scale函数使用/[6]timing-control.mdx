@@ -1,0 +1,341 @@
+export const title = "缩放时序控制"
+
+import {
+  DelayDemo,
+  LoopDemo,
+  FreezeDemo,
+  ClickTriggerDemo
+} from "./examples"
+
+# {title}
+
+缩放动画的时序控制是创建复杂动画效果的关键。本文介绍 `genAnimateScale` 中与时序相关的四个核心参数：`delay`、`loopCount`、`freeze` 和 `beginType`。
+
+---
+
+## 核心参数
+
+| 参数 | 默认值 | 说明 | 使用场景 |
+|------|--------|------|----------|
+| `delay` | `0` | 初始延迟（秒） | 序列动画、入场动画 |
+| `loopCount` | `1` | 循环次数（0 = 无限）| 呼吸效果、重复提示 |
+| `freeze` | `false` | 保持最终状态 | 入场动画、状态切换 |
+| `beginType` | `undefined` | 点击触发 | 交互式动画、按需播放 |
+
+---
+
+## delay - 初始延迟
+
+控制动画开始前的等待时间（秒）。
+
+**类型**：`number`
+**默认值**：`0`
+
+**使用场景**：
+- 序列动画（多个元素依次出现）
+- 入场动画（页面加载后延迟播放）
+- 协调多个动画的时机
+
+**示例**：
+
+```tsx
+genAnimateScale({
+  origin: [100, 100],
+  initScale: 1,
+  timeline: [
+    { toValue: 1.5, durationSeconds: 2 }
+  ],
+  delay: 1  // 延迟 1 秒后开始
+})
+```
+
+**效果预览：**
+
+<DelayDemo />
+
+**说明**：方块延迟 1 秒后开始放大
+
+---
+
+## loopCount - 循环次数
+
+控制动画播放的次数。
+
+**类型**：`number`
+**默认值**：`1`
+**特殊值**：`0` 表示无限循环
+
+**使用场景**：
+- 呼吸效果（无限循环）
+- 重复提示（循环 2-3 次）
+- 单次动画（默认值 1）
+
+**示例：**
+
+```tsx
+// 播放 1 次（默认）
+genAnimateScale({
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.5, durationSeconds: 2 }
+  ],
+  loopCount: 1
+})
+
+// 播放 3 次
+genAnimateScale({
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.8, durationSeconds: 2 }
+  ],
+  loopCount: 3
+})
+
+// 无限循环
+genAnimateScale({
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.2, durationSeconds: 1 },
+    { toValue: 0.8, durationSeconds: 1 }
+  ],
+  loopCount: 0
+})
+```
+
+**效果预览：**
+
+<LoopDemo />
+
+**说明**：从左到右依次为：播放1次、播放3次、无限循环
+
+---
+
+## freeze - 保持最终状态
+
+控制动画结束后是否停留在最后一帧。
+
+**类型**：`boolean`
+**默认值**：`false`
+
+**值说明**：
+- `false`（默认）：动画结束后回到初始状态
+- `true`：动画结束后停留在最终位置
+
+**使用场景**：
+- 入场动画（元素放大后保持大小）
+- 状态切换（从 A 状态变到 B 状态）
+- 单次动画（不需要回到原位）
+
+**示例：**
+
+```tsx
+// 动画结束后回到原位
+genAnimateScale({
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.5, durationSeconds: 2 }
+  ],
+  freeze: false  // 默认值
+})
+
+// 动画结束后保持最终位置
+genAnimateScale({
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.5, durationSeconds: 2 }
+  ],
+  freeze: true
+})
+```
+
+**效果预览：**
+
+<FreezeDemo />
+
+**说明**：上方动画结束后回到原位，下方保持最终大小
+
+---
+
+## beginType - 点击触发
+
+控制动画是否需要点击元素才开始播放。
+
+**类型**：`SvgBeginEventType`
+**默认值**：`undefined`
+
+**值说明**：
+- `undefined`（默认）：页面加载后自动播放
+- `'click'`：点击元素后才开始播放
+
+**使用场景**：
+- 交互式动画（用户点击触发）
+- 按需播放（避免自动播放）
+- 游戏元素（点击控制）
+
+**示例：**
+
+```tsx
+genAnimateScale({
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.5, durationSeconds: 2 }
+  ],
+  beginType: 'click',
+  freeze: true  // 通常配合 freeze 使用
+})
+```
+
+**效果预览：**
+
+<ClickTriggerDemo />
+
+**说明**：点击圆圈后才开始放大，动画结束后保持最终大小
+
+---
+
+## 参数组合
+
+### 组合 1：延迟 + 循环
+
+创建延迟开始的循环动画。
+
+```tsx
+genAnimateScale({
+  origin: [100, 100],
+  initScale: 1,
+  timeline: [
+    { toValue: 1.2, durationSeconds: 1 },
+    { toValue: 0.8, durationSeconds: 1 }
+  ],
+  delay: 2,      // 延迟 2 秒
+  loopCount: 0   // 无限循环
+})
+```
+
+**使用场景**：页面加载后延迟播放的呼吸效果。
+
+---
+
+### 组合 2：点击 + 冻结
+
+创建点击触发的单次动画。
+
+```tsx
+genAnimateScale({
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.5, durationSeconds: 2 }
+  ],
+  beginType: 'click',  // 点击触发
+  freeze: true             // 保持最终位置
+})
+```
+
+**使用场景**：点击按钮后元素放大到新位置并停留。
+
+---
+
+### 组合 3：延迟 + 点击 + 冻结
+
+创建延迟触发的交互式动画。
+
+```tsx
+genAnimateScale({
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.5, durationSeconds: 2 }
+  ],
+  delay: 1,                // 点击后延迟 1 秒
+  beginType: 'click',  // 点击触发
+  freeze: true             // 保持最终位置
+})
+```
+
+**使用场景**：点击后延迟播放的入场动画。
+
+---
+
+### 组合 4：循环 + 冻结
+
+创建循环指定次数后停留的动画。
+
+```tsx
+genAnimateScale({
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.8, durationSeconds: 1 },
+    { toValue: 0.2, durationSeconds: 1 }
+  ],
+  loopCount: 3,  // 循环 3 次
+  freeze: true   // 最后停留在最终位置
+})
+```
+
+**使用场景**：提示动画（摆动 3 次后停止）。
+
+---
+
+## 使用场景
+
+### 场景 1：入场动画
+
+元素从小到大出现，并保持大小。
+
+```tsx
+genAnimateScale({
+  origin: [100, 100],
+  initScale: 0,
+  timeline: [
+    { toValue: 1, durationSeconds: 1 }
+  ],
+  delay: 0.5,   // 延迟 0.5 秒
+  freeze: true  // 保持最终大小
+})
+```
+
+### 场景 2：呼吸效果
+
+元素持续放大缩小。
+
+```tsx
+genAnimateScale({
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.2, durationSeconds: 1 },
+    { toValue: 0.8, durationSeconds: 1 }
+  ],
+  loopCount: 0  // 无限循环
+})
+```
+
+### 场景 3：交互式动画
+
+点击元素后触发缩放。
+
+```tsx
+genAnimateScale({
+  origin: [100, 100],
+  timeline: [
+    { toValue: 1.5, durationSeconds: 1.5 }
+  ],
+  beginType: 'click',
+  freeze: true
+})
+```
+
+---
+
+## 总结
+
+| 参数 | 默认值 | 说明 | 常用场景 |
+|------|--------|------|----------|
+| `delay` | `0` | 初始延迟（秒） | 序列动画、入场动画 |
+| `loopCount` | `1` | 循环次数（0 = 无限）| 呼吸效果、重复提示 |
+| `freeze` | `false` | 保持最终状态 | 入场动画、状态切换 |
+| `beginType` | `undefined` | 点击触发 | 交互式动画、按需播放 |
+
+**推荐组合**：
+- 入场动画：`delay` + `freeze`
+- 呼吸效果：`loopCount: 0`
+- 交互式动画：`beginType: 'click'` + `freeze`
+- 序列动画：不同的 `delay` 值

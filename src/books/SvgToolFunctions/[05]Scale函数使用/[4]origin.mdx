@@ -1,0 +1,175 @@
+export const title = "缩放中心点"
+
+import { CenterOrigin, TopLeft, BottomRight } from "./examples"
+
+# {title}
+
+`origin` 参数控制缩放中心点（轴心），默认为元素中心。
+
+**重要**：默认情况下，元素围绕 SVG 坐标原点 (0, 0) 缩放，而不是元素中心！要实现元素中心缩放，需要提供 `origin` 参数或 `elementBounds` 参数。
+
+---
+
+## 默认原点缩放
+
+不指定 `origin` 时（或使用 `'center'` 但不提供 `elementBounds`），元素围绕 SVG 坐标原点 (0, 0) 缩放。
+
+**代码示例：**
+
+```tsx
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <rect x="75" y="75" width="50" height="50" fill="blue">
+    {genAnimateScale({
+      timeline: [
+        { toValue: 2, durationSeconds: 2 }
+      ]
+    })}
+  </rect>
+</svg>
+```
+
+**说明**：方块围绕左上角 (0, 0) 放大，会向右下方扩展
+
+---
+
+## 元素中心缩放（数组格式）
+
+使用数组格式直接指定缩放中心坐标。
+
+**代码示例：**
+
+```tsx
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <rect x="75" y="75" width="50" height="50" fill="blue">
+    {genAnimateScale({
+      origin: [100, 100],
+      timeline: [
+        { toValue: 2, durationSeconds: 2 }
+      ]
+    })}
+  </rect>
+</svg>
+```
+
+**效果预览：**
+
+<CenterOrigin />
+
+**说明**：方块围绕自身中心 (100, 100) 放大，向四周均匀扩展
+
+---
+
+## 左上角缩放
+
+将缩放中心点设置为元素左上角。
+
+**代码示例：**
+
+```tsx
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <rect x="75" y="75" width="50" height="50" fill="green">
+    {genAnimateScale({
+      origin: [75, 75],
+      timeline: [
+        { toValue: 2, durationSeconds: 2 }
+      ]
+    })}
+  </rect>
+</svg>
+```
+
+**效果预览：**
+
+<TopLeft />
+
+**说明**：方块围绕左上角 (75, 75) 放大，向右下方扩展
+
+---
+
+## 右下角缩放
+
+将缩放中心点设置为元素右下角。
+
+**代码示例：**
+
+```tsx
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <rect x="75" y="75" width="50" height="50" fill="orange">
+    {genAnimateScale({
+      origin: [125, 125],
+      timeline: [
+        { toValue: 2, durationSeconds: 2 }
+      ]
+    })}
+  </rect>
+</svg>
+```
+
+**效果预览：**
+
+<BottomRight />
+
+**说明**：方块围绕右下角 (125, 125) 放大，向左上方扩展
+
+---
+
+## origin 参数格式
+
+```tsx
+// 数组格式：自定义坐标 [x, y]
+origin: [100, 100]     // 中心坐标
+origin: [75, 75]        // 左上角坐标
+
+// 字符串格式：快捷位置（需提供 elementBounds）
+origin: 'center'        // 元素中心（需提供 elementBounds）
+origin: 'topLeft'       // 左上角（需提供 elementBounds）
+origin: 'topCenter'     // 顶部中心（需提供 elementBounds）
+origin: 'bottomRight'   // 右下角（需提供 elementBounds）
+origin: 'origin'        // SVG 原点 (0, 0)
+```
+
+---
+
+## 使用技巧
+
+### 1. 使用辅助函数
+
+```tsx
+import { genAnimateScaleSimple } from "@svg-anim/scale";
+
+// 放大 2 倍
+genAnimateScaleSimple(2, 2)
+
+// 缩小到 0.5 倍
+genAnimateScaleSimple(0.5, 1.5)
+```
+
+### 2. 使用快捷位置
+
+```tsx
+genAnimateScale({
+  origin: 'topLeft',
+  elementBounds: { x: 75, y: 75, w: 50, h: 50 },
+  timeline: [
+    { toValue: 2, durationSeconds: 2 }
+  ]
+})
+```
+
+### 3. 自定义缩放中心
+
+```tsx
+genAnimateScale({
+  origin: [100, 100],  // 自定义坐标
+  timeline: [
+    { toValue: 2, durationSeconds: 2 }
+  ]
+})
+```
+
+---
+
+## 下一步
+
+- **相对缩放与绝对缩放** - 深入理解 isRelativeScale 参数
+- **缩放时序控制** - 延迟、循环、冻结

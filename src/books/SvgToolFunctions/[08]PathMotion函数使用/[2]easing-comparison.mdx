@@ -1,0 +1,294 @@
+export const title = "缓动效果对比"
+
+import { EasingComparison } from "./examples"
+
+# {title}
+
+缓动（Easing）控制动画速度随时间的变化，让动画更自然、更有质感。同样的路径运动，使用不同的缓动效果会产生完全不同的视觉体验。
+
+---
+
+## 什么是缓动？
+
+缓动描述动画速度的变化规律：
+
+- **无缓动（Linear）**：速度恒定，机械感强
+- **有缓动**：速度变化，更自然流畅
+
+**常见缓动模式：**
+
+| 类型 | 速度曲线 | 效果 | 适用场景 |
+|------|----------|------|----------|
+| `linear` | 匀速 | ———— | 机械运动 |
+| `ease` | 慢-快-慢 | ∿ | 日常动画 |
+| `ease-in` | 慢启动 | ‿∽ | 进入动画 |
+| `ease-out` | 慢结束 | ∽‿ | 离开动画 |
+| `ease-in-out` | 慢启动和结束 | ∿∿ | 往返运动 |
+
+---
+
+## 贝塞尔曲线参数
+
+SVG SMIL 动画使用 `keySplines` 参数定义缓动效果，格式为 `x1 y1 x2 y2`：
+
+```tsx
+genAnimatePathMotion({
+  path: "...",
+  calcMode: 'spline',
+  keySplines: "0.42 0 0.58 1",  // 贝塞尔曲线控制点
+  keyTimes: "0; 1",
+  rotate: 'auto'
+})
+```
+
+**常用参数：**
+
+| 名称 | keySplines | 速度曲线 |
+|------|------------|----------|
+| linear | `0 0 1 1` | ———— |
+| ease | `0.25 0.1 0.25 1` | ∿ |
+| ease-in | `0.42 0 1 1` | ‿∽ |
+| ease-out | `0 0 0.58 1` | ∽‿ |
+| ease-in-out | `0.42 0 0.58 1` | ∿∿ |
+
+---
+
+## 视觉对比
+
+### 5种缓动效果同时对比
+
+**效果预览：**
+
+<EasingComparison />
+
+**说明**：5个圆球沿相同路径运动，分别使用不同缓动效果
+
+---
+
+## 详细解析
+
+### 1. Linear（匀速）
+
+**特点**：速度恒定，机械感
+
+```tsx
+genAnimatePathMotion({
+  path: "M 30 100 Q 200 50 370 100",
+  durationSeconds: 3,
+  calcMode: 'linear',  // 默认
+  rotate: 0
+})
+```
+
+**视觉感受**：
+- ❌ 缺乏人情味
+- ✅ 适合机械、科技感场景
+- ✅ 可预测性强
+
+---
+
+### 2. Ease（慢-快-慢）
+
+**特点**：两端慢，中间快，最自然的缓动
+
+```tsx
+genAnimatePathMotion({
+  path: "M 30 100 Q 200 50 370 100",
+  durationSeconds: 3,
+  calcMode: 'spline',
+  keySplines: "0.25 0.1 0.25 1",  // ease
+  keyTimes: "0; 1",
+  rotate: 0
+})
+```
+
+**视觉感受**：
+- ✅ 最自然流畅
+- ✅ 适合大多数场景
+- ✅ 符合物理直觉
+
+---
+
+### 3. Ease-In（慢启动）
+
+**特点**：启动慢，加速快
+
+```tsx
+genAnimatePathMotion({
+  path: "M 30 100 Q 200 50 370 100",
+  durationSeconds: 3,
+  calcMode: 'spline',
+  keySplines: "0.42 0 1 1",  // ease-in
+  keyTimes: "0; 1",
+  rotate: 0
+})
+```
+
+**视觉感受**：
+- ✅ 像物体从静止开始加速
+- ✅ 适合进入动画
+- ❌ 结尾突然停止
+
+---
+
+### 4. Ease-Out（慢结束）
+
+**特点**：启动快，结束慢
+
+```tsx
+genAnimatePathMotion({
+  path: "M 30 100 Q 200 50 370 100",
+  durationSeconds: 3,
+  calcMode: 'spline',
+  keySplines: "0 0 0.58 1",  // ease-out
+  keyTimes: "0; 1",
+  rotate: 0
+})
+```
+
+**视觉感受**：
+- ✅ 像物体减速停止
+- ✅ 适合离开动画
+- ✅ 结尾柔和
+
+---
+
+### 5. Ease-In-Out（慢启动和结束）
+
+**特点**：两端都慢，中间快，比 ease 更明显
+
+```tsx
+genAnimatePathMotion({
+  path: "M 30 100 Q 200 50 370 100",
+  durationSeconds: 3,
+  calcMode: 'spline',
+  keySplines: "0.42 0 0.58 1",  // ease-in-out
+  keyTimes: "0; 1",
+  rotate: 0
+})
+```
+
+**视觉感受**：
+- ✅ 启动和结束都很柔和
+- ✅ 适合往返运动
+- ✅ 优雅大气
+
+---
+
+## 如何选择缓动？
+
+### 决策流程
+
+```
+动画类型是什么？
+│
+├─ 机械/科技 → linear
+│
+├─ 进入 → ease-in
+│
+├─ 离开 → ease-out
+│
+└─ 往返/循环 → ease-in-out
+```
+
+### 常见场景推荐
+
+| 场景 | 推荐缓动 | 理由 |
+|------|----------|------|
+| 飞机飞行 | linear | 匀速飞行 |
+| 汽车启动 | ease-in | 从静止加速 |
+| 汽车刹车 | ease-out | 减速停止 |
+| 纸飞机 | ease-in-out | 优雅的往返 |
+| 进场动画 | ease-out | 快速进入，柔和着陆 |
+| 出场动画 | ease-in | 快速离开 |
+| 循环装饰 | ease | 自然流畅 |
+
+---
+
+## 实用技巧
+
+### 组合多个缓动
+
+不同阶段使用不同缓动：
+
+```tsx
+<g>
+  {/* 前半段：慢启动 */}
+  <animateMotion
+    path="M 30 100 Q 200 50 370 100"
+    dur="1.5s"
+    calcMode="spline"
+    keySplines="0.42 0 1 1"
+    keyTimes="0; 1"
+    begin="0s"
+  />
+
+  {/* 后半段：慢结束 */}
+  <animateMotion
+    path="M 370 100 Q 200 150 30 100"
+    dur="1.5s"
+    calcMode="spline"
+    keySplines="0 0 0.58 1"
+    keyTimes="0; 1"
+    begin="1.5s"
+  />
+</g>
+```
+
+### 配合 freeze 参数
+
+缓动 + 停留终点 = 完美的入场动画：
+
+```tsx
+genAnimatePathMotion({
+  path: "M -50 100 L 150 100",
+  durationSeconds: 1.5,
+  calcMode: 'spline',
+  keySplines: "0 0 0.58 1",  // ease-out
+  keyTimes: "0; 1",
+  freeze: true,  // 停留终点
+  loopCount: 1
+})
+```
+
+---
+
+## 缓动参数速查表
+
+| 名称 | keySplines | 效果 | 使用频率 |
+|------|------------|------|----------|
+| linear | `0 0 1 1` | 匀速 | ⭐⭐⭐ |
+| ease | `0.25 0.1 0.25 1` | 慢-快-慢 | ⭐⭐⭐⭐⭐ |
+| ease-in | `0.42 0 1 1` | 慢启动 | ⭐⭐⭐⭐ |
+| ease-out | `0 0 0.58 1` | 慢结束 | ⭐⭐⭐⭐⭐ |
+| ease-in-out | `0.42 0 0.58 1` | 慢两端 | ⭐⭐⭐⭐ |
+
+---
+
+## 注意事项
+
+⚠️ **calcMode 必须设为 'spline'**
+
+使用缓动效果时必须设置 `calcMode: 'spline'`：
+
+```tsx
+// ❌ 错误：缓动不生效
+genAnimatePathMotion({
+  calcMode: 'linear',  // 默认值
+  keySplines: "0.42 0 0.58 1"
+})
+
+// ✅ 正确
+genAnimatePathMotion({
+  calcMode: 'spline',
+  keySplines: "0.42 0 0.58 1"
+})
+```
+
+⚠️ **记得设置 keyTimes**
+
+使用 `spline` 模式时需要提供 `keyTimes`，默认为 `"0; 1"`
+
+⚠️ **直线运动缓动效果不明显**
+
+在直线路径上，缓动主要影响"时间感"，视觉上不如曲线明显
