@@ -121,6 +121,45 @@
     font-weight: var(--font-normal);
   }
 
+  /* 滚动条窄态美化：7px 圆角 thumb 常态固定粗细（贴轨道内缘无四周缝隙），
+     不做悬停变化；轨道透明不占视觉。
+     ⚠️ 不可设置 scrollbar-width/scrollbar-color 标准属性——Chromium 121+ 里
+     标准属性一旦非 auto 会整体接管并忽略全部 ::-webkit-scrollbar 自定义（两轮样式
+     曾因此从未生效）。Firefox 无伪类支持，保持原生即可。 */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    /* 槽内铺一层浅灰底(与 thumb 同族,浅一档),内缘 1px 灰线区隔内容。
+       铺色/画线都走背景而非 border——border 会吃掉 track 的 content 盒,
+       thumb 在 content 盒里排布,几何会被挤动;背景是纯绘制,零布局影响 */
+    background-color: color-mix(in oklab, var(--color-muted-foreground) 7%, transparent);
+    background-image: linear-gradient(to right, var(--color-border) 0 1px, transparent 1px);
+  }
+  *::-webkit-scrollbar-track:horizontal {
+    /* 横向槽:线画在上缘(贴内容边),底色同纵向 */
+    background-color: color-mix(in oklab, var(--color-muted-foreground) 7%, transparent);
+    background-image: linear-gradient(to bottom, var(--color-border) 0 1px, transparent 1px);
+  }
+  *::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--color-muted-foreground) 45%, transparent);
+    border-right: 1px solid transparent; /* 视觉宽度 8-1=7px */
+    background-clip: padding-box;
+    border-radius: 3px;
+  }
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  /* 横向滚动条：thumb 贴下缘 */
+  *::-webkit-scrollbar:horizontal {
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb:horizontal {
+    border-right: initial;
+    border-bottom: 1px solid transparent; /* 视觉高度 7px，贴下缘 */
+  }
+
   button,
   [role="button"] {
     @apply cursor-pointer;

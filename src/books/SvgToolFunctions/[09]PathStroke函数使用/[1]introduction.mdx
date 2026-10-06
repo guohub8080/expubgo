@@ -4,30 +4,36 @@ import { BasicDraw } from "./examples"
 
 # {title}
 
-`genAnimatePathStroke` 是 SVG 路径描边动画的核心生成工具。它可以让路径产生"手绘"般的绘制效果，通过动画控制 `stroke-dashoffset` 属性实现从无到有、从有到无的动态描边。
+`animatePathStroke` 是 SVG 路径描边动画的核心生成工具（来自 `@guohub8080/expub-tool/smil`）。它可以让路径产生"手绘"般的绘制效果，通过动画控制 `stroke-dashoffset` 属性实现从无到有、从有到无的动态描边。
 
 ---
 
 ## 函数签名
 
-```tsx
-import { genAnimatePathStroke } from '@svg-anim/pathStroke';
+包内提供两个变体：`animatePathStroke` 返回 `<animate>` 元素（放进目标路径元素内），`animatePathStrokeWrap` 额外包一层 `<g>` 容器并接收 `element` 参数。
 
-genAnimatePathStroke({
+```tsx
+import { animatePathStroke, animatePathStrokeWrap } from '@guohub8080/expub-tool/smil';
+
+animatePathStroke({
   // ===== 必填参数 =====
   pathLength: number,                        // 路径长度（必填）
   timeline: PathStrokeTimelineSegment[],     // 必填：时间线段数组
-  element: React.ReactNode,                  // SVG 路径元素（必填）
 
   // ===== 可选参数 =====
-  initOffset?: number,                       // 初始偏移量，默认 pathLength
-  delay?: number,                            // 初始延迟（秒），默认 0
-  freeze?: boolean,                          // 是否保持最终状态，默认 true
+  initValue?: number,                        // 初始偏移量，默认 pathLength
+  begin?: string,                            // 开始时机：'2s' 延迟、'click' 点击触发
+  isFreeze?: boolean,                        // 是否保持最终状态，默认 true
   loopCount?: number,                        // 循环次数（0 = 无限），默认 1
-  beginType?: SvgBeginEventType,                // 默认 undefined：动画开始事件类型
   restart?: 'always' | 'whenNotActive' | 'never',  // 重启模式，默认 'always'
   calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 计算模式，自动判断
-  clickableAreaSize?: {                      // 点击区域尺寸（beginType: 'click' 时使用）
+  native?: T_NativeAnimate,                        // 透传/覆盖原生 animate 属性（最后展开，同名覆盖生成值）
+})
+
+animatePathStrokeWrap({
+  // 在 animatePathStroke 参数基础上增加：
+  element: React.ReactElement,               // SVG 路径元素（必填）
+  clickableAreaSize?: {                      // 点击区域尺寸（begin: 'click' 时使用）
     width: number;
     height: number;
   };
@@ -38,7 +44,7 @@ genAnimatePathStroke({
 
 ```tsx
 interface PathStrokeTimelineSegment {
-  toValue: number;           // 目标偏移量
+  toAbs: number;           // 目标偏移量（必填）
   durationSeconds: number;   // 该阶段时长（秒）
   keySplines?: string;       // 贝塞尔缓动参数，默认 "0 0 1 1"
 }
@@ -48,26 +54,24 @@ interface PathStrokeTimelineSegment {
 
 ## 参数说明
 
-### 点击触发（beginType）
+### 点击触发（begin: 'click'）
 
-设置为 `'click'` 时，动画需要点击才会开始播放。
+`begin` 设为 `'click'` 时，动画需要点击才会开始播放。
 
 ```tsx
-genAnimatePathStroke({
+animatePathStroke({
   pathLength: 600,
-  beginType: 'click',    // 点击触发
+  begin: 'click',    // 点击触发
   restart: 'never',          // 防止重复点击
   timeline: [
-    { durationSeconds: 2, toValue: 0 }
+    { durationSeconds: 2, toAbs: 0 }
   ],
-  element: <path ... />,
-  clickableAreaSize: { width: 200, height: 200 }
 })
 ```
 
 ### 重启模式（restart）
 
-控制动画是否可以重新开始，仅在 `beginType: 'click'` 时有意义。
+控制动画是否可以重新开始，仅在 `begin: 'click'` 时有意义。
 
 | 值 | 行为 |
 |-----|------|
@@ -86,7 +90,7 @@ genAnimatePathStroke({
 
 ### 点击区域尺寸（clickableAreaSize）
 
-定义可点击区域的矩形范围。如果不设置，只有路径本身可以点击（很难点到）。
+`animatePathStrokeWrap` 的参数，定义可点击区域的矩形范围。如果不设置，只有路径本身可以点击（很难点到）。自己手写 `<g>` 时则放一个透明 `<rect>` 承担同样角色。
 
 ```tsx
 clickableAreaSize: {
@@ -113,6 +117,12 @@ clickableAreaSize: {
 | **Figma** | 选中路径 → 右侧面板 → Design → 填充/描边下方显示长度 |
 | **Inkscape** | 选中路径 → 路径 → 路径效果 → 路径长度编辑器 |
 
+也可以在浏览器控制台用 `getTotalLength()` 实测（本文各示例的长度即这样测得）：
+
+```tsx
+document.querySelector('path').getTotalLength()  // → 例如 595.7
+```
+
 **如果没有工具，可以参考以下估算值：**
 
 | 路径类型 | 建议长度 |
@@ -123,7 +133,7 @@ clickableAreaSize: {
 
 **⚠️ 注意：** pathLength 必须**大于或等于**路径真实长度，否则动画会"画不完"。
 
-### 初始偏移量（initOffset）
+### 初始偏移量（initValue）
 
 控制路径的初始显示状态。
 
@@ -135,24 +145,26 @@ clickableAreaSize: {
 
 ```tsx
 // 从隐藏开始绘制（默认）
-{genAnimatePathStroke({
-  pathLength: 500,
-  // initOffset: 500,  // 默认值，可省略
-  timeline: [
-    { durationSeconds: 2, toValue: 0 }
-  ],
-  element: <path d="..." stroke="..." />
-})}
+<line x1="20" y1="50" x2="280" y2="50" stroke="..." strokeDasharray="500 500" strokeDashoffset={500}>
+  {animatePathStroke({
+    pathLength: 500,
+    // initValue: 500,  // 默认值，可省略
+    timeline: [
+      { durationSeconds: 2, toAbs: 0 }
+    ]
+  })}
+</line>
 
 // 从完全显示开始擦除
-{genAnimatePathStroke({
-  pathLength: 500,
-  initOffset: 0,    // 从显示开始
-  timeline: [
-    { durationSeconds: 2, toValue: 500 }  // 擦除到隐藏
-  ],
-  element: <path d="..." stroke="..." />
-})}
+<line x1="20" y1="50" x2="280" y2="50" stroke="..." strokeDasharray="500 500">
+  {animatePathStroke({
+    pathLength: 500,
+    initValue: 0,    // 从显示开始
+    timeline: [
+      { durationSeconds: 2, toAbs: 500 }  // 擦除到隐藏
+    ]
+  })}
+</line>
 ```
 
 ### 时间线（timeline）
@@ -164,14 +176,14 @@ clickableAreaSize: {
 | 参数 | 说明 | 默认值 |
 |------|------|--------|
 | `durationSeconds` | 该段的持续时间（秒）| - |
-| `toValue` | 目标偏移量 | 上一段的偏移量 |
+| `toAbs` | 目标偏移量 | 必填 |
 | `keySplines` | 贝塞尔缓动参数 | `"0 0 1 1"` (线性) |
 
 **单段动画（最简单）：**
 
 ```tsx
 timeline: [
-  { durationSeconds: 2, toValue: 0 }    // 从初始值画到0
+  { durationSeconds: 2, toAbs: 0 }    // 从初始值画到0
 ]
 ```
 
@@ -179,9 +191,9 @@ timeline: [
 
 ```tsx
 timeline: [
-  { durationSeconds: 2, toValue: 0 },      // 第1段：画到完全显示
-  { durationSeconds: 1, toValue: 500 },    // 第2段：擦除到500
-  { durationSeconds: 1.5, toValue: 0 }      // 第3段：再画到完全显示
+  { durationSeconds: 2, toAbs: 0 },      // 第1段：画到完全显示
+  { durationSeconds: 1, toAbs: 500 },    // 第2段：擦除到500
+  { durationSeconds: 1.5, toAbs: 0 }      // 第3段：再画到完全显示
 ]
 ```
 
@@ -378,55 +390,48 @@ strokeDasharray="实线长度 间隔长度"
 
 ---
 
-## genAnimatePathStroke 函数做什么？
+## animatePathStroke 函数做什么？
 
-这个函数就是自动生成上面的 `<path>` + `<animate>` 组合：
+这个函数生成上面第五步的 `<animate>` 标签，`stroke-dasharray` 等静态属性需要你自己在路径元素上写好：
 
 **你写的代码：**
 
 ```tsx
-{genAnimatePathStroke({
-  pathLength: 200,        // 路径长度
-  timeline: [
-    { durationSeconds: 2, toValue: 0 }  // 2秒内画到完全显示
-  ],
-  element: (
-    <path
-      d="M 20 50 Q 100 10 180 50"
-      stroke="#3b82f6"
-      strokeWidth="3"
-      fill="none"
-    />
-  )
-})}
+import { animatePathStroke } from "@guohub8080/expub-tool/smil";
+
+<path
+  d="M 20 50 Q 100 10 180 50"
+  stroke="#3b82f6"
+  strokeWidth="3"
+  fill="none"
+  strokeDasharray="200 200"     // 静态属性：自己写
+  strokeDashoffset={200}        // 初始隐藏（与 initValue 一致）
+>
+  {animatePathStroke({
+    pathLength: 200,        // 路径长度
+    timeline: [
+      { durationSeconds: 2, toAbs: 0 }  // 2秒内画到完全显示
+    ]
+  })}
+</path>
 ```
 
-**函数生成的代码：**
+**函数生成的部分：**
 
 ```tsx
-<>
-  <path
-    d="M 20 50 Q 100 10 180 50"
-    stroke="#3b82f6"
-    strokeWidth="3"
-    fill="none"
-    strokeDasharray="200 200"     // ← 函数自动添加
-  >
-    <animate
-      attributeName="stroke-dashoffset"
-      from="200"                  // ← 初始值（默认 pathLength）
-      to="0"                      // ← 来自 timeline 的 toValue
-      dur="2s"                    // ← 来自 timeline 的 durationSeconds
-      fill="freeze"               // ← 函数自动添加
-    />
-  </path>
-</>
+<animate
+  attributeName="stroke-dashoffset"
+  values="200;0"               // ← initValue + 各段 toAbs 拼接
+  keyTimes="0;1"               // ← 按 durationSeconds 自动分配
+  dur="2s"                     // ← 各段 durationSeconds 之和
+  fill="freeze"                // ← isFreeze 默认 true
+/>
 ```
 
 **函数的作用：**
-1. 给你的 `<path>` 添加 `stroke-dasharray="pathLength pathLength"`
-2. 在 `<path>` 内部插入 `<animate>` 标签
-3. 配置动画的 `from`、`to`、`dur` 等参数
+1. 把 `timeline` 各段编译成 `values` / `keyTimes` / `keySplines`
+2. 处理 `begin`（延迟/点击）、`loopCount`、`restart`、`isFreeze` 等时序参数
+3. 注意：`stroke-dasharray` 与初始 `stroke-dashoffset` 是静态属性，**不在函数职责内**，需要自己写在元素上（`animatePathStrokeWrap` 变体会帮你包一层 `<g>`，但 dash 属性同样要写在传入的 `element` 上）
 
 ---
 
@@ -466,7 +471,7 @@ strokeDasharray="实线长度 间隔长度"
 
 ### 支持的路径元素
 
-`genAnimatePathStroke` 不仅支持 `<path>`，还支持所有描边类元素：
+`animatePathStroke` 不仅支持 `<path>`，还支持所有描边类元素（`<animate>` 作为子元素放入即可）：
 
 | 元素 | 示例 | 适用场景 |
 |------|------|----------|
@@ -480,45 +485,45 @@ strokeDasharray="实线长度 间隔长度"
 **示例：使用 line 元素**
 
 ```tsx
-{genAnimatePathStroke({
-  pathLength: 300,
-  timeline: [
-    { durationSeconds: 1.5, toValue: 0 }
-  ],
-  element: (
-    <line
-      x1="50"
-      y1="50"
-      x2="350"
-      y2="50"
-      stroke="#10b981"
-      strokeWidth="3"
-      strokeLinecap="round"
-    />
-  )
-})}
+<line
+  x1="50"
+  y1="50"
+  x2="350"
+  y2="50"
+  stroke="#10b981"
+  strokeWidth="3"
+  strokeLinecap="round"
+  strokeDasharray="300 300"
+>
+  {animatePathStroke({
+    pathLength: 300,
+    timeline: [
+      { durationSeconds: 1.5, toAbs: 0 }
+    ]
+  })}
+</line>
 ```
 
 **示例：使用 rect 元素**
 
 ```tsx
-{genAnimatePathStroke({
-  pathLength: 400,  // 周长：100+100+100+100
-  timeline: [
-    { durationSeconds: 2, toValue: 0 }
-  ],
-  element: (
-    <rect
-      x="50"
-      y="50"
-      width="100"
-      height="100"
-      stroke="#f59e0b"
-      strokeWidth="3"
-      fill="none"
-    />
-  )
-})}
+<rect
+  x="50"
+  y="50"
+  width="100"
+  height="100"
+  stroke="#f59e0b"
+  strokeWidth="3"
+  fill="none"
+  strokeDasharray="400 400"
+>
+  {animatePathStroke({
+    pathLength: 400,  // 周长：100+100+100+100
+    timeline: [
+      { durationSeconds: 2, toAbs: 0 }
+    ]
+  })}
+</rect>
 ```
 
 ---
@@ -530,13 +535,13 @@ strokeDasharray="实线长度 间隔长度"
 **代码示例：**
 
 ```tsx
-import { genAnimatePathStroke } from "@svg-anim/pathStroke";
+import { animatePathStrokeWrap } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
-  {genAnimatePathStroke({
+  {animatePathStrokeWrap({
     pathLength: 600,
     timeline: [
-      { durationSeconds: 2, toValue: 0 }
+      { durationSeconds: 2, toAbs: 0 }
     ],
     element: (
       <path
@@ -546,6 +551,7 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
+        strokeDasharray="600 600"
       />
     )
   })}
@@ -558,18 +564,19 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 
 **说明：**
 - `pathLength: 600` - 五角星路径长度
-- `timeline: [{ durationSeconds: 2, toValue: 0 }]` - 2秒内从隐藏画到完全显示
+- `strokeDasharray="600 600"` - dash 静态属性自己写在元素上
+- `timeline: [{ durationSeconds: 2, toAbs: 0 }]` - 2秒内从隐藏画到完全显示
 - 五角星在2秒内从无到有绘制完成
-- 绘制完成后保持显示（`freeze: true` 默认）
+- 绘制完成后保持显示（`isFreeze` 默认 true）
 - 只播放一次（`loopCount: 1` 默认）
 
 ---
 
 ## 总结：核心要点
 
-1. **函数操作的是 `stroke-dasharray` 和 `stroke-dashoffset` 两个属性**
+1. **动画操作的是 `stroke-dashoffset`，`stroke-dasharray` 是需要自己写在元素上的静态属性**
 
-2. **`stroke-dasharray="pathLength pathLength"`** 把整条路径变成"一条虚线"
+2. **`strokeDasharray="pathLength pathLength"`** 把整条路径变成"一条虚线"
 
 3. **`stroke-dashoffset`** 控制虚线的偏移位置：
    - `offset = 0` → 完全显示

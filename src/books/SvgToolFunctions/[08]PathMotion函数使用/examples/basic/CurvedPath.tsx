@@ -1,5 +1,5 @@
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
-import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+import { animateMotion } from "@guohub8080/expub-tool/smil";
 
 export const CurvedPath = () => {
     return (
@@ -21,7 +21,7 @@ export const CurvedPath = () => {
                         fill="#10b981"
                     />
                     {/* 曲线路径运动 */}
-                    {genAnimatePathMotion({
+                    {animateMotion({
                         path: "M 50 150 Q 200 50 350 150",
                         durationSeconds: 4,
                         rotate: 'auto',

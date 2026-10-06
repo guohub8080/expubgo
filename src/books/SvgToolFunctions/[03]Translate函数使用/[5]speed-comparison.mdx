@@ -16,31 +16,31 @@ import { SpeedComparison, EasingComparison } from "./examples"
 
 ```tsx
 // 慢速：移动 420px，用时 4 秒
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 420, y: 0 }, durationSeconds: 4 },
-    { toValue: { x: 0, y: 0 }, durationSeconds: 0.3 }
+    { toRel: { x: 420, y: 0 }, durationSeconds: 4 },
+    { toRel: { x: 0, y: 0 }, durationSeconds: 0.3 }
   ],
   loopCount: 0
 })
 
 // 中速：移动 420px，用时 2 秒
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 420, y: 0 }, durationSeconds: 2 },
-    { toValue: { x: 0, y: 0 }, durationSeconds: 0.3 }
+    { toRel: { x: 420, y: 0 }, durationSeconds: 2 },
+    { toRel: { x: 0, y: 0 }, durationSeconds: 0.3 }
   ],
   loopCount: 0
 })
 
 // 快速：移动 420px，用时 0.5 秒
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 420, y: 0 }, durationSeconds: 0.5 },
-    { toValue: { x: 0, y: 0 }, durationSeconds: 0.3 }
+    { toRel: { x: 420, y: 0 }, durationSeconds: 0.5 },
+    { toRel: { x: 0, y: 0 }, durationSeconds: 0.3 }
   ],
   loopCount: 0
 })
@@ -61,25 +61,24 @@ genAnimateTranslate({
 **代码示例：**
 
 ```tsx
-import { genAnimateTranslate } from "@svg-anim/translate";
-import { getEaseBezier } from "@pub-utils/getBezier";
+import { transformTranslate, getEaseBezier } from "@guohub8080/expub-tool/smil";
 
 // 加速效果（先慢后快）
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 430, y: 0 }, durationSeconds: 2, keySplines: getEaseBezier({ isIn: true }) }
+    { toRel: { x: 430, y: 0 }, durationSeconds: 2, keySplines: getEaseBezier({ isIn: true }) }
   ],
-  freeze: true
+  isFreeze: true
 })
 
 // 减速效果（先快后慢）
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 430, y: 0 }, durationSeconds: 2, keySplines: getEaseBezier({ isOut: true }) }
+    { toRel: { x: 430, y: 0 }, durationSeconds: 2, keySplines: getEaseBezier({ isOut: true }) }
   ],
-  freeze: true
+  isFreeze: true
 })
 ```
 
@@ -96,12 +95,12 @@ genAnimateTranslate({
 模拟弹球抛出的轨迹，沿着斜线往返运动。
 
 ```tsx
-// 相对移动模式（isRelativeMove: true，默认值）
+// 相对位移模式（toRel）
 <svg width="400" height="300" viewBox="0 0 400 300">
   <line x1="50" y1="250" x2="350" y2="50" stroke="#ccc" strokeWidth="2" />
   <circle cx="50" cy="250" r="15" fill="#3498db">
-    {genAnimateTranslate({
+    {transformTranslate({
       initValue: { x: 0, y: 0 },
       timeline: [
-        { toValue: { x: 300, y: -200 }, durationSeconds: 1.5 },
-        { toValue: { x: 0, y: 0 }, durationSeconds:
+        { toRel: { x: 300, y: -200 }, durationSeconds: 1.5 },
+        { toRel: { x: 0, y: 0 }, durationSeconds:

@@ -1,5 +1,5 @@
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper"
-import { genAnimateSkewX } from "@svg-anim/skewX"
+import { transformSkewX } from "@guohub8080/expub-tool/smil"
 
 export const SkewXDirection = () => {
     return (
@@ -26,11 +26,11 @@ export const SkewXDirection = () => {
                 {/* 动画示例 */}
                 <g transform="translate(140, 150)">
                     <rect x="-100" y="-20" width="200" height="40" fill="rgb(168, 85, 247)" rx="4">
-                        {genAnimateSkewX({
+                        {transformSkewX({
                             timeline: [
-                                { toValue: 15, durationSeconds: 1 },
-                                { toValue: -15, durationSeconds: 1 },
-                                { toValue: 0, durationSeconds: 1 }
+                                { toAbs: 15, durationSeconds: 1 },
+                                { toAbs: -15, durationSeconds: 1 },
+                                { toAbs: 0, durationSeconds: 1 }
                             ],
                             loopCount: 0
                         })}

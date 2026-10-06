@@ -1,5 +1,5 @@
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
-import { genAnimatePathStroke } from "@svg-anim/pathStroke";
+import { animatePathStroke } from "@guohub8080/expub-tool/smil";
 
 // 蚂蚁线效果 - 虚线流动
 export const MarchingAnts = () => {
@@ -109,25 +109,27 @@ export const EraseFromCenter = () => {
                     <text x="10" y="35" fontSize="10" fill="#9ca3af">从中间向两边逐渐消失</text>
 
                     {/* 左半段 */}
-                    {genAnimatePathStroke({
-                        pathLength: 170,
-                        initOffset: 0,
-                        timeline: [
-                            { durationSeconds: 2, toValue: 170 }
-                        ],
-                        element: <line x1="30" y1="60" x2="200" y2="60" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
-                    })}
+                    <line x1="30" y1="60" x2="200" y2="60" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" strokeDasharray="170 170">
+                        {animatePathStroke({
+                            pathLength: 170,
+                            initValue: 0,
+                            timeline: [
+                                { durationSeconds: 2, toAbs: 170 }
+                            ]
+                        })}
+                    </line>
 
                     {/* 右半段 - 延迟0.5秒后开始擦除 */}
-                    {genAnimatePathStroke({
-                        pathLength: 170,
-                        initOffset: 0,
-                        delay: 0.5,
-                        timeline: [
-                            { durationSeconds: 2, toValue: 170 }
-                        ],
-                        element: <line x1="200" y1="60" x2="370" y2="60" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
-                    })}
+                    <line x1="200" y1="60" x2="370" y2="60" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" strokeDasharray="170 170">
+                        {animatePathStroke({
+                            pathLength: 170,
+                            initValue: 0,
+                            begin: "0.5s",
+                            timeline: [
+                                { durationSeconds: 2, toAbs: 170 }
+                            ]
+                        })}
+                    </line>
                 </g>
             </svg>
         </SvgWrapper>

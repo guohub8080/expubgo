@@ -9,11 +9,11 @@ OverlayContainer 是一个纯粹的**逻辑包装容器**，它的存在主要�
 ## 函数签名
 
 ```tsx
-import { OverlayContainer } from '@pubSVG/C2_Containers'
+import { OverlayContainer } from '@guohub8080/expub-tool/svg'
 
 OverlayContainer({
   // ===== 必填参数 =====
-  children: ReactNode,
+  backgroundNode: ReactNode,
   overlayNode: ReactNode,
 
   // ===== 可选参数 =====
@@ -25,7 +25,7 @@ OverlayContainer({
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `children` | `ReactNode` | - | **必填**。要在容器中渲染的主要内容 |
+| `backgroundNode` | `ReactNode` | - | **必填**。要在容器中渲染的主要内容（被零高容器包裹） |
 | `overlayNode` | `ReactNode` | - | **必填**。覆盖在内容上方的节点，通常用于显示遮罩、提示等 |
 
 ---
@@ -34,15 +34,15 @@ OverlayContainer({
 
 ```tsx
 import { ReactNode } from "react"
-import { ZeroHeightContainer } from "@pubSVG/C2_Containers"
+import { OverlayContainer } from "@guohub8080/expub-tool/svg"
 
 const OverlayContainer = (props: {
-  overlayNode: ReactNode
-  children: ReactNode;
+  backgroundNode: ReactNode
+  overlayNode: ReactNode;
 }) => {
   return (<>
     <ZeroHeightContainer>
-      {props.children}
+      {props.backgroundNode}
     </ZeroHeightContainer>
     {props.overlayNode}
   </>)
@@ -68,7 +68,7 @@ const OverlayContainer = (props: {
 
 `OverlayContainer` 中的 `overlayNode` 是**正常的布局元素**，它之所以能"覆盖"在内容上方，完全是因为：
 
-1. **内容被 ZeroHeightContainer 包裹**：`children` 被 `ZeroHeightContainer` 包裹，设置 `height: 0`，不占据垂直高度
+1. **内容被 ZeroHeightContainer 包裹**：`backgroundNode` 被 `ZeroHeightContainer` 包裹，设置 `height: 0`，不占据垂直高度
 2. **overlayNode 按正常文档流排列**：`overlayNode` 按照正常文档流排列，自然显示在内容上方
 
 **关键点**：这个容器**没有**引入新的布局能力，只是利用了 `ZeroHeightContainer` 的特性。
@@ -80,11 +80,16 @@ const OverlayContainer = (props: {
 ### 基础用法：加载遮罩
 
 ```tsx
-import { OverlayContainer } from '@pubSVG/C2_Containers'
+import { OverlayContainer } from '@guohub8080/expub-tool/svg'
 
 const LoadingOverlay = () => {
   return (
     <OverlayContainer
+      backgroundNode={
+        <svg viewBox="0 0 300 300">
+          {/* 主要内容 */}
+        </svg>
+      }
       overlayNode={
         <div style={{
           position: 'absolute',
@@ -100,11 +105,7 @@ const LoadingOverlay = () => {
           <span style={{ color: 'white', fontSize: 16 }}>加载中...</span>
         </div>
       }
-    >
-      <svg viewBox="0 0 300 300">
-        {/* 主要内容 */}
-      </svg>
-    </OverlayContainer>
+    />
   )
 }
 ```
@@ -112,11 +113,16 @@ const LoadingOverlay = () => {
 ### 浮动提示按钮
 
 ```tsx
-import { OverlayContainer } from '@pubSVG/C2_Containers'
+import { OverlayContainer } from '@guohub8080/expub-tool/svg'
 
 const FloatingButtonExample = () => {
   return (
     <OverlayContainer
+      backgroundNode={
+        <svg viewBox="0 0 400 200">
+          {/* 图表或可视化内容 */}
+        </svg>
+      }
       overlayNode={
         <div style={{
           position: 'absolute',
@@ -134,11 +140,7 @@ const FloatingButtonExample = () => {
           <span style={{ color: 'white', fontSize: 20 }}>+</span>
         </div>
       }
-    >
-      <svg viewBox="0 0 400 200">
-        {/* 图表或可视化内容 */}
-      </svg>
-    </OverlayContainer>
+    />
   )
 }
 ```
@@ -146,11 +148,16 @@ const FloatingButtonExample = () => {
 ### 错误状态覆盖
 
 ```tsx
-import { OverlayContainer } from '@pubSVG/C2_Containers'
+import { OverlayContainer } from '@guohub8080/expub-tool/svg'
 
 const ErrorStateExample = () => {
   return (
     <OverlayContainer
+      backgroundNode={
+        <svg viewBox="0 0 300 300">
+          {/* 原本应该显示的内容 */}
+        </svg>
+      }
       overlayNode={
         <div style={{
           position: 'absolute',
@@ -173,11 +180,7 @@ const ErrorStateExample = () => {
           </span>
         </div>
       }
-    >
-      <svg viewBox="0 0 300 300">
-        {/* 原本应该显示的内容 */}
-      </svg>
-    </OverlayContainer>
+    />
   )
 }
 ```
@@ -198,20 +201,19 @@ const ErrorStateExample = () => {
 
 **使用 OverlayContainer：**
 ```tsx
-import { OverlayContainer } from '@pubSVG/C2_Containers'
+import { OverlayContainer } from '@guohub8080/expub-tool/svg'
 
 const Example1 = () => (
   <OverlayContainer
+    backgroundNode={<svg>Main content</svg>}
     overlayNode={<div>Overlay content</div>}
-  >
-    <svg>Main content</svg>
-  </OverlayContainer>
+  />
 )
 ```
 
 **手动实现（等价写法）：**
 ```tsx
-import { ZeroHeightContainer } from '@pubSVG/C2_Containers'
+import { ZeroHeightContainer } from '@guohub8080/expub-tool/svg'
 
 const Example2 = () => (
   <>
@@ -295,7 +297,7 @@ const Example2 = () => (
 由于 `OverlayContainer` 只是简单的包装，性能开销极小，可以放心使用。
 
 ### 5. 与 ZeroHeightContainer 参数
-`OverlayContainer` 目前不支持 `ZeroHeightContainer` 的参数（如 `mp`、`isEventPassThrough` 等），如果需要这些功能，可以直接使用 `ZeroHeightContainer` 手动组合。
+`OverlayContainer` 目前不支持 `ZeroHeightContainer` 的参数（如 `spacing`、`mode` 等），如果需要这些功能，可以直接使用 `ZeroHeightContainer` 手动组合。
 
 ---
 

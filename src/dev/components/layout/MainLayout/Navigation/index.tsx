@@ -9,7 +9,7 @@ import { isUndefined } from "es-toolkit/predicate"
 import logoUrl from "@assets/svgs/logoSvg/favicon.svg"
 import PureText from "@assets/svgs/logoSvg/PureText.tsx"
 import useGlobalSettings from "@dev/store/useGlobalSettings"
-import { useArticleViewerStore } from "@apps/ArticleViewer/store/useArticleViewerStore"
+import { useArticleViewerStore, ARTICLE_VIEWER_LAYOUT } from "@apps/ArticleViewer/store/useArticleViewerStore"
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@shadcn/components/ui/sheet.tsx"
 import NavigationPanel from "./NavigationPanel.tsx"
 import { cn } from "@shadcn/lib/utils.ts"
@@ -47,21 +47,21 @@ export default function Navigation() {
 
   // ArticleViewer 状态
   const { showSideList, showActionPanel, toggleSideList, toggleActionPanel, setMobileSideList, setMobileActionPanel } = useArticleViewerStore()
+  const { LEFT_DRAWER_BREAKPOINT, RIGHT_DRAWER_BREAKPOINT } = ARTICLE_VIEWER_LAYOUT
 
-  // 检测是否应该使用抽屉模式
-  // <1280px 左侧使用抽屉，<1024px 右侧使用抽屉
+  // 检测是否应该使用抽屉模式（阈值与 ArticleViewer 同源，勿写裸数字——曾 1280/1340 各执一词造死区）
   const [shouldUseLeftDrawer, setShouldUseLeftDrawer] = useState(false)
   const [shouldUseRightDrawer, setShouldUseRightDrawer] = useState(false)
   useEffect(() => {
     const checkDrawerMode = () => {
       const width = window.innerWidth
-      setShouldUseLeftDrawer(width < 1280)
-      setShouldUseRightDrawer(width < 1024)
+      setShouldUseLeftDrawer(width < LEFT_DRAWER_BREAKPOINT)
+      setShouldUseRightDrawer(width < RIGHT_DRAWER_BREAKPOINT)
     }
     checkDrawerMode()
     window.addEventListener('resize', checkDrawerMode)
     return () => window.removeEventListener('resize', checkDrawerMode)
-  }, [])
+  }, [LEFT_DRAWER_BREAKPOINT, RIGHT_DRAWER_BREAKPOINT])
 
   // 获取当前页面 title - 从 Home 卡片配置中匹配
   const [pageTitle, setPageTitle] = useState<string>('')

@@ -32,7 +32,7 @@ import { EasingComparison } from "./examples"
 SVG SMIL 动画使用 `keySplines` 参数定义缓动效果，格式为 `x1 y1 x2 y2`：
 
 ```tsx
-genAnimatePathMotion({
+animateMotion({
   path: "...",
   calcMode: 'spline',
   keySplines: "0.42 0 0.58 1",  // 贝塞尔曲线控制点
@@ -72,7 +72,7 @@ genAnimatePathMotion({
 **特点**：速度恒定，机械感
 
 ```tsx
-genAnimatePathMotion({
+animateMotion({
   path: "M 30 100 Q 200 50 370 100",
   durationSeconds: 3,
   calcMode: 'linear',  // 默认
@@ -92,7 +92,7 @@ genAnimatePathMotion({
 **特点**：两端慢，中间快，最自然的缓动
 
 ```tsx
-genAnimatePathMotion({
+animateMotion({
   path: "M 30 100 Q 200 50 370 100",
   durationSeconds: 3,
   calcMode: 'spline',
@@ -114,7 +114,7 @@ genAnimatePathMotion({
 **特点**：启动慢，加速快
 
 ```tsx
-genAnimatePathMotion({
+animateMotion({
   path: "M 30 100 Q 200 50 370 100",
   durationSeconds: 3,
   calcMode: 'spline',
@@ -136,7 +136,7 @@ genAnimatePathMotion({
 **特点**：启动快，结束慢
 
 ```tsx
-genAnimatePathMotion({
+animateMotion({
   path: "M 30 100 Q 200 50 370 100",
   durationSeconds: 3,
   calcMode: 'spline',
@@ -158,7 +158,7 @@ genAnimatePathMotion({
 **特点**：两端都慢，中间快，比 ease 更明显
 
 ```tsx
-genAnimatePathMotion({
+animateMotion({
   path: "M 30 100 Q 200 50 370 100",
   durationSeconds: 3,
   calcMode: 'spline',
@@ -235,18 +235,18 @@ genAnimatePathMotion({
 </g>
 ```
 
-### 配合 freeze 参数
+### 配合 isFreeze 参数
 
 缓动 + 停留终点 = 完美的入场动画：
 
 ```tsx
-genAnimatePathMotion({
+animateMotion({
   path: "M -50 100 L 150 100",
   durationSeconds: 1.5,
   calcMode: 'spline',
   keySplines: "0 0 0.58 1",  // ease-out
   keyTimes: "0; 1",
-  freeze: true,  // 停留终点
+  isFreeze: true,  // 停留终点
   loopCount: 1
 })
 ```
@@ -273,13 +273,13 @@ genAnimatePathMotion({
 
 ```tsx
 // ❌ 错误：缓动不生效
-genAnimatePathMotion({
+animateMotion({
   calcMode: 'linear',  // 默认值
   keySplines: "0.42 0 0.58 1"
 })
 
 // ✅ 正确
-genAnimatePathMotion({
+animateMotion({
   calcMode: 'spline',
   keySplines: "0.42 0 0.58 1"
 })

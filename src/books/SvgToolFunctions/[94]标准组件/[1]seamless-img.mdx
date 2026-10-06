@@ -21,20 +21,18 @@ export const icon = "Image"
 ## 基本用法
 
 ```tsx
-import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
+import { SeamlessImg } from '@guohub8080/expub-tool/svg';
 
 // 最简单的用法（默认深色对抗）
 <SeamlessImg
   url="https://example.com/image.jpg"
-  w={300}
-  h={200}
+  canvasSize={{ w: 300, h: 200 }}
 />
 
 // 使用占位符（开发时）
 <SeamlessImg
   url={getWechat300x300(1)}
-  w={300}
-  h={200}
+  canvasSize={{ w: 300, h: 200 }}
 />
 ```
 
@@ -44,18 +42,18 @@ import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
-| `url` | `string` | 图片地址（可选，默认使用占位图）|
-| `w` | `number` | 图片宽度（可选，默认自动获取）|
-| `h` | `number` | 图片高度（可选，默认自动获取）|
-| `mp` | `mpProps` | 边距样式（margin, padding 等）|
+| `url` | `string` | 图片地址（**必填**）|
+| `canvasSize` | `{ w?: number, h?: number }` | 画布尺寸（可选，默认 `{ w: 0, h: 0 }` 自动获取）|
+| `spacing` | `T_SpacingProps` | 边距样式（`mt`/`mb`/`ml`/`mr`/`pt`/`pb`/`pl`/`pr`）|
+| `mode` | `T_SeamlessImgMode` | 实现模式，默认 `'default'`，见下方七种模式 |
 
 ---
 
 ## 七种模式详解
 
-`SeamlessImg` 提供了 7 种不同的实现方式，通过布尔参数控制。**优先级从高到低**：
+`SeamlessImg` 提供了 7 种不同的实现方式，通过单一 `mode` 字符串选择（取代旧的多个布尔参数）：
 
-### 模式 1：默认深色对抗 ⭐
+### 模式 1：默认深色对抗（default）⭐
 
 **默认模式（无需额外参数）**
 
@@ -67,14 +65,14 @@ import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
 **适用场景：** 装饰性图片、背景图、不需要弹出的内容图
 
 ```tsx
-<SeamlessImg url="..." w={300} h={200} />
+<SeamlessImg url="..." canvasSize={{ w: 300, h: 200 }} />
 ```
 
 ---
 
-### 模式 2：自然优先级
+### 模式 2：自然优先级（natural）
 
-`isNaturalPriority={true}`
+`mode="natural"`
 
 **特点：**
 - 无 `transform` 属性
@@ -86,17 +84,16 @@ import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
 ```tsx
 <SeamlessImg
   url="..."
-  w={300}
-  h={200}
-  isNaturalPriority={true}
+  canvasSize={{ w: 300, h: 200 }}
+  mode="natural"
 />
 ```
 
 ---
 
-### 模式 3：事件穿透
+### 模式 3：事件穿透（passthrough）
 
-`isEventThrough={true}`
+`mode="passthrough"`
 
 **特点：**
 - 添加 `pointerEvents: 'none'`
@@ -108,17 +105,16 @@ import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
 ```tsx
 <SeamlessImg
   url="..."
-  w={300}
-  h={200}
-  isEventThrough={true}
+  canvasSize={{ w: 300, h: 200 }}
+  mode="passthrough"
 />
 ```
 
 ---
 
-### 模式 4：可弹出 🖼️
+### 模式 4：可弹出（popable）🖼️
 
-`isPopable={true}`
+`mode="popable"`
 
 **特点：**
 - 使用 `<foreignObject>` + `<img>` 实现
@@ -130,17 +126,16 @@ import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
 ```tsx
 <SeamlessImg
   url="..."
-  w={300}
-  h={200}
-  isPopable={true}
+  canvasSize={{ w: 300, h: 200 }}
+  mode="popable"
 />
 ```
 
 ---
 
-### 模式 5：强制可触摸
+### 模式 5：强制可触摸（touchable）
 
-`isTouchForced={true}`
+`mode="touchable"`
 
 **特点：**
 - 添加 `pointerEvents: 'visible'`
@@ -152,17 +147,16 @@ import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
 ```tsx
 <SeamlessImg
   url="..."
-  w={300}
-  h={200}
-  isTouchForced={true}
+  canvasSize={{ w: 300, h: 200 }}
+  mode="touchable"
 />
 ```
 
 ---
 
-### 模式 6：发布后可替换 🔄
+### 模式 6：发布后可替换（replaceable）🔄
 
-`isReplaceableAfterPublish={true}`
+`mode="replaceable"`
 
 **特点：**
 - 使用 `data-src` 属性存储图片地址
@@ -174,17 +168,16 @@ import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
 ```tsx
 <SeamlessImg
   url="..."
-  w={300}
-  h={200}
-  isReplaceableAfterPublish={true}
+  canvasSize={{ w: 300, h: 200 }}
+  mode="replaceable"
 />
 ```
 
 ---
 
-### 模式 7：仅长按识别 👆
+### 模式 7：仅长按识别（longPress）👆
 
-`isLongPressOnly={true}`
+`mode="longPress"`
 
 **特点：**
 - 双层结构：透明 `<img>`（opacity: 0）+ SVG 背景
@@ -196,25 +189,27 @@ import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
 ```tsx
 <SeamlessImg
   url="..."
-  w={300}
-  h={200}
-  isLongPressOnly={true}
+  canvasSize={{ w: 300, h: 200 }}
+  mode="longPress"
 />
 ```
 
 ---
 
-## 模式选择优先级
+## 模式选择
 
-当同时设置多个参数时，优先级从高到低：
+`mode` 是单选字符串，一次只有一种实现生效，不存在旧版多布尔参数叠加时的优先级问题：
 
-1. `isLongPressOnly` - 仅长按识别
-2. `isReplaceableAfterPublish` - 发布后可替换
-3. `isTouchForced` - 强制可触摸
-4. `isPopable` - 可弹出
-5. `isEventThrough` - 事件穿透
-6. `isNaturalPriority` - 自然优先级
-7. **默认** - 深色对抗模式
+```tsx
+export type T_SeamlessImgMode =
+  | 'default'      // 深色对抗（默认）
+  | 'natural'      // 自然优先级
+  | 'passthrough'  // 事件穿透
+  | 'popable'      // 可弹出
+  | 'touchable'    // 强制可触摸
+  | 'replaceable'  // 发布后可替换
+  | 'longPress'    // 仅长按识别
+```
 
 ---
 
@@ -222,13 +217,13 @@ import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
 
 | 模式 | 深色对抗 | 可弹出 | 可长按 | 事件穿透 | 可替换 |
 |------|---------|-------|-------|---------|-------|
-| 默认深色对抗 | ✅ | ❌ | ✅ | ❌ | ❌ |
-| 自然优先级 | ❌ | ❌ | ✅ | ❌ | ❌ |
-| 事件穿透 | ✅ | ❌ | ❌ | ✅ | ❌ |
-| 可弹出 | ✅ | ✅ | ✅ | ❌ | ❌ |
-| 强制可触摸 | ✅ | ❌ | ✅ | ❌ | ❌ |
-| 发布后可替换 | ✅ | ❌ | ✅ | ❌ | ✅ |
-| 仅长按识别 | ✅ | ❌ | ✅ | ❌ | ❌ |
+| default 默认深色对抗 | ✅ | ❌ | ✅ | ❌ | ❌ |
+| natural 自然优先级 | ❌ | ❌ | ✅ | ❌ | ❌ |
+| passthrough 事件穿透 | ✅ | ❌ | ❌ | ✅ | ❌ |
+| popable 可弹出 | ✅ | ✅ | ✅ | ❌ | ❌ |
+| touchable 强制可触摸 | ✅ | ❌ | ✅ | ❌ | ❌ |
+| replaceable 发布后可替换 | ✅ | ❌ | ✅ | ❌ | ✅ |
+| longPress 仅长按识别 | ✅ | ❌ | ✅ | ❌ | ❌ |
 
 ---
 
@@ -236,13 +231,13 @@ import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
 
 | 使用场景 | 推荐模式 |
 |---------|---------|
-| 装饰性背景图、不需要弹出 | 默认模式 |
-| 内容图片，用户需要查看大图 | `isPopable={true}` |
-| 二维码、海报（可保存不可弹出） | `isLongPressOnly={true}` |
-| 半透明遮罩、需要点击穿透 | `isEventThrough={true}` |
-| 动态更新的活动图片 | `isReplaceableAfterPublish={true}` |
-| 需要精确控制层级关系 | `isNaturalPriority={true}` |
-| 确保能响应点击事件 | `isTouchForced={true}` |
+| 装饰性背景图、不需要弹出 | `mode="default"`（或缺省） |
+| 内容图片，用户需要查看大图 | `mode="popable"` |
+| 二维码、海报（可保存不可弹出） | `mode="longPress"` |
+| 半透明遮罩、需要点击穿透 | `mode="passthrough"` |
+| 动态更新的活动图片 | `mode="replaceable"` |
+| 需要精确控制层级关系 | `mode="natural"` |
+| 确保能响应点击事件 | `mode="touchable"` |
 
 ---
 
@@ -254,7 +249,7 @@ import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
 
 #### 结构 A：section 包裹 SVG
 
-模式 1, 2, 3, 5, 7 使用此结构
+模式 default、natural、passthrough、touchable、longPress 使用此结构
 
 ```tsx
 <section>
@@ -272,7 +267,7 @@ import SeamlessImg from '@pub-svg/C1_Standard/SeamlessImg';
 
 #### 结构 B：foreignObject 嵌入
 
-模式 4, 6 使用此结构
+模式 popable、replaceable 使用此结构
 
 ```tsx
 <section>
@@ -364,9 +359,10 @@ foreignObject 使用 SVG 坐标系统，可以通过 x 和 y 属性定位：
 
 ## 注意事项
 
-- **尺寸参数**：虽然 w 和 h 是可选的，但建议明确提供，避免自动获取失败
+- **必填 url**：新 API 中 `url` 是必填参数（旧版可省略回落占位图，需要占位图请显式传入）
+- **尺寸参数**：`canvasSize` 虽然可选，但建议明确提供 `{ w, h }`，避免自动获取失败
 - **URL 格式**：建议使用 HTTPS 协议的图片地址
-- **深色对抗**：如果不需要深色对抗，使用 `isNaturalPriority={true}`
+- **深色对抗**：如果不需要深色对抗，使用 `mode="natural"`
 - **性能考虑**：大量使用 foreignObject 可能影响性能，优先使用默认模式
 - **兼容性**：所有模式在微信公众号中测试通过
 - **嵌套限制**：如果需要在 SVG 内嵌入 HTML 元素，必须使用 foreignObject

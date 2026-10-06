@@ -27,11 +27,11 @@
 ## 技术架构
 
 ### 前端技术栈
-- **框架**: React 18 + TypeScript
+- **框架**: React 19 + TypeScript
 - **构建工具**: Vite
 - **UI 组件**: shadcn/ui + Radix UI
 - **语法高亮**: react-syntax-highlighter
-- **状态管理**: Zustand
+- **状态管理**: Jotai（atomWithStorage 持久化）
 - **样式**: Tailwind CSS v4
 - **代码格式化**: Prettier
 
@@ -39,18 +39,18 @@
 ```
 src/dev/apps/SvgReactConverter/
 ├── index.tsx                    # 主组件
-├── CLAUDE.md                    # 本文档
+├── AGENTS.md                    # 本文档
 ├── components/
 │   ├── ConverterSettingsCompact.tsx  # 设置面板
 │   ├── SvgInputEditor.tsx            # SVG输入编辑器
 │   ├── ReactOutputEditor.tsx         # React输出编辑器
 │   ├── PreviewAndConvert.tsx         # 预览和转换组件
 │   ├── FullscreenCodeViewer.tsx      # 全屏代码查看器
-│   └── CodeEditorCard.tsx            # 通用代码编辑器卡片
+│   └── CodeEditorCard.tsx           # 通用代码编辑器卡片
 ├── hooks/
 │   └── useSvgConversion.ts          # SVG转换逻辑
 ├── store/
-│   └── useConverterStore.ts        # Zustand状态管理
+│   └── useConverterStore.ts        # Jotai 状态管理
 ├── utils/
 │   ├── svgUtils.ts                 # SVG工具函数
 │   └── formatCode.ts               # 代码格式化
@@ -123,10 +123,11 @@ Style转Object（可选）
 
 ## 状态管理
 
-### Zustand Store 结构
+### Jotai Store 结构
 ```typescript
+// atom 为状态本体，兼容旧调用方的 useConverterStore 以薄 hook 暴露旧 API
 interface ConverterStore {
-  settings: SvgConverterSettings;  // 转换设置（持久化）
+  settings: SvgConverterSettings;  // 转换设置（atomWithStorage 持久化）
   state: ConverterState;            // 运行状态（部分持久化）
   updateSettings: (newSettings) => void;
   resetSettings: () => void;

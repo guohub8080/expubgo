@@ -1,4 +1,4 @@
-import { genAnimateRotate } from "@svg-anim/rotate";
+import { transformRotate } from "@guohub8080/expub-tool/smil";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
 
 export const ModeComparison = () => {
@@ -12,38 +12,36 @@ export const ModeComparison = () => {
                 {/* 相对模式 - 左侧 */}
                 <g>
                     <circle cx="60" cy="60" r="15" fill="blue" opacity="0.8">
-                        {genAnimateRotate({
-                            initAngle: 0,
-                            origin: [100, 100],
-                            isRelativeRotate: true,
+                        {transformRotate({
+                            initValue: 0,
+                            pivot: [100, 100],
                             timeline: [
-                                { toValue: 45, durationSeconds: 1 },
-                                { toValue: 0, durationSeconds: 1 },
-                                { toValue: 45, durationSeconds: 1 }
+                                { toRel: 45, durationSeconds: 1 },
+                                { toRel: 0, durationSeconds: 1 },
+                                { toRel: 45, durationSeconds: 1 }
                             ],
                             loopCount: 0
                         })}
                     </circle>
                 </g>
-                <text x="60" y="35" textAnchor="middle" fontSize="11" fill="#666">相对</text>
+                <text x="60" y="35" textAnchor="middle" fontSize="11" fill="#666">相对 toRel</text>
 
                 {/* 绝对模式 - 右侧 */}
                 <g>
                     <circle cx="140" cy="60" r="15" fill="green" opacity="0.8">
-                        {genAnimateRotate({
-                            initAngle: 0,
-                            origin: [100, 100],
-                            isRelativeRotate: false,
+                        {transformRotate({
+                            initValue: 0,
+                            pivot: [100, 100],
                             timeline: [
-                                { toValue: 45, durationSeconds: 1 },
-                                { toValue: 45, durationSeconds: 1 },
-                                { toValue: 90, durationSeconds: 1 }
+                                { toAbs: 45, durationSeconds: 1 },
+                                { toAbs: 45, durationSeconds: 1 },
+                                { toAbs: 90, durationSeconds: 1 }
                             ],
                             loopCount: 0
                         })}
                     </circle>
                 </g>
-                <text x="140" y="35" textAnchor="middle" fontSize="11" fill="#666">绝对</text>
+                <text x="140" y="35" textAnchor="middle" fontSize="11" fill="#666">绝对 toAbs</text>
             </svg>
         </SvgWrapper>
     );

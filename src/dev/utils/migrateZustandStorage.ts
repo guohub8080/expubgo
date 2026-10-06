@@ -71,7 +71,7 @@ export function migrateZustandStorage() {
 		bookSideWidth: 'global-settings.bookSideWidth',
 		bookContentWidth: 'global-settings.bookContentWidth',
 		bookContentPadding: 'global-settings.bookContentPadding',
-		bookSideContentGap: 'global-settings.bookSideContentGap',
+		bookUniMargin: 'global-settings.bookSideContentGap',
 		isBookTocShow: 'global-settings.isBookTocShow',
 	}, {})
 

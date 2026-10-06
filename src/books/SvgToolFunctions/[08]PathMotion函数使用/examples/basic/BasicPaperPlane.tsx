@@ -1,5 +1,5 @@
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
-import { genAnimatePathMotionLoop } from "@svg-anim/pathMotion";
+import { animateMotion } from "@guohub8080/expub-tool/smil";
 
 export const BasicPaperPlane = () => {
     return (
@@ -21,11 +21,13 @@ export const BasicPaperPlane = () => {
                         <path d="M 60 0 L -40 -5 L -55 20 Z" fill="#bfdbfe"></path>
                         <path d="M 60 0 L -40 -5 L -30 -2 Z" fill="#e2e8f0"></path>
                     </g>
-                    {/* 路径运动动画：8字形往返，自动旋转 */}
-                    {genAnimatePathMotionLoop(
-                        "M 50 100 C 120 40 280 160 350 100 C 280 40 120 160 50 100",
-                        6
-                    )}
+                    {/* 路径运动动画：8字形往返，自动旋转（rotate/loopCount 默认即 'auto'/无限循环） */}
+                    {animateMotion({
+                        path: "M 50 100 C 120 40 280 160 350 100 C 280 40 120 160 50 100",
+                        durationSeconds: 6,
+                        rotate: "auto",
+                        loopCount: 0
+                    })}
                 </g>
             </svg>
         </SvgWrapper>

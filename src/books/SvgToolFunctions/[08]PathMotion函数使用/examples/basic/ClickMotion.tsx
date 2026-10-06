@@ -1,5 +1,5 @@
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
-import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+import { animateMotion } from "@guohub8080/expub-tool/smil";
 
 export const ClickMotion = () => {
     return (
@@ -16,11 +16,11 @@ export const ClickMotion = () => {
                 {/* 点击触发的圆形，沿弯曲路径运动 */}
                 <g transform="translate(50, 100)">
                     <circle r="12" fill="#ef4444" />
-                    {genAnimatePathMotion({
+                    {animateMotion({
                         path: "m 0 0 c 50 -50, 100 -50, 150 0 s 100 50, 150 0",
                         durationSeconds: 3,
                         rotate: 0,
-                        beginType: 'click'
+                        begin: "click"
                     })}
                 </g>
                 {/* 提示文字 */}

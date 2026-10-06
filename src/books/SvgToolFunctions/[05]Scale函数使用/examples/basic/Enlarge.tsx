@@ -1,4 +1,4 @@
-import { genAnimateScale } from "@svg-anim/scale";
+import { transformScale } from "@guohub8080/expub-tool/smil";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
 
 export const Enlarge = () => {
@@ -9,10 +9,10 @@ export const Enlarge = () => {
                 <circle cx="100" cy="100" r="3" fill="#ccc" />
 
                 <rect x="75" y="75" width="50" height="50" fill="blue">
-                    {genAnimateScale({
-                        origin: [100, 100],
+                    {transformScale({
+                        pivot: [100, 100],
                         timeline: [
-                            { toValue: 2, durationSeconds: 2 }
+                            { toAbs: 2, durationSeconds: 2 }
                         ]
                     })}
                 </rect>

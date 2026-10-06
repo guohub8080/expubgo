@@ -3,7 +3,7 @@ import { Switch, Radio, Slider } from 'antd';
 import PresetPreviewDisplayBlock from "./PresetPreviewDisplayBlock.tsx";
 import CodeBlock from "./CodeBlock.tsx";
 import { H2 } from "./Headings.tsx";
-import { genAnimateTranslate } from "@svg-anim/translate";
+import { transformTranslate } from "@guohub8080/expub-tool/smil";
 
 interface ExtraParam {
     name: string;
@@ -21,7 +21,7 @@ interface EasingDemoProps {
     imgSize: number;
     moveDistance: number;
     duration: number;
-    getKeySplines: (options: { isIn?: boolean; isOut?: boolean; [key: string]: any }) => string;
+    getKeySplines: (options: { isIn?: boolean; isOut?: boolean; [key: string]: boolean | number }) => string;
     functionName: string;
     extraParam?: ExtraParam;
 }
@@ -50,7 +50,7 @@ const EasingDemo: React.FC<EasingDemoProps> = ({
 
     // 生成代码字符串
     const generateCode = () => {
-        const options: any = {};
+        const options: Record<string, boolean | number> = {};
         
         if (isIn || isOut) {
             if (isIn) options.isIn = true;
@@ -171,29 +171,28 @@ const EasingDemo: React.FC<EasingDemoProps> = ({
                     key={`translate-${isIn}-${isOut}-${paramValue}-${animDuration}`}
                 >
                 <image href={pic} width={imgSize} height={imgSize}>
-                    {genAnimateTranslate({
+                    {transformTranslate({
                         timeline: [
-                            { 
-                                durationSeconds: animDuration, 
-                                toValue: { x: moveDistance }, 
-                                keySplines: getKeySplines({ 
-                                    isIn, 
-                                    isOut, 
+                            {
+                                durationSeconds: animDuration,
+                                toAbs: { x: moveDistance },
+                                keySplines: getKeySplines({
+                                    isIn,
+                                    isOut,
                                     ...(extraParam ? { [extraParam.name]: paramValue } : {})
                                 })
                             },
-                            { 
-                                durationSeconds: animDuration, 
-                                toValue: { x: 0 }, 
-                                keySplines: getKeySplines({ 
+                            {
+                                durationSeconds: animDuration,
+                                toAbs: { x: 0 },
+                                keySplines: getKeySplines({
                                     isIn, 
                                     isOut,
                                     ...(extraParam ? { [extraParam.name]: paramValue } : {})
                                 })
                             }
                         ],
-                        loopCount: 0,
-                        isRelativeMove: false
+                        loopCount: 0
                     })}
                 </image>
                 </PresetPreviewDisplayBlock>

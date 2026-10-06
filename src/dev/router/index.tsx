@@ -8,16 +8,21 @@ import { generateSvgToolFunctionsRoutes } from "@books/SvgToolFunctions/data/svg
 import { generateSvgComponentsDocRoutes } from "@books/SvgComponentsDoc/data/svgComponentsDocLoader";
 import { generateArticleRoutes } from "@dev/articles/articlesLoader";
 import { generatePublisherToolRoutes } from "@dev/tools/publisherToolsLoader";
+import routerPaths from './paths'
 
 // 直接加载：Home、Settings、MainLayout（含 Navigation）首屏必须就位
 // 其他页面懒加载
 const Color = lazy(() => import('../apps/Color'))
 const ShadowTool = lazy(() => import('../apps/ShadowTool'))
 const Rotate3D = lazy(() => import('../apps/Rotate3D'))
+const WechatCoverMaker = lazy(() => import('../apps/WechatCoverMaker'))
 const SvgReactConverter = lazy(() => import('../apps/SvgReactConverter'))
 const ClassToInline = lazy(() => import('../apps/ClassToInline'))
 const ArticleViewer = lazy(() => import('../apps/ArticleViewer'))
 const EmptyArticle = lazy(() => import('../apps/ArticleViewer/components/EmptyArticle'))
+// 网络连接制度：一键连接页 + 网络源文章 iframe 渲染页（见 AGENTS.md「网络连接制度」）
+const ConnectPage = lazy(() => import('../apps/Connect'))
+const NetworkArticlePage = lazy(() => import('@dev/articles/NetworkArticlePage'))
 
 // 加载占位
 const LoadingFallback = () => (
@@ -84,6 +89,10 @@ export default createHashRouter([
                 element: <Lazy><Rotate3D /></Lazy>
             },
             {
+                path: "wechat-cover-maker",
+                element: <Lazy><WechatCoverMaker /></Lazy>
+            },
+            {
                 path: "svg-react",
                 element: <Lazy><SvgReactConverter /></Lazy>
             },
@@ -101,10 +110,20 @@ export default createHashRouter([
                     },
                     ...generateArticleRoutes(),
                     {
+                        // 网络源文章（运行时数据，参数路由；本地静态路由在前优先匹配，publisher id 冲突时本地遮蔽网络）
+                        path: ":netPublisher/:netArticle",
+                        element: <Lazy><NetworkArticlePage /></Lazy>,
+                    },
+                    {
                         path: "*",
                         element: <Lazy><EmptyArticle /></Lazy>
                     }
                 ]
+            },
+            {
+                // 内容源一键连接（/#/connect?source=<源地址>，由 pub:push 打开）
+                path: routerPaths.connect,
+                element: <Lazy><ConnectPage /></Lazy>,
             }
         ]
     },

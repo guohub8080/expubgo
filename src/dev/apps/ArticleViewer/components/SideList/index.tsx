@@ -12,6 +12,7 @@ import { getDayjs } from '@dev/utils/utDateTime/exDayjs';
 import { useArticleViewerStore } from '@apps/ArticleViewer/store/useArticleViewerStore';
 import defaultPublisherConfig from '@dev/articles/default.publisher.tsx';
 import { publisherConfigModules, publisherImageModules } from '@dev/articles/publisherBranches.generated';
+import { useNetworkManifests } from '@dev/articles/networkSources';
 import FullscreenArticleMenu from './FullscreenArticleMenu';
 
 // 加载 publisher 配置与图片资源：按名字拆分的 glob 分支在生成文件中（含本地目录名，已 gitignore）
@@ -58,6 +59,7 @@ export default function SideList({ inDrawer = false }: SideListProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { setMobileSideList, setFullscreenMenu, mobileShowSideList } = useArticleViewerStore();
+  const networkManifests = useNetworkManifests();
 
   const [articles, setArticles] = useState<ArticleListItem[]>([]);
   const [showPublisherDialog, setShowPublisherDialog] = useState(false);
@@ -93,8 +95,20 @@ export default function SideList({ inDrawer = false }: SideListProps) {
         };
       }
     }
+
+    // 网络源作者（网络连接制度：manifest 里的 publishers，avatar 拼源根完整 URL）
+    for (const [sourceUrl, manifest] of Object.entries(networkManifests)) {
+      const p = manifest.publishers.find((x) => x.id === currentPublisher);
+      if (p) {
+        return {
+          avatar: p.avatar ? `${sourceUrl}/${p.avatar.replace(/^\.\//, '').replace(/^\/+/, '')}` : null,
+          avatarRadius: p.avatarRadius,
+          publisherName: p.name,
+        };
+      }
+    }
     return null;
-  }, [currentPublisher]);
+  }, [currentPublisher, networkManifests]);
 
   // 从当前路由中提取选中的文章ID
   const selectedId = React.useMemo(() => {
@@ -102,11 +116,11 @@ export default function SideList({ inDrawer = false }: SideListProps) {
     return match ? match[1] : null;
   }, [location.pathname]);
 
-  // 加载文章列表
+  // 加载文章列表（本地 articleMap + 网络源动态注册的文章；网络源连接/刷新后重取）
   useEffect(() => {
     const items = getArticleListItems();
     setArticles(items);
-  }, []);
+  }, [networkManifests]);
 
   // 选中文章变化后，滚动列表内部到选中位置（不影响页面滚动）
   const listContainerRef = React.useRef<HTMLDivElement>(null);
@@ -206,10 +220,25 @@ export default function SideList({ inDrawer = false }: SideListProps) {
         theme: config.theme,
       });
     }
+    // 追加网络源作者（网络连接制度；id 与本地冲突时本地优先）
+    const localIds = new Set(result.map((p) => p.publisherId));
+    for (const [sourceUrl, manifest] of Object.entries(networkManifests)) {
+      for (const p of manifest.publishers) {
+        if (localIds.has(p.id)) continue
+        result.push({
+          publisherId: p.id,
+          publisherName: p.name,
+          avatar: p.avatar ? `${sourceUrl}/${p.avatar.replace(/^\.\//, '').replace(/^\/+/, '')}` : undefined,
+          avatarRadius: p.avatarRadius,
+          weight: p.weight || 0,
+          theme: p.theme,
+        });
+      }
+    }
     // 按 weight 降序排序
     result.sort((a, b) => (b.weight || 0) - (a.weight || 0));
     return result;
-  }, []);
+  }, [networkManifests]);
 
   const publisherArticleCounts = useMemo(() => {
     const counts: Record<string, number> = {}
@@ -373,7 +402,7 @@ export default function SideList({ inDrawer = false }: SideListProps) {
 
       {/* Publisher 切换面板 */}
       <Dialog open={showPublisherDialog} onOpenChange={setShowPublisherDialog}>
-        <DialogContent className="max-w-[900px] w-[calc(100%-32px)] p-0 gap-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+        <DialogContent aria-describedby={undefined} className="max-w-[900px] w-[calc(100%-32px)] p-0 gap-0" onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogTitle className="sr-only">切换发布者</DialogTitle>
           <div className="flex flex-col">
             {/* 头部 */}
@@ -425,7 +454,9 @@ export default function SideList({ inDrawer = false }: SideListProps) {
         </DialogContent>
       </Dialog>
       <style>{`
-        @keyframes spin {
+        /* 专名 spin-glow:不能叫 spin——keyframes 同名会全局覆盖 Tailwind 的默认 spin,
+           曾把全应用 animate-spin 的 flex 图标拽偏 -50%,-50%(定位居中写法误伤行内图标) */
+        @keyframes spin-glow {
           0% { transform: translate(-50%, -50%) rotate(0deg); }
           100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
@@ -443,7 +474,7 @@ export default function SideList({ inDrawer = false }: SideListProps) {
           height: 200%;
           transform: translate(-50%, -50%) rotate(0deg);
           background: conic-gradient(from 0deg, rgba(148, 163, 184, 0.2), rgba(100, 116, 139, 0.12) 20%, rgba(148, 163, 184, 0.04) 40%, transparent 50%, rgba(148, 163, 184, 0.04) 60%, rgba(100, 116, 139, 0.12) 80%, rgba(148, 163, 184, 0.2));
-          animation: spin 2.5s linear infinite;
+          animation: spin-glow 2.5s linear infinite;
           z-index: 0;
         }
         .selected-glow > * {
@@ -513,7 +544,7 @@ function ArticleItem({
             )}>
               <Calendar className="h-3 w-3" />
               <span>
-                {getDayjs(article.date).format('YYYY-MM-DD')}
+                {getDayjs(article.date).format('YYYY-MM-DD HH:mm:ss')}
                 <span className="ml-2">{['周日', '周一', '周二', '周三', '周四', '周五', '周六'][getDayjs(article.date).day()]}</span>
               </span>
             </div>

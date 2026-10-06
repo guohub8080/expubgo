@@ -1,6 +1,6 @@
 import SectionEx from "@pub-html/basicEx/SectionEx";
 import { ReplayButton } from "../ReplayButton";
-import { genAnimateTranslate } from "@svg-anim/translate";
+import { transformTranslate } from "@guohub8080/expub-tool/smil";
 
 export const LShapePath = () => {
     return (
@@ -22,11 +22,11 @@ export const LShapePath = () => {
                         <text x="65" y="75" fontSize="12" fill="#999" textAnchor="end">起点</text>
                         {/* 移动的矩形 - 从左上角开始 */}
                         <rect x="80" y="70" width="40" height="40" fill="#DC143C" rx="4">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 110, y: 0 }, durationSeconds: 1 },   // 向右移动 110，终点x=190，矩形右边=230
-                                    { toValue: { x: 0, y: 60 }, durationSeconds: 1 }     // 向下移动 60，终点y=130，矩形底边=170
+                                    { toRel: { x: 110, y: 0 }, durationSeconds: 1 },   // 向右移动 110，终点x=190，矩形右边=230
+                                    { toRel: { x: 0, y: 60 }, durationSeconds: 1 }     // 向下移动 60，终点y=130，矩形底边=170
                                 ],
                                 isFreeze: true
                             })}

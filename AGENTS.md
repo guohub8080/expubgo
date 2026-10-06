@@ -1,6 +1,6 @@
 # AGENTS.md
 
-为在本仓库（**expubgo** —— 纯 Web 应用；GitHub 仓库 [guohub8080/expubgo](https://github.com/guohub8080/expubgo)）中工作的 AI agent 提供指引。本仓架构已对齐 logiguo 项目。
+为在本仓库（**expubgo** —— 纯 Web 应用；GitHub 仓库 [guohub8080/expubgo](https://github.com/guohub8080/expubgo)）中工作的 AI agent 提供指引。
 
 ## 命令
 
@@ -34,11 +34,18 @@ PUBLISHERS=<name> pnpm pkg  # 选择性构建：只打包指定 publisher 的单
 - `publishers/{name}/` —— publisher 内容与组件（文章 + components + tools + publisher.config.ts）
 - `src/dev/articles/` —— 文章系统核心（articlesLoader、publisher 注册）
 
+> 微信交互组件/SMIL 生成器另有独立工具库 `@guohub8080/expub-tool`（私有，仓在 `/Users/guo/WebstormProjects/expub-tool`）。
+> - **本地敏捷开发（现行）**：package.json 以 `"@guohub8080/expub-tool": "link:../expub-tool"` 链接；在 expub-tool 改代码后必须 `corepack pnpm run build` 刷新 dist，本仓才可见
+> - **正式消费（发布后）**：`.npmrc` 已预置 `@guohub8080:registry=https://npm.pkg.github.com` + 注释的 PAT 行（classic token 勾 read:packages），届时把依赖从 `link:` 改成版本号即可，详见该仓 AGENTS.md
+> - 新代码优先从包导入（如 `@guohub8080/expub-tool/smil` 的 getEaseBezier）；`src/dev/pubUtils/getBezier` 是同源历史副本，存量引用不改
+> - **XRay 数据通道库体在 `@guohub8080/expub-tool/xray`**（useDevXRay/devLayoutStore/词典/解值器，2026-10-04 迁入）：`src/dev/pubUtils/devLayout` 是宿主薄包装（`setXRayEnabled(import.meta.env.DEV)` 门控 + re-export），五个调用点 import 路径不变；库内不做 dev 门控（import.meta.env 烤进 dist 会带死生产值）
+> - link 走 realpath：若从包里引入 **React 组件** 出现 hooks 双实例报错，需在 vite.config.ts 加 `resolve.dedupe: ['react', 'react-dom']`（xray 迁入起包首次带 React 代码，dedupe 已常驻 vite.config）
+
 ### 路由
 
 `createHashRouter`（**react-router v7，注意 import 来自 `react-router` 而非 `react-router-dom`**），定义在 `src/dev/router/index.tsx`；路径常量在 `src/dev/router/paths.ts`。布局链：`HashRouter → MainLayout (Navigation + Outlet + Background) → page | BookLayout`。
 
-**懒加载约定**（对齐 logiguo）：Home、Settings、MainLayout（含 Navigation）首屏急加载；其余页面一律 `lazy()` + `Suspense`（Lazy 包装 + LoadingFallback）。未匹配路由重定向到 `/home/`。
+**懒加载约定**：Home、Settings、MainLayout（含 Navigation）首屏急加载；其余页面一律 `lazy()` + `Suspense`（Lazy 包装 + LoadingFallback）。未匹配路由重定向到 `/home/`。
 
 ### Book loader 模式（核心内容系统）
 
@@ -92,7 +99,7 @@ PUBLISHERS_MODE=include|exclude
 
 - **连接方向**：壳子永远是 HTTP 客户端，主动 fetch/加载源（浏览器安全模型，不存在"源推送壳子"）。体验上支持本地一键发起：`pub:push` 打开 `壳子地址/#/connect?source=<源地址>`，壳子解析参数后自动连接。
 - **产物形态**：编译好的**完整 HTML**（全 inline style，与"复制 HTML 发公众号"产物同构）。**不做**浏览器端 MDX 编译，**不做**远程 ESM 模块加载——用户端自己决定怎么写、怎么编译，壳子零内容格式知识。
-- **manifest**：内容源根下 `manifest.json` —— 源信息（name/icon）+ 文章清单（id/title/date/category/tag + 每篇的 HTML 地址）。
+- **manifest**：内容源根下 `manifest.json` —— 源信息 + 作者数组 `publishers`（一源多账号，每作者独立 `/view/<id>` 子页面；含 id/name/avatar/theme/weight）+ 每作者的 `articles`（id/title/date/author?/category?/tag? + 每篇的 HTML 地址，author 缺省回落发布者名）。schema 见 `src/dev/articles/networkSources.ts`。
 - **渲染方式**：iframe 直接指向文章 HTML 的 URL（样式完全隔离，SVG 动画照常播放）；壳子侧文章列表/分类/搜索复用现有 ArticleViewer UI，数据来源多一条"运行时 fetch"。
 - **工具（tools）继续走插件制度**，网络制度只覆盖文章（React 应用无法 HTML 化）。
 - **浏览器策略约束（必须遵守）**：本机源必须用 `localhost` / `127.0.0.1`（https 壳子连 http://localhost 享受 mixed-content 豁免；局域网 IP 会被拦）；本地源 server 必须带 `Access-Control-Allow-Origin: *` 与 `Access-Control-Allow-Private-Network: true` 响应头。
@@ -102,7 +109,7 @@ PUBLISHERS_MODE=include|exclude
 
 1. 协议格式定稿（manifest schema + HTML 产物约定）
 2. 壳子侧：设置页"内容源"管理 UI + `/#/connect` 路由解析 + 动态文章列表 + iframe 渲染
-3. 源侧：`pnpm pub:serve` —— 用 `react-dom/server` 的 `renderToStaticMarkup` 把本地 publishers 文章静态化为 HTML + 生成 manifest + 起带 CORS 头的本地 server
+3. 源侧：`pnpm pub:serve` —— 把本地 publishers 文章静态化为 HTML + 生成 manifest + 起带 CORS 头的本地 server。**编译器用 headless 浏览器快照（playwright 挂载组件 → effects 真实执行 → 序列化最终 DOM），不用 renderToStaticMarkup**（后者跳过 useEffect，setProperty/动画首帧类逻辑会丢失；站长明确不改存量组件代码）。产物仍是纯静态 HTML，壳子协议零感知。交互梯度：静态快照（本路线）→ SVG 动画（产物内原生活）→ 完整交互（单文件构建 pnpm pkg 产物当文章，iframe 完整运行）。**不做浏览器端 JSX/MDX 编译**（eval 破坏隔离、远程依赖复辟 ESM 路线、编译器体积）。pub:serve 双模式：`--dev` = vite dev server + CORS 头 + 动态 manifest 路由 + 每篇文章独立 HTML 入口（effects/交互/HMR 全活，"React 服务器"即 vite 本身，不做实时 renderToStaticMarkup——同样跳过 effects，无意义）；默认 = headless 快照静态产物 + 零逻辑静态 server（可托管任意静态空间）
 
 ### 状态管理：统一 Jotai（禁止 Zustand）
 
@@ -138,13 +145,13 @@ PUBLISHERS_MODE=include|exclude
 
 主题通过 `<html>` 上的 `data-theme` 属性设置（**不是** class）。支持 light、dark、system 等。CSS 变量使用 **oklch** 色彩空间。Google 色板在 `@assets/colors/googleColors`。
 
-### 字体系统（免流量懒加载 + 独立字体仓库）
+### 字体系统（免流量懒加载）
 
-字体资产**不在本仓库**，托管在独立公开仓库 `guohub8080/guohub-fonts`，按用途分区：`cjk/`（中日韩，cn-font-split 分片）、`english/`（拉丁/等宽）。**不要把字体文件提交进本仓库**。
+字体资产**不在本仓库**，由外部字体仓库经多 CDN 分发（源清单、缓存语义与更新流程见 `webfontLoader.ts` 顶部注释）。**不要把字体文件提交进本仓库**。
 
 - **加载架构**：核心模块 `src/dev/store/useGlobalSettings/webfontLoader.ts`。默认**纯系统字体栈、零字体流量**；只有启用了某个 web 字体才按族懒注入该族 CSS（`font-display: swap` 渐进增强）。
-- **四层 CDN 自动降级**：jsDelivr 主域 → fastly（大陆优化）→ guohub-fonts.pages.dev → guohub8080.github.io/guohub-fonts（兜底）。
-- **新增字体族**：在 guohub-fonts 处理后，本仓库 `webfontLoader.ts` 的 WEBFONT_REGISTRY 加一行 + `webfontCatalog.ts` 补目录条目（key 必须与 CSS `font-family` 名一致）。
+- **五层 CDN 延迟赛马**：assets.guohub.top/font（R2 自有域名；桶同时绑的 font.guohub.top 已解绑——其 CDN 曾缓存无 CORS 头的旧响应）→ guohub-fonts.pages.dev → guohub8080.github.io/guohub-fonts → jsDelivr 主域 → fastly（兜底）；首选 800ms 内成功则其余源零请求，全败回落系统栈。
+- **新增字体族**：字体产物在外部字体仓库就绪后，本仓库 `webfontLoader.ts` 的 WEBFONT_REGISTRY 加一行 + `webfontCatalog.ts` 补目录条目（key 必须与 CSS `font-family` 名一致）。
 - 字体目录数据（`webfontCatalog.ts`）驱动 Settings 页的 `FontSelect` 分组下拉；站长默认字体在 `defaultValues.ts` 配置。
 
 ### 路径别名
@@ -197,6 +204,37 @@ PUBLISHERS_MODE=include|exclude
 
 微信公众号 SVG 属性有严格白名单（《中华人民共和国融媒体SVG交互设计技术规范》，参考 fudan.design/svg.html）。白名单数据在 `src/dev/pubUtils/genSvgKeySplines/svgAttrWhiteList.ts`。
 
+### SVG 交互动画的实测教训（强制）
+
+来自升国旗文章的连环翻车，写死在这里防止重蹈：
+
+- **SMIL 运行中改动画属性不会重建动画**：对已启动的 animate/animateTransform 改 keySplines/values/keyTimes/dur，Chrome 沿用启动时的 timing 模型，属性改了也白改（XRay 面板调缓动「看不到效果」的根因；普通几何属性 x/y/width/transform 不受影响，实时生效）。活值化动画参数必须配套：动画元素挂**含全部参数的 key**，参数变 = React 重挂载 = 全新动画；生产参数静态 key 恒定，零成本
+- **给层加 opacity 动画前先查它的子树**——收尾/彩蛋层常嵌在提示层 g 里，给提示层加淡出会把里面的收尾内容一起冻成透明（连坐）。淡出效果必须给目标图单独包一层只含自己的 g
+- **事件型 SMIL（begin="touchstart…"）不能用 setCurrentTime 跳帧测**——跳帧不会激活事件型 begin，会漏测出"看起来好"的假象；必须真实派发事件 + 真实等待时长
+- **触摸热区**：参考类文章 svg 根是 `pointer-events:none`，只有内部透明 rect（`pointer-events: painted`）接收触摸。点其他位置无任何反应是原版设计，不是 bug；桌面测试必须用浏览器设备模拟的触摸模式
+- **一个 tap 触发多动画的重灾区**（微信剥 id，无法用 begin="xxx.begin" 链式引用）：全篇只保留**一个精确 `begin="touchstart"` 监听**（原版如此，通常放在首个入场动画上），其余动画一律用时间偏移（touchstart+0.05 / +1.3 / +N）排队
+- **测试触摸事件必须派发到热区 rect 或其后代**（事件沿祖先冒泡触发各动画的事件基）；派发到背景层节点会导致背景组动、前景组不动，画面撕开
+- **dev 预览禁止做任何鼠标→触摸的事件桥**：预览需与微信行为一致；桥曾因选错目标节点反向搅乱用户的真实触摸测试
+- **微信音频播放键会 stopPropagation 掉 touchstart 和 click，但 touchend/pointerdown/pointerup 正常冒泡**（2026-09-29 CDP 实测 mp-common-mpaudio 的 shadow DOM）：想让「点音频键=放歌+SVG 动画」一次点击双触发，动画事件基必须用 touchend——用 touchstart 会只出声不动画。音频卡 UI 挂在 shadow root 里，普通 querySelectorAll 量不到，需 `a.shadowRoot.querySelectorAll`；「公众号网页调试」的 Console 可量自然布局（卡 ~343×150，播放键 23×23 在右下 (304,103)-(327,126)，标题行 y≤91 是 role=link 弹全屏播放器，须用 fo 裁剪/盾遮挡隔在点击区外）。派发 shadow 内事件须加 `composed:true`，否则死在 shadow root 边界
+
+
+
+**还原 = 原样还原。** 参考文章用什么方法、什么事件，就用什么方法、什么事件，不做"优化"或"现代化"替换：
+
+- 参考用 `begin="touchstart+1.3"` 就用 `touchstart`——**不要**换成 `pointerdown`/`click` 等桌面也触发的事件。这类交互本来就只在手机微信里生效，属预期行为
+- 桌面预览验证这类移动端事件：用浏览器派发**合成事件**（`el.dispatchEvent(new TouchEvent('touchstart', {bubbles:true}))` 或 `new PointerEvent('pointerdown',…)`）触发后截图，而不是改实现迁就桌面
+- 结构、参数（时长/位移/缓动）、层级同样照抄参考数值，确有充分理由偏离时先说明
+
+### 预览页纯度原则（强制）
+
+**预览页面必须原样呈现文章内容（尤其 mmbiz 原始直链）。** 用户的「复制」按钮逻辑 = 页面有什么就复制什么，直接粘贴进微信编辑器发布：
+
+- **禁止**用 vite transform、运行时 replace 等任何方式改写页面里的资源 URL——页面被改写 = 复制产物被污染 = 发布废品（曾因此导致粘贴微信后整篇空白）
+- 图片预览问题的解决层在 **vite server**（`/api/wechat-img` 代理，转发时补 Referer）；且 mmbiz 页面内直载大多可行，只有部分账号桶的图校验 Referer
+- 复制到微信前的唯一合法变换 = **无变换**
+
+**dev 预览的防盗链修复（现行方案）**：`public/sw-mmbiz.js` Service Worker（由 `src/dev/main.tsx` 仅在 `import.meta.env.DEV` 注册）在网络层把页面发出的 `mmbiz.qpic.cn` 请求透明转发到 `/api/wechat-img` 代理（vite 代理补微信 Referer）。页面 DOM 的链接不动，复制产物保持原样；真图/占位判别不能只看 `onload`（防盗链占位图也是 200，~2KB JPEG），要比对字节数或 PNG magic。
+
 ## 安全区
 
 整个 UI 围绕安全区构建。`index.html` 的 viewport meta **必须**包含 `viewport-fit=cover`（否则 iOS Safari 的 `env(safe-area-inset-*)` 恒为 0，静默失效）。导航栏吸收 `safe-area-inset-top`，`<main>` 吸收 bottom（横屏还有 left/right）；这些容器**永远不要写死顶部/底部 padding**。新增全屏/fixed/sticky 表面时先拿安全区对照检查。
@@ -212,9 +250,13 @@ PUBLISHERS_MODE=include|exclude
 
 - **Mimosa hook 会拦截 commit**：高危误报（如构建产物里的模式匹配）或预存问题会阻断提交。工作区根目录的 `.mimosa/`、`.video_agent/` 已 gitignore；被拦时按 hook 提示修复后重试。`git add -A` 不会加它们（已忽略）。
 - **根 `tsconfig.json` 是 solution 式空壳**（files:[] + references）：`npx tsc --noEmit`（无 -p）检查不到任何东西；真实验证必须 `npx tsc --noEmit -p tsconfig.app.json`。
-- **预存类型错误尾巴**：src 下有约 158 个预存 tsc 错误（PropsSettings 的防御性字段、书籍示例与当前 lib API 的偏差等，logiguo 侧同样存在）。验证标准是**不新增**，顺手修复欢迎。
+- **预存类型错误尾巴**：src 下有约 158 个预存 tsc 错误（PropsSettings 的防御性字段、书籍示例与当前 lib API 的偏差等）。验证标准是**不新增**，顺手修复欢迎。
 - **`getImgSizeAsync`/`getImgSizeByDefault` 在普通函数里调 hook**（渲染期无条件调用的既有模式），带 eslint-disable 注释，重构时注意保持调用时序。
 - 改 `package.json`/`vite.config.ts` 等配置文件用 Write/Edit 工具，Bash 直接写会被 Mimosa PreToolUse 拦截；**Bash sed 改 *.ts/tsx 也会被拦**，源码改动一律走 Edit 工具。
+- **vite 8 dev 下 define 不做静态替换**（2026-10-04 实测 + 源码确认）：`__PUB_*__` 等自定义常量在 dev 由 clientInjections 插件以**全局变量**注入 `/@vite/client` 引的 env.mjs（`const defines = {...}` 挂 globalThis），build 才是静态替换。**curl 拉模块看到裸标识符是预期行为不是失效**——验证 define 要看浏览器 `window.__PUB_*` 或 env.mjs 内容；用 curl 判断 define 会误诊（曾因此白查一场"define 回归"）。
+- **文章路由用文章自声明的 `meta.id`（哈希式大写 ID），不是中文目录名**：`/view/aieco/NATIONALDAY2026…` 才是合法 URL，`/view/aieco/国庆` 会**静默**落到网络兜底页显示"找不到网络文章"——排查"文章打不开"先 `getAllArticleIds()` 对 ID，别怀疑路由/define。另注意 dev server 重启可能吃到 node_modules/.vite 的陈旧转换缓存（vite 7 时代 define 静态替换的旧产物），表现为"旧 URL 能开、新 URL 不能"的假回归，重启无效时删缓存目录再起。
+- **自定义 `@keyframes` 禁止占用 Tailwind 默认动画名（`spin`/`ping`/`pulse`/`bounce`）**（2026-10-05 实测）：keyframes 同名是**全局覆盖**——SideList 内联 `<style>` 曾为选中卡片光晕定义 `@keyframes spin` 带 `translate(-50%,-50%)`（绝对定位居中写法），把 Tailwind 的纯 rotate `spin` 整个篡名，全应用 `animate-spin` 的 flex 行内图标（Loader2/RefreshCw）被拽偏半身，症状「转圈图标飘到上边」。已改名 `spin-glow` 修复。自建关键帧一律起专名（`spin-glow`/`spin-xxx`），要默认行为就直接用 `animate-spin` 别重定义。
+- **publisher id 不得与网络源撞车**（2026-10-06 实测）：本地 `publishers/guohub/` 的 `publisherId` 原为 `"fkg"`，与网络源（fkg-wechat manifest）的 publisher id 同名——统一 articleMap 同 id 合并后，Home 点进「方块郭的想象工厂」路由解析错乱、中栏空白。已把本地 id 改为 `"guohub"`（对齐文件夹名；网络侧 `fkg` 是 URL/书签锚不能动）。**已建自动检测**（`networkSources.collectPublisherIdCollisions` + `articlesLoader.getLocalPublisherIds`）：添加源时撞车直接拒绝接入（NetworkSourceError 报人话），刷新/重连时 console.error + toast 强提醒（不硬拒，免把已存源卡死）；新增本地 publisher 仍需自查 id 不与已连网络源重名。
 
 ## 联系方式
 

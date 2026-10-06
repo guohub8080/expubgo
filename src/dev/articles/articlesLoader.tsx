@@ -13,6 +13,8 @@ export interface ArticleMeta {
   author?: string
   tag?: string[]
   category?: string
+  /** SVG 交互文章标记（默认 false）：true 时预览选项面板会出现 SVG 专属功能区 */
+  isSvgArticle?: boolean
 }
 
 export interface ArticleData extends ArticleMeta {
@@ -21,6 +23,8 @@ export interface ArticleData extends ArticleMeta {
   publisherName?: string | string[]
   _filePath: string
   _textContent?: string
+  /** 网络源文章的来源标记（源根 URL），仅网络注册的文章携带 */
+  _network?: string
 }
 
 export interface ArticleListItem {
@@ -82,6 +86,7 @@ function validateArticleMeta(meta: Record<string, unknown>, filePath: string): A
     author: meta.author as string | undefined,
     tag: Array.isArray(meta.tag) ? meta.tag as string[] : undefined,
     category: meta.category as string | undefined,
+    isSvgArticle: meta.isSvgArticle === true,
   }
 }
 
@@ -112,6 +117,38 @@ function registerArticle(data: ArticleData) {
     return
   }
   articleMap.set(data.id, data)
+}
+
+// ============================================ 网络源动态注册（网络连接制度） ============================================
+
+/**
+ * 网络源文章动态注册：让网络文章进入统一的 articleMap，
+ * 侧栏列表 / 全屏搜索 / 分类筛选 / 最新文章查询等全部消费方自动与本地文章一致。
+ *
+ * 与本地文章的差异：不参与静态路由生成（generateArticleRoutes 仅构建期跑一次），
+ * 网络文章的实际渲染由 /view/:netPublisher/:netArticle 参数路由（iframe）承接，
+ * 因此 jsx 传占位组件即可。本地静态文章同 id 时优先（不覆盖）。
+ */
+export function registerNetworkArticle(data: ArticleData): void {
+  if (articleMap.has(data.id)) return
+  articleMap.set(data.id, data)
+}
+
+/** 本地 publisher id 注册表（含系统默认 expubgo），loadAllArticles 装载时收集。
+ *  供网络源做撞车检测：网络 manifest 的 publisher id 不得与本地重名（重名会在
+ *  articleMap/publisher 路由层合并错乱，实测踩坑：Home 点进后中栏空白）。 */
+const localPublisherIds = new Set<string>(['expubgo'])
+
+/** 取本地全部 publisher id（拷贝），网络源 addNetworkSource/refresh 时做冲突检查用 */
+export function getLocalPublisherIds(): Set<string> {
+  return new Set(localPublisherIds)
+}
+
+/** 移除某网络源注册的全部文章（源删除/刷新前重注册时调用；不影响本地文章） */
+export function unregisterNetworkArticles(sourceUrl: string): void {
+  for (const [id, data] of articleMap) {
+    if (data._network === sourceUrl) articleMap.delete(id)
+  }
 }
 
 // ============================================ 扫描逻辑 ============================================
@@ -287,6 +324,7 @@ function loadAllArticles() {
       id: config.publisherId,
       name: config.publisherName,
     })
+    localPublisherIds.add(config.publisherId)
   }
 
   console.log(`[articlesLoader] 共加载 ${articleMap.size} 篇文章`)

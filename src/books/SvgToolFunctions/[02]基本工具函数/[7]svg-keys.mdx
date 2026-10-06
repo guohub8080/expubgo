@@ -2,7 +2,7 @@ export const title = "KeySplines 生成函数"
 
 # {title}
 
-`genSvgKeySplines` 是 SVG 动画系统的**底层参数计算工具**。它只负责计算数字，不生成任何 SVG 代码。
+`buildTimeline`（时间轴编译器）是 SVG 动画系统的**底层参数计算工具**，从 `@guohub8080/expub-tool/smil` 导入。它只负责计算数字，不生成任何 SVG 代码。
 
 ## 核心概念
 
@@ -12,11 +12,11 @@ SVG 的 `<animate>` 和 `<animateTransform>` 标签需要三个核心参数：
 - **keySplines** - 缓动曲线（如 `"0.42 0 0.58 1"`）
 - **values** - 关键值序列（如 `"0;100;0"`）
 
-手动计算这些参数非常复杂，`genSvgKeySplines` 可以自动完成！
+手动计算这些参数非常复杂，`buildTimeline` 可以自动完成！
 
-## genSvgKeySplines vs genSvgAnimate
+## buildTimeline vs smil 动画函数
 
-这两个工具经常被混淆，但它们处于**完全不同的层次**：
+这两层工具经常被混淆，但它们处于**完全不同的层次**：
 
 ### 层次对比
 
@@ -26,51 +26,52 @@ SVG 的 `<animate>` 和 `<animateTransform>` 标签需要三个核心参数：
 └─────────────────────────────────────────────────┘
                         ↑
 ┌─────────────────────────────────────────────────┐
-│  genSvgAnimate (高层动画生成器)                   │
-│  ├── translate/  (位移)                          │
-│  ├── rotate/    (旋转)                          │
-│  ├── scale/     (缩放)                          │
-│  └── opacity/   (透明度)                        │
+│  @guohub8080/expub-tool/smil 动画函数（高层）     │
+│  ├── transformTranslate  (位移)                  │
+│  ├── transformRotate     (旋转)                  │
+│  ├── transformScale      (缩放)                  │
+│  └── animateOpacity      (透明度)                │
 │                                                 │
 │  输出: 完整的 <animateTransform> 元素            │
 │  用户可以直接放入 SVG 使用                       │
 └─────────────────────────────────────────────────┘
                         ↑ 调用
 ┌─────────────────────────────────────────────────┐
-│  genSvgKeySplines (底层参数计算器)               │
+│  buildTimeline (底层时间轴编译器)                 │
 │                                                 │
-│  输出: { keyTimes, keySplines, values, duration }│
+│  输出: { keyTimes, keySplines, values,          │
+│         totalDuration }                          │
 │  只是纯数据，不涉及任何 SVG 结构                │
 └─────────────────────────────────────────────────┘
 ```
 
 ### 核心区别
 
-| 特性 | genSvgKeySplines | genSvgAnimate |
-|------|------------------|---------------|
+| 特性 | buildTimeline | smil 动画函数 |
+|------|---------------|---------------|
 | **层次** | 底层计算工具 | 高层动画生成器 |
 | **输出** | 参数对象（纯数据） | React 元素（可渲染） |
 | **职责** | 只计算时间/曲线/值 | 处理完整的动画逻辑 |
 | **使用场景** | 需要完全自定义控制 | 快速生成常见动画 |
-| **依赖关系** | 独立存在 | 内部调用 genSvgKeySplines |
+| **依赖关系** | 独立存在 | 内部调用 buildTimeline |
 
 ## 代码对比
 
 ### 场景：让一个圆形从左边移到右边（2秒，ease-in-out）
 
-#### 方式 1：使用 genSvgKeySplines（底层方式）
+#### 方式 1：使用 buildTimeline（底层方式）
 
 你需要自己处理所有细节：
 
 ```tsx
-import { genSvgKeySplines } from '@pub-utils/genSvgKeySplines';
+import { buildTimeline } from '@guohub8080/expub-tool/smil';
 
 const MovingCircle = () => {
   // 第1步：计算参数
-  const keys = genSvgKeySplines({
+  const keys = buildTimeline({
     initValue: 0,
     timeline: [
-      { keySplines: '0.42 0 0.58 1', toValue: 200, durationSeconds: 2 }
+      { keySplines: '0.42 0 0.58 1', toAbs: 200, durationSeconds: 2 }
     ]
   });
   // 结果: { keyTimes: '0;1', keySplines: '0.42 0 0.58 1', values: '0;200', totalDuration: 2 }
@@ -99,22 +100,22 @@ const MovingCircle = () => {
 
 ---
 
-#### 方式 2：使用 genSvgAnimate（高层方式）
+#### 方式 2：使用 smil 动画函数（高层方式）
 
 只需要声明你的意图：
 
 ```tsx
-import { genAnimateTranslate } from '@svg-anim/translate';
+import { transformTranslate } from '@guohub8080/expub-tool/smil';
 
 const MovingCircle = () => {
   return (
     <svg width="300" height="100">
       <circle cx="50" cy="50" r="20" fill="blue">
         {/* 直接放入生成的元素 */}
-        {genAnimateTranslate({
+        {transformTranslate({
           initValue: { x: 0, y: 0 },
           timeline: [
-            { keySplines: '0.42 0 0.58 1', toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+            { keySplines: '0.42 0 0.58 1', toAbs: { x: 200, y: 0 }, durationSeconds: 2 }
           ]
         })}
       </circle>
@@ -128,60 +129,55 @@ const MovingCircle = () => {
 
 ---
 
-### genSvgAnimate 的内部实现
+### transformTranslate 的内部实现
 
-让我们看看 `genAnimateTranslate` 内部是如何使用 `genSvgKeySplines` 的：
+让我们看看 `transformTranslate` 内部是如何使用 `buildTimeline` 的：
 
 ```tsx
-// 这是 genAnimateTranslate 的简化实现逻辑
-function genAnimateTranslate(config) {
+// 这是 transformTranslate 的简化实现逻辑（@guohub8080/expub-tool/smil）
+function transformTranslate(config) {
   const { initValue, timeline } = config;
 
-  // 1. 分别处理 X 和 Y 轴的参数
-  const xTimeline = timeline.map(seg => ({
-    keySplines: seg.keySplines,
-    toValue: seg.toValue.x,
-    durationSeconds: seg.durationSeconds
+  // 1. 先把 toAbs / toRel 段展开为绝对坐标序列
+  //    （toRel 是相对偏移，会累加到上一帧；toAbs 直接取目标值）
+  const coordinates = buildCoordinates(initX, initY, timeline);
+
+  // 2. 组装完整关键帧（缺省的 keySplines 补线性 "0 0 1 1"）
+  const fullKeyframes = timeline.map((seg, i) => ({
+    durationSeconds: seg.durationSeconds,
+    toAbs: coordinates[i + 1],
+    keySplines: defaultTo(seg.keySplines, LINEAR_KEY_SPLINE)
   }));
 
-  const yTimeline = timeline.map(seg => ({
-    keySplines: seg.keySplines,
-    toValue: seg.toValue.y,
-    durationSeconds: seg.durationSeconds
-  }));
-
-  // 2. 调用 genSvgKeySplines 计算 X 和 Y 的参数
-  const xKeys = genSvgKeySplines({ initValue: initValue.x, timeline: xTimeline });
-  const yKeys = genSvgKeySplines({ initValue: initValue.y, timeline: yTimeline });
-
-  // 3. 合并 X 和 Y 的 values
-  const xyValues = xKeys.values.split(';').map((xVal, i) => {
-    const yVal = yKeys.values.split(';')[i];
-    return `${xVal} ${yVal}`;
-  }).join(';');
+  // 3. 调用 buildTimeline 编译（serializer 把 {x, y} 序列化为 "x y"）
+  const result = buildTimeline({
+    initValue: { x: initX, y: initY },
+    timeline: fullKeyframes,
+    serializer: (v) => `${v.x} ${v.y}`
+  });
 
   // 4. 返回完整的 animateTransform 元素
   return (
     <animateTransform
       attributeName="transform"
       type="translate"
-      values={xyValues}
-      keyTimes={xKeys.keyTimes}
-      keySplines={xKeys.keySplines}
-      dur={`${xKeys.totalDuration}s`}
+      values={result.values}
+      keyTimes={result.keyTimes}
+      keySplines={result.keySplines}
+      dur={`${result.totalDuration}s`}
       calcMode="spline"
     />
   );
 }
 ```
 
-**关键点**：`genSvgAnimate` 内部调用了两次 `genSvgKeySplines`（分别计算 X 和 Y 轴），然后合并结果。
+**关键点**：`transformTranslate` 先用 `buildCoordinates` 把 `toRel` 相对位移累加成绝对坐标，再交给 `buildTimeline` 编译；复杂类型的值通过 `serializer` 自定义序列化。
 
 ---
 
 ## 什么时候用哪个？
 
-### 使用 genSvgKeySplines，当你需要：
+### 使用 buildTimeline，当你需要：
 
 1. **完全自定义动画属性**
    ```tsx
@@ -200,7 +196,7 @@ function genAnimateTranslate(config) {
    - 调试复杂的动画问题
 
 3. **构建自己的动画生成工具**
-   - 类似 genSvgAnimate 的自定义工具
+   - 类似 smil 动画函数的自定义工具
    - 特定领域的动画生成器
 
 4. **处理非标准的动画需求**
@@ -209,18 +205,18 @@ function genAnimateTranslate(config) {
 
 ---
 
-### 使用 genSvgAnimate，当你需要：
+### 使用 smil 动画函数，当你需要：
 
 1. **快速生成常见动画**
    ```tsx
    // 位移
-   genAnimateTranslate({ ... })
+   transformTranslate({ ... })
    // 旋转
-   genAnimateRotate({ ... })
+   transformRotate({ ... })
    // 缩放
-   genAnimateScale({ ... })
+   transformScale({ ... })
    // 透明度
-   genAnimateOpacity({ ... })
+   animateOpacity({ ... })
    ```
 
 2. **不想处理底层细节**
@@ -230,13 +226,13 @@ function genAnimateTranslate(config) {
 3. **直接可用的 SVG 元素**
    ```tsx
    <circle>
-     {genAnimateTranslate({ ... })}  {/* 直接放入即可 */}
+     {transformTranslate({ ... })}  {/* 直接放入即可 */}
    </circle>
    ```
 
 4. **提高开发效率**
-   - 预设效果（fadeBlink、breathe、float 等）
-   - 辅助函数（loop、path 等）
+   - 行为类函数（`@guohub8080/expub-tool/behaviors`：软/硬闪烁、呼吸、漂浮等）
+   - 属性类函数（animateX/animateY/animateR/animateMotion 等）
 
 ---
 
@@ -246,16 +242,19 @@ function genAnimateTranslate(config) {
 
 | 参数 | 类型 | 说明 | 示例 |
 |------|------|------|------|
-| `initValue` | `string \| number` | 动画的初始值 | `0`, `"0px"`, `"red"` |
-| `timeline` | `SvgTimelineSegment[]` | 时间线段数组 | 见下方表 |
+| `initValue` | `T`（必填） | 动画的初始值，values 的第一个点 | `0`, `"0px"` |
+| `timeline` | `I_TimelineKeyframe<T>[]` | 时间线段数组（至少 1 段） | 见下方表 |
+| `serializer` | `(v: T) => string` | 值序列化函数，默认 `String`；translate 等复杂类型需自定义 | `(v) => \`${v.x} ${v.y}\`` |
 
-**SvgTimelineSegment 结构：**
+**I_TimelineKeyframe 结构：**
 
 | 参数 | 类型 | 说明 | 示例 |
 |------|------|------|------|
-| `keySplines` | `string` | 贝塞尔曲线参数 | `"0.42 0 0.58 1"` |
-| `toValue` | `string \| number` | 该段的目标值 | `100`, `"100px"` |
-| `durationSeconds` | `number` | 该段的持续时间（秒） | `2`, `1.5` |
+| `toAbs` | `T`（必填） | 该段的绝对目标值 | `100`, `{ x: 100, y: 0 }` |
+| `durationSeconds` | `number`（必填） | 该段的持续时间（秒） | `2`, `1.5` |
+| `keySplines` | `string`（可选） | 贝塞尔曲线参数，缺省为线性 `"0 0 1 1"` | `"0.42 0 0.58 1"` |
+
+> 注：高层函数（`transformTranslate` / `transformRotate`）的时间线段用的是 `toAbs` / `toRel` 二选一（相对偏移），`buildTimeline` 本身只接受 `toAbs`。
 
 ### 输出结果
 
@@ -274,12 +273,12 @@ function genAnimateTranslate(config) {
 
 **输入：**
 ```typescript
-const result = genSvgKeySplines({
+const result = buildTimeline({
   initValue: 0,
   timeline: [
     {
       keySplines: '0.42 0 0.58 1',
-      toValue: 100,
+      toAbs: 100,
       durationSeconds: 2
     }
   ]
@@ -309,17 +308,17 @@ const result = genSvgKeySplines({
 
 **输入：**
 ```typescript
-const result = genSvgKeySplines({
+const result = buildTimeline({
   initValue: 0,
   timeline: [
     {
       keySplines: '0.42 0 0.58 1',  // ease-in-out
-      toValue: 100,
+      toAbs: 100,
       durationSeconds: 2
     },
     {
       keySplines: '0 0 0.58 1',      // ease-out
-      toValue: 200,
+      toAbs: 200,
       durationSeconds: 3
     }
   ]
@@ -351,22 +350,22 @@ const result = genSvgKeySplines({
 
 **输入：**
 ```typescript
-const result = genSvgKeySplines({
+const result = buildTimeline({
   initValue: 1,
   timeline: [
     {
       keySplines: '0.42 0 0.58 1',
-      toValue: 1.3,
+      toAbs: 1.3,
       durationSeconds: 1
     },
     {
       keySplines: '0.42 0 0.58 1',
-      toValue: 1,
+      toAbs: 1,
       durationSeconds: 1
     },
     {
       keySplines: '0.42 0 0.58 1',
-      toValue: 0.7,
+      toAbs: 0.7,
       durationSeconds: 1
     }
   ]
@@ -418,8 +417,8 @@ values = [初始值, 目标值1, 目标值2, ...]
 
 例如：
 initValue = 0
-第1段 toValue = 100
-第2段 toValue = 200
+第1段 toAbs = 100
+第2段 toAbs = 200
 
 values = "0;100;200"
 ```
@@ -430,6 +429,7 @@ values = "0;100;200"
 keySplines = [第1段, 第2段, ...]
 
 注意：keySplines 的数量 = keyTimes 数量 - 1
+某段未填 keySplines 时自动补线性 "0 0 1 1"
 ```
 
 ---
@@ -440,61 +440,62 @@ keySplines = [第1段, 第2段, ...]
 
 ```typescript
 // ❌ 错误
-genSvgKeySplines({
+buildTimeline({
   initValue: 0,
   timeline: []
 })
-// Error: timeline 必须是非空数组
+// Error: `timeline` must not be empty.
 ```
 
-### keySplines 格式错误
+### initValue 缺失
 
 ```typescript
 // ❌ 错误
-genSvgKeySplines({
-  initValue: 0,
-  timeline: [
-    { keySplines: 'invalid', toValue: 100, durationSeconds: 2 }
-  ]
+buildTimeline({
+  initValue: undefined,
+  timeline: [{ toAbs: 100, durationSeconds: 2 }]
 })
-// Error: 第 0 个 keySplines 格式不正确: "invalid"
-//       应为 "x1 y1 x2 y2" 格式，例如 "0.42 0 0.58 1"
+// Error: `initValue` must not be null or undefined,
+//        SMIL requires values/keyTimes count to match.
 ```
+
+`initValue` 是 values 的第一个点，SMIL 要求 values 与 keyTimes 点数相等（timeline.length + 1），因此它必须显式提供。
 
 ### 总时长为 0
 
 ```typescript
 // ❌ 错误
-genSvgKeySplines({
+buildTimeline({
   initValue: 0,
   timeline: [
-    { keySplines: '0 0 1 1', toValue: 100, durationSeconds: 0 }
+    { keySplines: '0 0 1 1', toAbs: 100, durationSeconds: 0 }
   ]
 })
-// Error: 总时长必须大于 0
+// Error: `totalDuration` must be greater than 0.
 ```
+
+> 注：`buildTimeline` 不校验 keySplines 的格式——写错格式的曲线不会被拦截，只在渲染时表现为异常缓动，请自行确保 `"x1 y1 x2 y2"` 四段数字格式（或直接用包内 `getEaseBezier` 等函数生成）。
 
 ---
 
 ## 配合其他工具使用
 
-### 与 getBezier 配合
+### 与缓动函数配合
 
 ```tsx
-import { genSvgKeySplines } from '@pub-utils/genSvgKeySplines';
-import { getEaseBezier, getPowerBezier } from '@pub-utils/getBezier';
+import { buildTimeline, getEaseBezier, getPowerBezier } from '@guohub8080/expub-tool/smil';
 
-const keys = genSvgKeySplines({
+const keys = buildTimeline({
   initValue: 0,
   timeline: [
     {
       keySplines: getEaseBezier({ isIn: true, isOut: true }),
-      toValue: 100,
+      toAbs: 100,
       durationSeconds: 2
     },
     {
       keySplines: getPowerBezier({ power: 4, isIn: false, isOut: true }),
-      toValue: 200,
+      toAbs: 200,
       durationSeconds: 3
     }
   ]
@@ -507,7 +508,7 @@ const keys = genSvgKeySplines({
 
 - ✅ 计算成本：O(n)，n 为 timeline 段数
 - ✅ 内存占用：小，只生成 4 个字符串
-- ✅ 运行时开销：几乎为零，编译时计算
+- ✅ 运行时开销：几乎为零，纯函数零副作用
 
 ---
 
@@ -515,4 +516,4 @@ const keys = genSvgKeySplines({
 
 - [贝塞尔缓动函数 Bezier](./[6]bezier.mdx) - 如何生成 keySplines 参数
 - [缓动 KeySplines](./[1]keysplines.mdx) - keySplines 在 SVG 中的作用
-- [元素边界 ElementBounds](./[2]element-bounds.mdx) - 控制动画的变换原点
+- [元素边界 ElementBounds](./[2]element-bounds.mdx) - 控制动画的变换支点

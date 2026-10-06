@@ -7,6 +7,7 @@ import { IoLogoGithub } from "react-icons/io5"
 import { svgToolFunctionsConfig } from "@book-svg-tool/data/info.tsx"
 import { userDocumentConfig } from "@books/UserDocument/data/info.tsx"
 import { svgComponentsDocConfig } from "@books/SvgComponentsDoc/data/info.tsx"
+import { WechatCoverIcon } from "@apps/WechatCoverMaker/icon"
 import { publisherToolCards } from "@dev/tools/publisherToolsLoader.tsx"
 import routerPaths from "@dev/router/paths.ts"
 import googleColors from "@assets/colors/googleColors.ts";
@@ -100,17 +101,13 @@ export const initialCards: CardData[] = [
     color: '#3b82f6'
   },
   {
-    id: 'components-preview',
+    id: 'wechat-cover-maker',
     column: 'tools',
-    title: svgComponentsDocConfig.title,
-    description: '带有使用说明的组件文档',
-    icon: (
-      <div className="w-9 h-9">
-        {svgComponentsDocConfig.icon}
-      </div>
-    ),
-    href: routerPaths.svgComponentsDoc,
-    color: '#11AA66'
+    title: '微信封面制作',
+    description: '公众号封面图制作工具',
+    icon: <WechatCoverIcon className="w-9 h-9" />,
+    href: routerPaths.wechatCoverMaker,
+    color: '#639B77'
   },
   {
     id: 'color',
@@ -241,8 +238,21 @@ export const initialCards: CardData[] = [
     color: '#5286FA'
   },
   // publisher 自动注册的工具卡片（来自各 publisher.config.ts 的 tools 字段）
-  // publisher 自动注册的工具卡片（来自各 publisher.config.ts 的 tools 字段）
   ...publisherToolCards,
+  // SVG组件文档 —— 按站长要求固定在工具列表最末
+  {
+    id: 'components-preview',
+    column: 'tools',
+    title: svgComponentsDocConfig.title,
+    description: '带有使用说明的组件文档',
+    icon: (
+      <div className="w-9 h-9">
+        {svgComponentsDocConfig.icon}
+      </div>
+    ),
+    href: routerPaths.svgComponentsDoc,
+    color: '#11AA66'
+  },
 ];
 
 // 所有卡片配置（首页显示 + 系统页面）- 用于Navigation组件

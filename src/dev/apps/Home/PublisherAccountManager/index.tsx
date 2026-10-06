@@ -5,6 +5,7 @@ import { cn } from "@shadcn/lib/utils"
 import { getPublisherLatestArticleId, getArticleListItems } from "@dev/articles/articlesLoader"
 import defaultPublisherConfig from "@dev/articles/default.publisher.tsx"
 import { publisherConfigModules, publisherImageModules } from "@dev/articles/publisherBranches.generated"
+import { useNetworkManifests } from "@dev/articles/networkSources"
 import googleColors from "@dev/styles/static/googleColors.ts"
 
 interface PublisherTheme {
@@ -19,6 +20,8 @@ interface PublisherConfig {
   avatar?: string | React.ReactNode
   avatarRadius?: string
   theme?: PublisherTheme
+  /** 排序权重（降序）；网络源作者经 manifest 传入 */
+  weight?: number
   alias: Record<string, string>
 }
 
@@ -43,6 +46,7 @@ function resolveAvatar(
 
 export default function PublisherAccountManager() {
   const navigate = useNavigate()
+  const networkManifests = useNetworkManifests()
 
   const allPublishers = useMemo<PublisherConfig[]>(() => {
     const result: PublisherConfig[] = []
@@ -68,13 +72,31 @@ export default function PublisherAccountManager() {
       })
     }
 
+    // 追加网络源作者（网络连接制度：manifest 的 publishers 数组，每作者一张卡；id 与本地冲突时本地优先）
+    const localIds = new Set(result.map((p) => p.publisherId))
+    for (const [sourceUrl, manifest] of Object.entries(networkManifests)) {
+      for (const p of manifest.publishers) {
+        if (localIds.has(p.id)) continue
+        result.push({
+          publisherId: p.id,
+          publisherName: p.name,
+          avatar: p.avatar ? `${sourceUrl}/${p.avatar.replace(/^\.\//, '').replace(/^\/+/, '')}` : undefined,
+          avatarRadius: p.avatarRadius,
+          theme: p.theme,
+          weight: p.weight,
+          alias: {},
+        })
+      }
+    }
+
     // 按 weight 降序排序
     result.sort((a, b) => (b.weight || 0) - (a.weight || 0))
 
     return result
-  }, [])
+  }, [networkManifests])
 
-  // 获取每个 publisher 的文章数量
+  // 获取每个 publisher 的文章数量（articleMap 已含网络源注册的文章，直接计数即可——
+  // 此前再按 manifest 累加了一遍 p.articles.length，网络文章被双计）
   const publisherArticleCounts = useMemo(() => {
     const counts: Record<string, number> = {}
     const allArticles = getArticleListItems()
@@ -83,7 +105,20 @@ export default function PublisherAccountManager() {
       counts[pubId] = (counts[pubId] || 0) + 1
     }
     return counts
-  }, [])
+    // networkManifests 变化 = 网络文章刚注册进 articleMap（模块级、非响应式），借它触发重算
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [networkManifests])
+
+  // 网络作者的最新文章 id（manifest 内按日期取最大；本地 articleMap 查不到网络作者）
+  const latestNetworkArticleId = (publisherId: string): string | undefined => {
+    for (const manifest of Object.values(networkManifests)) {
+      const p = manifest.publishers.find((x) => x.id === publisherId)
+      if (p && p.articles.length > 0) {
+        return [...p.articles].sort((a, b) => b.date.localeCompare(a.date))[0].id
+      }
+    }
+    return undefined
+  }
 
   return (
     <div className="flex flex-col items-center gap-8 mt-8">
@@ -113,7 +148,7 @@ export default function PublisherAccountManager() {
             <BookCard
               key={publisher.publisherId}
               onClick={() => {
-                const latestId = getPublisherLatestArticleId(publisher.publisherId)
+                const latestId = getPublisherLatestArticleId(publisher.publisherId) ?? latestNetworkArticleId(publisher.publisherId)
                 if (latestId) {
                   navigate(`/view/${publisher.publisherId}/${latestId}`)
                 } else {

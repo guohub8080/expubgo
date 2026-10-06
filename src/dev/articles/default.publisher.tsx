@@ -22,7 +22,7 @@ export default {
   theme: {
     spine: ["#a8b8ca", "#64748b"],
     cover: ["#f1f5f9", "#e2e8f0"],
-  },
+  } as { spine: [string, string]; cover: [string, string] },
   weight: 0,
   articleDir: "./examples",
   alias: {},

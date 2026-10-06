@@ -1,6 +1,6 @@
 import React from "react";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
-import { genAnimateFloat } from "@svg-anim/float";
+import { transformFloat } from "@guohub8080/expub-tool/behaviors";
 
 // ============================================ BasicFloat Component ============================================
 
@@ -9,7 +9,7 @@ export const BasicFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g>
-                    {genAnimateFloat({ floatRangeY: 20, durationSeconds: 4 })}
+                    {transformFloat({ floatRangeY: 20, duration: 4 })}
                     <circle cx="100" cy="100" r="50" fill="blue" />
                 </g>
             </svg>
@@ -24,7 +24,7 @@ export const VerticalFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g>
-                    {genAnimateFloat({ floatRangeY: 30, durationSeconds: 3 })}
+                    {transformFloat({ floatRangeY: 30, duration: 3 })}
                     <circle cx="100" cy="100" r="50" fill="green" />
                 </g>
             </svg>
@@ -39,7 +39,7 @@ export const HorizontalFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g>
-                    {genAnimateFloat({ floatRangeX: 30, floatRangeY: 0, durationSeconds: 3 })}
+                    {transformFloat({ floatRangeX: 30, floatRangeY: 0, duration: 3 })}
                     <circle cx="100" cy="100" r="50" fill="orange" />
                 </g>
             </svg>
@@ -54,7 +54,7 @@ export const DiagonalFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g>
-                    {genAnimateFloat({ floatRangeX: 20, floatRangeY: 20, durationSeconds: 3 })}
+                    {transformFloat({ floatRangeX: 20, floatRangeY: 20, duration: 3 })}
                     <circle cx="100" cy="100" r="50" fill="purple" />
                 </g>
             </svg>
@@ -69,7 +69,7 @@ export const FastFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g>
-                    {genAnimateFloat({ floatRangeY: 15, durationSeconds: 1.5 })}
+                    {transformFloat({ floatRangeY: 15, duration: 1.5 })}
                     <circle cx="100" cy="100" r="50" fill="red" />
                 </g>
             </svg>
@@ -84,7 +84,7 @@ export const SlowFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g>
-                    {genAnimateFloat({ floatRangeY: 25, durationSeconds: 6 })}
+                    {transformFloat({ floatRangeY: 25, duration: 6 })}
                     <circle cx="100" cy="100" r="50" fill="teal" />
                 </g>
             </svg>
@@ -99,7 +99,7 @@ export const GentleFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g>
-                    {genAnimateFloat({ floatRangeY: 10, durationSeconds: 4 })}
+                    {transformFloat({ floatRangeY: 10, duration: 4 })}
                     <circle cx="100" cy="100" r="50" fill="pink" />
                 </g>
             </svg>
@@ -114,7 +114,7 @@ export const StrongFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g>
-                    {genAnimateFloat({ floatRangeY: 40, durationSeconds: 3 })}
+                    {transformFloat({ floatRangeY: 40, duration: 3 })}
                     <circle cx="100" cy="100" r="50" fill="indigo" />
                 </g>
             </svg>

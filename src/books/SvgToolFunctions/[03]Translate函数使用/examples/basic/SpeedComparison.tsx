@@ -1,5 +1,5 @@
 import SectionEx from "@pub-html/basicEx/SectionEx";
-import { genAnimateTranslate } from "@svg-anim/translate";
+import { transformTranslate } from "@guohub8080/expub-tool/smil";
 
 export const SpeedComparison = () => {
     return (
@@ -14,11 +14,11 @@ export const SpeedComparison = () => {
                     {/* 慢速（4秒） */}
                     <text x="20" y="45" fontSize="14" fill="#333" dominantBaseline="middle">慢速（4秒）</text>
                     <circle cx="130" cy="45" r="15" fill="#FF5733">
-                        {genAnimateTranslate({
+                        {transformTranslate({
                             initValue: { x: 0, y: 0 },
                             timeline: [
-                                { toValue: { x: 420, y: 0 }, durationSeconds: 4 },
-                                { toValue: { x: 0, y: 0 }, durationSeconds: 0.3 }
+                                { toRel: { x: 420, y: 0 }, durationSeconds: 4 },
+                                { toRel: { x: 0, y: 0 }, durationSeconds: 0.3 }
                             ],
                             loopCount: 0
                         })}
@@ -27,11 +27,11 @@ export const SpeedComparison = () => {
                     {/* 中速（2秒） */}
                     <text x="20" y="85" fontSize="14" fill="#333" dominantBaseline="middle">中速（2秒）</text>
                     <circle cx="130" cy="85" r="15" fill="#33FF57">
-                        {genAnimateTranslate({
+                        {transformTranslate({
                             initValue: { x: 0, y: 0 },
                             timeline: [
-                                { toValue: { x: 420, y: 0 }, durationSeconds: 2 },
-                                { toValue: { x: 0, y: 0 }, durationSeconds: 0.3 }
+                                { toRel: { x: 420, y: 0 }, durationSeconds: 2 },
+                                { toRel: { x: 0, y: 0 }, durationSeconds: 0.3 }
                             ],
                             loopCount: 0
                         })}
@@ -40,11 +40,11 @@ export const SpeedComparison = () => {
                     {/* 快速（0.5秒） */}
                     <text x="20" y="125" fontSize="14" fill="#333" dominantBaseline="middle">快速（0.5秒）</text>
                     <circle cx="130" cy="125" r="15" fill="#3357FF">
-                        {genAnimateTranslate({
+                        {transformTranslate({
                             initValue: { x: 0, y: 0 },
                             timeline: [
-                                { toValue: { x: 420, y: 0 }, durationSeconds: 0.5 },
-                                { toValue: { x: 0, y: 0 }, durationSeconds: 0.3 }
+                                { toRel: { x: 420, y: 0 }, durationSeconds: 0.5 },
+                                { toRel: { x: 0, y: 0 }, durationSeconds: 0.3 }
                             ],
                             loopCount: 0
                         })}

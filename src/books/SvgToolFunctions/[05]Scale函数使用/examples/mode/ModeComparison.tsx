@@ -1,4 +1,4 @@
-import { genAnimateScale } from "@svg-anim/scale";
+import { transformScale } from "@guohub8080/expub-tool/smil";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
 
 export const ModeComparison = () => {
@@ -9,17 +9,17 @@ export const ModeComparison = () => {
                 <circle cx="100" cy="100" r="4" fill="#666" />
                 <text x="100" y="185" textAnchor="middle" fontSize="11" fill="#999">中心 (100,100)</text>
 
-                {/* 相对模式 - 左侧蓝色 */}
+                {/* 相对模式（累计写法） - 左侧蓝色 */}
                 <g>
                     <circle cx="45" cy="100" r="20" fill="blue" opacity="0.8">
-                        {genAnimateScale({
-                            origin: [45, 100],
-                            initScale: 1,
-                            isRelativeScale: true,
+                        {transformScale({
+                            pivot: [45, 100],
+                            initValue: 1,
+                            // 累计写法：以当前值为基准心算（1×2=2 → 2×0.5=1 → 1×1.5=1.5）
                             timeline: [
-                                { toValue: 2, durationSeconds: 1 },
-                                { toValue: 0.5, durationSeconds: 1 },
-                                { toValue: 1.5, durationSeconds: 1 }
+                                { toAbs: 2, durationSeconds: 1 },
+                                { toAbs: 1, durationSeconds: 1 },
+                                { toAbs: 1.5, durationSeconds: 1 }
                             ],
                             loopCount: 0
                         })}
@@ -27,17 +27,17 @@ export const ModeComparison = () => {
                     <text x="45" y="50" textAnchor="middle" fontSize="11" fill="#666">相对</text>
                 </g>
 
-                {/* 绝对模式 - 右侧绿色 */}
+                {/* 绝对模式（绝对写法） - 右侧绿色 */}
                 <g>
                     <circle cx="155" cy="100" r="20" fill="green" opacity="0.8">
-                        {genAnimateScale({
-                            origin: [155, 100],
-                            initScale: 1,
-                            isRelativeScale: false,
+                        {transformScale({
+                            pivot: [155, 100],
+                            initValue: 1,
+                            // 绝对写法：直接写目标倍数，保持需重复写同一值
                             timeline: [
-                                { toValue: 2, durationSeconds: 1 },
-                                { toValue: 2, durationSeconds: 1 },
-                                { toValue: 1.5, durationSeconds: 1 }
+                                { toAbs: 2, durationSeconds: 1 },
+                                { toAbs: 2, durationSeconds: 1 },
+                                { toAbs: 1.5, durationSeconds: 1 }
                             ],
                             loopCount: 0
                         })}

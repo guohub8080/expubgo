@@ -27,7 +27,7 @@ const isSingleFile = process.env.SINGLE_FILE === 'true';
 
 // 从 publishers/ 目录动态扫描（含 publisher.config.ts 的直接子目录）——公共配置不硬编码任何目录名；
 // 与 generate-publisher-branches.cjs 的扫描逻辑同源，保证 define 与生成文件内的守卫一致
-const PUBLISHERS_ROOT = path.resolve(__dirname, 'publishers')
+const PUBLISHERS_ROOT = path.resolve(import.meta.dirname, 'publishers')
 const ALL_PUBLISHERS: string[] = fs.existsSync(PUBLISHERS_ROOT)
   ? fs.readdirSync(PUBLISHERS_ROOT, { withFileTypes: true })
       .filter(e => e.isDirectory() && !e.name.startsWith('.'))
@@ -67,7 +67,7 @@ function postInlineAssetsPlugin(): Plugin {
     enforce: 'post',
     apply: 'build',
     closeBundle() {
-      const distDir = path.resolve(__dirname, 'dist-pkg')
+      const distDir = path.resolve(import.meta.dirname, 'dist-pkg')
       const htmlPath = path.join(distDir, 'index.html')
       if (!fs.existsSync(htmlPath)) return
 
@@ -241,7 +241,7 @@ function inlineSvgPlugin(): Plugin {
  * 这样新增 publisher 时只需创建目录 + publisher.config.ts，无需修改 vite.config.ts
  */
 function generatePublisherAliases(): Record<string, string> {
-  const publishersDir = path.resolve(__dirname, './publishers')
+  const publishersDir = path.resolve(import.meta.dirname, './publishers')
   const aliases: Record<string, string> = {}
 
   if (!fs.existsSync(publishersDir)) {
@@ -329,14 +329,14 @@ function generatePublisherAliases(): Record<string, string> {
 
       // 添加精确匹配别名（如 @demo → .../components）
       aliases[aliasName] = targetPath
-      console.log(`[publisher-alias] ${aliasName} → ${path.relative(__dirname, targetPath)}`)
+      console.log(`[publisher-alias] ${aliasName} → ${path.relative(import.meta.dirname, targetPath)}`)
 
       // 如果目标路径是目录，同时添加 /* 前缀匹配别名（如 @demo/xxx → .../components/xxx）
       const stat = fs.statSync(targetPath)
       if (stat.isDirectory()) {
         const wildcardAlias = `${aliasName}/*`
         aliases[wildcardAlias] = targetPath
-        console.log(`[publisher-alias] ${wildcardAlias} → ${path.relative(__dirname, targetPath)}`)
+        console.log(`[publisher-alias] ${wildcardAlias} → ${path.relative(import.meta.dirname, targetPath)}`)
       }
     }
 
@@ -392,29 +392,33 @@ export default defineConfig({
     format: 'es',
   },
   resolve: {
+    // link: 走 realpath，包内 dist 对 react/react-dom 的裸导入会解析到包自己的
+    // node_modules（第二实例 → hooks 报错）；dedupe 强制整树单实例
+    // （@guohub8080/expub-tool/xray 起，包首次带 React 代码）
+    dedupe: ["react", "react-dom"],
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "@dev": path.resolve(__dirname, "./src/dev"),
-      "@comps": path.resolve(__dirname, "./src/dev/components"),
-      "@apps": path.resolve(__dirname, "./src/dev/apps"),
-      "@styles": path.resolve(__dirname, "./src/dev/styles"),
-      "@assets": path.resolve(__dirname, "./src/dev/assets"),
-      "@utils": path.resolve(__dirname, "./src/dev/utils"),
-      "@vite-dev": path.resolve(__dirname, "./src/dev/utils/vite-dev"),
-      "@api": path.resolve(__dirname, "./src/dev/api"),
-      "@pub-html": path.resolve(__dirname, "./src/dev/pubComponents/PureHTML"),
-      "@pub-svg": path.resolve(__dirname, "./src/dev/pubComponents/SVG"),
-      "@sns": path.resolve(__dirname, "./src/dev/pubComponents/SnsTemplate"),
-      "@pub-utils": path.resolve(__dirname, "./src/dev/pubUtils"),
-      "@svg-anim": path.resolve(__dirname, "./src/dev/pubUtils/genSvgAnimate"),
-      "@svg-set": path.resolve(__dirname, "./src/dev/pubUtils/genSvgAnimate/set"),
-      "@book-svg-tool": path.resolve(__dirname, "./src/books/SvgToolFunctions"),
-      "@shadcn": path.resolve(__dirname, "./src/dev/shadcn"),
-      "@books": path.resolve(__dirname, "./src/books"),
-      "@articles": path.resolve(__dirname, "./src/articles"),
-      "@publishers": path.resolve(__dirname, "./publishers"),
-      "@mdx": path.resolve(__dirname, "./src/dev/components/mdx"),
-      "@book-comps": path.resolve(__dirname, "./src/dev/components/bookComponents"),
+      "@": path.resolve(import.meta.dirname, "./src"),
+      "@dev": path.resolve(import.meta.dirname, "./src/dev"),
+      "@comps": path.resolve(import.meta.dirname, "./src/dev/components"),
+      "@apps": path.resolve(import.meta.dirname, "./src/dev/apps"),
+      "@styles": path.resolve(import.meta.dirname, "./src/dev/styles"),
+      "@assets": path.resolve(import.meta.dirname, "./src/dev/assets"),
+      "@utils": path.resolve(import.meta.dirname, "./src/dev/utils"),
+      "@vite-dev": path.resolve(import.meta.dirname, "./src/dev/utils/vite-dev"),
+      "@api": path.resolve(import.meta.dirname, "./src/dev/api"),
+      "@pub-html": path.resolve(import.meta.dirname, "./src/dev/pubComponents/PureHTML"),
+      "@pub-svg": path.resolve(import.meta.dirname, "./src/dev/pubComponents/SVG"),
+      "@sns": path.resolve(import.meta.dirname, "./src/dev/pubComponents/SnsTemplate"),
+      "@pub-utils": path.resolve(import.meta.dirname, "./src/dev/pubUtils"),
+      "@svg-anim": path.resolve(import.meta.dirname, "./src/dev/pubUtils/genSvgAnimate"),
+      "@svg-set": path.resolve(import.meta.dirname, "./src/dev/pubUtils/genSvgAnimate/set"),
+      "@book-svg-tool": path.resolve(import.meta.dirname, "./src/books/SvgToolFunctions"),
+      "@shadcn": path.resolve(import.meta.dirname, "./src/dev/shadcn"),
+      "@books": path.resolve(import.meta.dirname, "./src/books"),
+      "@articles": path.resolve(import.meta.dirname, "./src/articles"),
+      "@publishers": path.resolve(import.meta.dirname, "./publishers"),
+      "@mdx": path.resolve(import.meta.dirname, "./src/dev/components/mdx"),
+      "@book-comps": path.resolve(import.meta.dirname, "./src/dev/components/bookComponents"),
       // 动态扫描 publishers 目录生成 @短路径 别名
       ...generatePublisherAliases(),
       path: "path-browserify",
@@ -432,31 +436,20 @@ export default defineConfig({
     host: true, // 允许局域网访问（手机同 WiFi 测试 + cloudflared tunnel）
     // 允许通过 cloudflared tunnel 绑定的域名访问（Vite 默认只允许 localhost，会 403）
     allowedHosts: ['dev.guohub.top'],
-    proxy: {
-      // 代理微信图片
-      '/api/wechat-img': {
-        target: 'https://mmbiz.qpic.cn',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/wechat-img/, ''),
-        configure: (proxy, options) => {
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            // 移除所有可能暴露来源的请求头
-            proxyReq.removeHeader('referer');
-            proxyReq.removeHeader('origin');
-            proxyReq.removeHeader('host');
-            // 设置伪装请求头，模拟微信客户端
-            proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-            proxyReq.setHeader('Accept', 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8');
-            proxyReq.setHeader('Accept-Encoding', 'gzip, deflate, br');
-            proxyReq.setHeader('Accept-Language', 'zh-CN,zh;q=0.9,en;q=0.8');
-            // 添加微信相关的 header
-            proxyReq.setHeader('Sec-Fetch-Dest', 'image');
-            proxyReq.setHeader('Sec-Fetch-Mode', 'no-cors');
-            proxyReq.setHeader('Sec-Fetch-Site', 'cross-site');
-          });
-        }
-      }
-    }
+    // ══════ 【临时注释 2026-10-06】微信图代理——纯插件模式测试②（全链路关闭），看完还原 ══════
+    // 还原：删除本标记块，恢复下方 proxy 块的注释即可
+    // proxy: {
+    //   '/api/wechat-img': {
+    //     target: 'https://mmbiz.qpic.cn',
+    //     changeOrigin: true,
+    //     rewrite: (path) => path.replace(/^\/api\/wechat-img/, ''),
+    //     configure: (proxy) => {
+    //       proxy.on('proxyReq', (proxyReq) => {
+    //         proxyReq.setHeader('Referer', 'https://mp.weixin.qq.com/')
+    //       })
+    //     },
+    //   }
+    // }
   },
 
   build: {
@@ -478,11 +471,16 @@ export default defineConfig({
           manualChunks: undefined,
         } : {
           // 将第三方依赖库单独打包成一个文件
-          manualChunks: {
-            react: ['react', 'react-dom', 'react-use'],
-            baseTool: ['es-toolkit', 'ramda', 'ahooks'],
-            dayjs: ['dayjs'],
-            monaco: ['monaco-editor', '@monaco-editor/react']
+          // vite 8(rolldown) 只收函数形 manualChunks（对象形报 "manualChunks is not a function"）：
+          // 按 module.id 命中包名归组，未命中的返回 undefined 走默认拆包
+          manualChunks: (id: string) => {
+            if (id.includes('node_modules')) {
+              if (/[\\/](react|react-dom|scheduler|react-use)[\\/]/.test(id)) return 'react'
+              if (/[\\/](es-toolkit|ramda|ahooks)[\\/]/.test(id)) return 'baseTool'
+              if (/[\\/]dayjs[\\/]/.test(id)) return 'dayjs'
+              if (/[\\/](monaco-editor|@monaco-editor)[\\/]/.test(id)) return 'monaco'
+            }
+            return undefined
           }
         })
       }

@@ -4,7 +4,9 @@
 	<meta charset="UTF-8"/>
 	<link rel="icon" type="image/svg+xml" href="/src/dev/assets/svgs/logoSvg/favicon.svg"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-	<meta name="referrer" content="no-referrer">
+	<!-- ══ 【临时注释 2026-10-06】referrer 策略——插件判别测试：让页面真正发送 Referer，看完还原 ══
+	     还原：删除本注释块，恢复 <meta name="referrer" content="no-referrer"> -->
+	<!-- <meta name="referrer" content="no-referrer"> -->
 	<title>ExPubGo</title>
 	<style>
 		.tmp-loading-wrapper {
@@ -29,6 +31,7 @@
 
 		.tmp-loading-icon {
 			width: 120px;
+			max-width: 33%;
 			height: 120px;
 			margin: 0 auto 16px;
 			animation: tmp-loading-float 3s ease-in-out infinite;

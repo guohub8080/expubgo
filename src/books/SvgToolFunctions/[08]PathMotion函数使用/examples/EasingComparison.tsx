@@ -1,5 +1,5 @@
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
-import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+import { animateMotion } from "@guohub8080/expub-tool/smil";
 
 export const EasingComparison = () => {
     return (
@@ -16,7 +16,7 @@ export const EasingComparison = () => {
                     <text x="80" y="0" fontSize="13" fill="#9ca3af">匀速</text>
                     <path d="M 80 30 Q 300 5 420 30" stroke="#e5e7eb" strokeWidth="2" strokeDasharray="4,4" fill="none" />
                     <circle r="10" fill="#ef4444">
-                        {genAnimatePathMotion({
+                        {animateMotion({
                             path: "M 80 30 Q 300 5 420 30",
                             durationSeconds: 2,
                             rotate: 0,
@@ -31,7 +31,7 @@ export const EasingComparison = () => {
                     <text x="80" y="0" fontSize="13" fill="#9ca3af">慢-快-慢</text>
                     <path d="M 80 30 Q 300 5 420 30" stroke="#e5e7eb" strokeWidth="2" strokeDasharray="4,4" fill="none" />
                     <circle r="10" fill="#f97316">
-                        {genAnimatePathMotion({
+                        {animateMotion({
                             path: "M 80 30 Q 300 5 420 30",
                             durationSeconds: 2,
                             calcMode: 'spline',
@@ -49,7 +49,7 @@ export const EasingComparison = () => {
                     <text x="80" y="0" fontSize="13" fill="#9ca3af">慢启动</text>
                     <path d="M 80 30 Q 300 5 420 30" stroke="#e5e7eb" strokeWidth="2" strokeDasharray="4,4" fill="none" />
                     <circle r="10" fill="#eab308">
-                        {genAnimatePathMotion({
+                        {animateMotion({
                             path: "M 80 30 Q 300 5 420 30",
                             durationSeconds: 2,
                             calcMode: 'spline',
@@ -67,7 +67,7 @@ export const EasingComparison = () => {
                     <text x="80" y="0" fontSize="13" fill="#9ca3af">慢结束</text>
                     <path d="M 80 30 Q 300 5 420 30" stroke="#e5e7eb" strokeWidth="2" strokeDasharray="4,4" fill="none" />
                     <circle r="10" fill="#22c55e">
-                        {genAnimatePathMotion({
+                        {animateMotion({
                             path: "M 80 30 Q 300 5 420 30",
                             durationSeconds: 2,
                             calcMode: 'spline',
@@ -85,7 +85,7 @@ export const EasingComparison = () => {
                     <text x="80" y="0" fontSize="13" fill="#9ca3af">慢两端</text>
                     <path d="M 80 30 Q 300 5 420 30" stroke="#e5e7eb" strokeWidth="2" strokeDasharray="4,4" fill="none" />
                     <circle r="10" fill="#3b82f6">
-                        {genAnimatePathMotion({
+                        {animateMotion({
                             path: "M 80 30 Q 300 5 420 30",
                             durationSeconds: 2,
                             calcMode: 'spline',

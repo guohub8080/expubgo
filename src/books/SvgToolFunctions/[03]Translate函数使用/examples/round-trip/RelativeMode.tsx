@@ -1,6 +1,6 @@
 import SectionEx from "@pub-html/basicEx/SectionEx";
 import { ReplayButton } from "../ReplayButton";
-import { genAnimateTranslate } from "@svg-anim/translate";
+import { transformTranslate } from "@guohub8080/expub-tool/smil";
 
 export const RelativeMode = () => {
     return (
@@ -28,13 +28,12 @@ export const RelativeMode = () => {
 
                         {/* 移动的圆形 */}
                         <circle cx="80" cy="45" r="16" fill="#3498db">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
-                                isRelativeMove: true,
                                 timeline: [
-                                    { toValue: { x: 300, y: 0 }, durationSeconds: 1 },
-                                    { toValue: { x: -300, y: 0 }, durationSeconds: 0.5 },
-                                    { toValue: { x: 150, y: 0 }, durationSeconds: 1 }
+                                    { toRel: { x: 300, y: 0 }, durationSeconds: 1 },
+                                    { toRel: { x: -300, y: 0 }, durationSeconds: 0.5 },
+                                    { toRel: { x: 150, y: 0 }, durationSeconds: 1 }
                                 ],
                                 isFreeze: true
                             })}

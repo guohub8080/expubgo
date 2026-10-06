@@ -3,9 +3,10 @@
  */
 import * as React from "react"
 import { defaultTo } from "es-toolkit/compat"
-import { useIsMobile } from "../../../../shadcn/hooks/use-mobile.ts"
-import { cn } from "../../../../shadcn/lib/utils.ts"
-import { TooltipProvider } from "../../../../shadcn/components/ui/tooltip.tsx"
+import { useWindowSize } from "react-use"
+import { cn } from "@shadcn/lib/utils.ts"
+import { TooltipProvider } from "@shadcn/components/ui/tooltip.tsx"
+import { BOOK_MOBILE_BREAKPOINT } from "./bookBreakpoint.ts"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -50,7 +51,9 @@ export function BookSidebarProvider({
   openMobile?: boolean
   onOpenMobileChange?: (open: boolean) => void
 }) {
-  const isMobile = useIsMobile()
+  // useWindowSize（客户端首帧即真实值，无 undefined 窗口）；断点共享常量 bookBreakpoint.ts
+  const { width: windowWidth } = useWindowSize()
+  const isMobile = windowWidth < BOOK_MOBILE_BREAKPOINT
   const [_openMobile, _setOpenMobile] = React.useState(false)
   const openMobile = defaultTo(openMobileProp, _openMobile)
   const setOpenMobile = React.useCallback(

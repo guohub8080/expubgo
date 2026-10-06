@@ -4,7 +4,7 @@ import { DrawAndErase, LoopDraw, WalkAndStop, WalkStopErase, StepByStep } from "
 
 # {title}
 
-时间线（timeline）是 `genAnimatePathStroke` 的核心，通过多段配置实现复杂的绘制效果。每一段动画定义一个起始偏移量和结束偏移量。
+时间线（timeline）是 `animatePathStroke` 的核心，通过多段配置实现复杂的绘制效果。每一段动画定义一个起始偏移量和结束偏移量。
 
 ---
 
@@ -14,8 +14,8 @@ import { DrawAndErase, LoopDraw, WalkAndStop, WalkStopErase, StepByStep } from "
 
 ```tsx
 timeline: [
-  { durationSeconds: 2, toValue: 0 },    // 第1段：2秒内画到完全显示
-  { durationSeconds: 1, toValue: 500 },    // 第2段：1秒内擦除到500
+  { durationSeconds: 2, toAbs: 0 },    // 第1段：2秒内画到完全显示
+  { durationSeconds: 1, toAbs: 500 },    // 第2段：1秒内擦除到500
 ]
 ```
 
@@ -24,7 +24,7 @@ timeline: [
 | 参数 | 类型 | 说明 | 默认值 |
 |------|------|------|--------|
 | `durationSeconds` | number | 该段的持续时间（秒）| - |
-| `toValue` | number | 目标偏移量 | 上一段的偏移量 |
+| `toAbs` | number | 目标偏移量 | 必填 |
 | `keySplines` | string | 贝塞尔缓动参数，格式 `"x1 y1 x2 y2"` | `"0 0 1 1"` (线性) |
 
 ---
@@ -36,25 +36,26 @@ timeline: [
 **代码示例：**
 
 ```tsx
-import { genAnimatePathStroke } from "@svg-anim/pathStroke";
+import { animatePathStroke } from "@guohub8080/expub-tool/smil";
 
 <svg width="300" height="200" viewBox="0 0 300 200">
-  {genAnimatePathStroke({
-    pathLength: 300,
-    timeline: [
-      { durationSeconds: 1.5, toValue: 0 },    // 绘制
-      { durationSeconds: 1, toValue: 300 }      // 擦除
-    ],
-    element: (
-      <path
-        d="M 60 100 Q 100 60 140 100 T 220 100"
-        stroke="#10b981"
-        strokeWidth="3"
-        fill="none"
-        strokeLinecap="round"
-      />
-    )
-  })}
+  <path
+    d="M 60 100 Q 100 60 140 100 T 220 100"
+    stroke="#10b981"
+    strokeWidth="3"
+    fill="none"
+    strokeLinecap="round"
+    strokeDasharray="300 300"
+    strokeDashoffset={300}
+  >
+    {animatePathStroke({
+      pathLength: 300,
+      timeline: [
+        { durationSeconds: 1.5, toAbs: 0 },    // 绘制
+        { durationSeconds: 1, toAbs: 300 }      // 擦除
+      ]
+    })}
+  </path>
 </svg>
 ```
 
@@ -66,7 +67,7 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 - `pathLength: 300` - 曲线路径长度
 - 第1段：1.5秒内从隐藏（300）画到完全显示（0）
 - 第2段：1秒内从完全显示（0）擦除到隐藏（300）
-- 动画结束后返回起点（`freeze: false` 默认会返回）
+- 动画结束后保持隐藏（`isFreeze` 默认 true）
 
 ---
 
@@ -77,26 +78,27 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 **代码示例：**
 
 ```tsx
-import { genAnimatePathStroke } from "@svg-anim/pathStroke";
+import { animatePathStroke } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
-  {genAnimatePathStroke({
-    pathLength: 600,
-    timeline: [
-      { durationSeconds: 2, toValue: 0 },      // 绘制
-      { durationSeconds: 1, toValue: 600 }      // 擦除
-    ],
-    loopCount: 0,  // 无限循环
-    element: (
-      <path
-        d="M 100 100 m -5 0 a 5 5 0 1 0 10 0 a 10 10 0 1 0 -20 0 a 15 15 0 1 0 30 0 a 20 20 0 1 0 -40 0 a 25 25 0 1 0 50 0"
-        stroke="#8b5cf6"
-        strokeWidth="2"
-        fill="none"
-        strokeLinecap="round"
-      />
-    )
-  })}
+  <path
+    d="M 100 100 m -5 0 a 5 5 0 1 0 10 0 a 10 5 0 1 0 -20 0 a 15 15 0 1 0 30 0 a 20 20 0 1 0 -40 0 a 25 25 0 1 0 50 0"
+    stroke="#8b5cf6"
+    strokeWidth="2"
+    fill="none"
+    strokeLinecap="round"
+    strokeDasharray="600 600"
+    strokeDashoffset={600}
+  >
+    {animatePathStroke({
+      pathLength: 600,
+      timeline: [
+        { durationSeconds: 2, toAbs: 0 },      // 绘制
+        { durationSeconds: 1, toAbs: 600 }      // 擦除
+      ],
+      loopCount: 0,  // 无限循环
+    })}
+  </path>
 </svg>
 ```
 
@@ -126,39 +128,36 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 
 ```tsx
 // 单次播放（默认）
-{genAnimatePathStroke({
+{animatePathStroke({
   pathLength: 500,
   timeline: [
-    { durationSeconds: 2, toValue: 0 }
+    { durationSeconds: 2, toAbs: 0 }
   ],
-  loopCount: 1,
-  element: <path d="..." stroke="..." />
+  loopCount: 1
 })}
 
 // 播放3次
-{genAnimatePathStroke({
+{animatePathStroke({
   pathLength: 500,
   timeline: [
-    { durationSeconds: 2, toValue: 0 }
+    { durationSeconds: 2, toAbs: 0 }
   ],
-  loopCount: 3,
-  element: <path d="..." stroke="..." />
+  loopCount: 3
 })}
 
 // 无限循环
-{genAnimatePathStroke({
+{animatePathStroke({
   pathLength: 500,
   timeline: [
-    { durationSeconds: 2, toValue: 0 }
+    { durationSeconds: 2, toAbs: 0 }
   ],
-  loopCount: 0,
-  element: <path d="..." stroke="..." />
+  loopCount: 0
 })}
 ```
 
 ---
 
-## 最终状态（freeze）
+## 最终状态（isFreeze）
 
 控制动画结束后是否保持最终状态。
 
@@ -171,44 +170,41 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 
 ```tsx
 // 保持绘制完成的状态
-{genAnimatePathStroke({
+{animatePathStroke({
   pathLength: 500,
   timeline: [
-    { durationSeconds: 2, toValue: 0 }
+    { durationSeconds: 2, toAbs: 0 }
   ],
-  freeze: true,  // 默认值
-  element: <path d="..." stroke="..." />
+  isFreeze: true  // 默认值
 })}
 
 // 动画结束后返回起点
-{genAnimatePathStroke({
+{animatePathStroke({
   pathLength: 500,
   timeline: [
-    { durationSeconds: 2, toValue: 0 }
+    { durationSeconds: 2, toAbs: 0 }
   ],
-  freeze: false,
-  element: <path d="..." stroke="..." />
+  isFreeze: false
 })}
 ```
 
-**注意：** 无限循环时 `freeze` 参数无效
+**注意：** 无限循环时 `isFreeze` 参数无效
 
 ---
 
-## 延迟开始（delay）
+## 延迟开始（begin: 'Ns'）
 
-动画开始前的等待时间。
+动画开始前的等待时间，用 `begin` 的延迟写法表达。
 
 **代码示例：**
 
 ```tsx
-{genAnimatePathStroke({
+{animatePathStroke({
   pathLength: 500,
-  delay: 2,  // 延迟2秒后开始
+  begin: "2s",  // 延迟2秒后开始
   timeline: [
-    { durationSeconds: 2, toValue: 0 }
-  ],
-  element: <path d="..." stroke="..." />
+    { durationSeconds: 2, toAbs: 0 }
+  ]
 })}
 ```
 
@@ -222,25 +218,25 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 
 ### 技巧1：保持偏移量
 
-如果不指定 `toValue`，该段会保持上一段的偏移量：
+`toAbs` 是必填的，想让某段"停在原地"，就把 `toAbs` 写成与上一段相同的值：
 
 ```tsx
 timeline: [
-  { durationSeconds: 2, toValue: 0 },      // 绘制
-  { durationSeconds: 1 },                      // 保持1秒（不写toValue）
-  { durationSeconds: 1.5, toValue: 500 }     // 擦除
+  { durationSeconds: 2, toAbs: 0 },      // 绘制
+  { durationSeconds: 1, toAbs: 0 },          // 保持1秒（重复写相同的 toAbs）
+  { durationSeconds: 1.5, toAbs: 500 }     // 擦除
 ]
 ```
 
 ### 技巧2：跳转到特定值
 
-使用 `toValue` 直接跳到指定的偏移量：
+使用 `toAbs` 直接跳到指定的偏移量：
 
 ```tsx
 timeline: [
-  { durationSeconds: 1, toValue: 250 },    // 跳到半显示
-  { durationSeconds: 1, toValue: 0 },      // 跳到完全显示
-  { durationSeconds: 1, toValue: 500 }     // 跳到隐藏
+  { durationSeconds: 1, toAbs: 250 },    // 跳到半显示
+  { durationSeconds: 1, toAbs: 0 },      // 跳到完全显示
+  { durationSeconds: 1, toAbs: 500 }     // 跳到隐藏
 ]
 ```
 
@@ -248,11 +244,11 @@ timeline: [
 
 ```tsx
 timeline: [
-  { durationSeconds: 1, toValue: 0 },      // 快速绘制
-  { durationSeconds: 2 },                      // 停留2秒
-  { durationSeconds: 1, toValue: 500 },    // 慢速擦除
-  { durationSeconds: 0.5 },                    // 停留0.5秒
-  { durationSeconds: 1.5, toValue: 0 }      // 再绘制
+  { durationSeconds: 1, toAbs: 0 },      // 快速绘制
+  { durationSeconds: 2, toAbs: 0 },          // 停留2秒
+  { durationSeconds: 1, toAbs: 500 },    // 慢速擦除
+  { durationSeconds: 0.5, toAbs: 500 },      // 停留0.5秒
+  { durationSeconds: 1.5, toAbs: 0 }      // 再绘制
 ]
 ```
 
@@ -260,25 +256,25 @@ timeline: [
 
 ## 走走停停效果
 
-"走走停停"效果通过在时间线中交替使用"移动段"和"停顿段"来实现。关键是在停顿段中设置相同的 `toValue`，让路径保持当前状态。
+"走走停停"效果通过在时间线中交替使用"移动段"和"停顿段"来实现。关键是在停顿段中设置相同的 `toAbs`，让路径保持当前状态。
 
 ### 原理说明
 
 **停顿的实现方式：**
 
-让相邻两段的 `toValue` 相同，第二段就会"停"在那个状态：
+让相邻两段的 `toAbs` 相同，第二段就会"停"在那个状态：
 
 ```tsx
 timeline: [
-  { durationSeconds: 1, toValue: 226 },   // 走：从起点画到1/3
-  { durationSeconds: 0.5, toValue: 226 }, // 停：保持1/3状态0.5秒
-  { durationSeconds: 1, toValue: 113 },   // 走：继续画到2/3
+  { durationSeconds: 1, toAbs: 226 },   // 走：从起点画到1/3
+  { durationSeconds: 0.5, toAbs: 226 }, // 停：保持1/3状态0.5秒
+  { durationSeconds: 1, toAbs: 113 },   // 走：继续画到2/3
 ]
 ```
 
 **核心要点：**
-- "走"段：改变 `toValue`，路径会动态绘制或擦除
-- "停"段：`toValue` 与前一段相同，路径保持静止
+- "走"段：改变 `toAbs`，路径会动态绘制或擦除
+- "停"段：`toAbs` 与前一段相同，路径保持静止
 
 ---
 
@@ -289,23 +285,22 @@ timeline: [
 **代码示例：**
 
 ```tsx
-import { genAnimatePathStroke } from "@svg-anim/pathStroke";
+import { animatePathStroke } from "@guohub8080/expub-tool/smil";
 
 <svg width="400" height="120" viewBox="0 0 400 120">
-  {genAnimatePathStroke({
-    pathLength: 340,
-    initOffset: 340,
-    timeline: [
-      { durationSeconds: 1, toValue: 226 },    // 走：画到1/3
-      { durationSeconds: 0.5, toValue: 226 },   // 停：保持0.5秒
-      { durationSeconds: 1, toValue: 113 },     // 走：画到2/3
-      { durationSeconds: 0.5, toValue: 113 },   // 停：保持0.5秒
-      { durationSeconds: 1, toValue: 0 }        // 走：画到终点
-    ],
-    element: (
-      <line x1="30" y1="70" x2="370" y2="70" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" />
-    )
-  })}
+  <line x1="30" y1="70" x2="370" y2="70" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" strokeDasharray="340 340" strokeDashoffset={340}>
+    {animatePathStroke({
+      pathLength: 340,
+      initValue: 340,
+      timeline: [
+        { durationSeconds: 1, toAbs: 226 },    // 走：画到1/3
+        { durationSeconds: 0.5, toAbs: 226 },   // 停：保持0.5秒
+        { durationSeconds: 1, toAbs: 113 },     // 走：画到2/3
+        { durationSeconds: 0.5, toAbs: 113 },   // 停：保持0.5秒
+        { durationSeconds: 1, toAbs: 0 }        // 走：画到终点
+      ]
+    })}
+  </line>
 </svg>
 ```
 
@@ -339,20 +334,19 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 
 ```tsx
 <svg width="400" height="120" viewBox="0 0 400 120">
-  {genAnimatePathStroke({
-    pathLength: 340,
-    initOffset: 340,
-    timeline: [
-      { durationSeconds: 0.8, toValue: 0 },     // 画：完全显示
-      { durationSeconds: 0.4, toValue: 0 },     // 停：保持
-      { durationSeconds: 0.6, toValue: 170 },    // 擦：擦除一半
-      { durationSeconds: 0.4, toValue: 170 },    // 停：保持
-      { durationSeconds: 0.8, toValue: 0 }      // 画：重新画完
-    ],
-    element: (
-      <line x1="30" y1="70" x2="370" y2="70" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
-    )
-  })}
+  <line x1="30" y1="70" x2="370" y2="70" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeDasharray="340 340" strokeDashoffset={340}>
+    {animatePathStroke({
+      pathLength: 340,
+      initValue: 340,
+      timeline: [
+        { durationSeconds: 0.8, toAbs: 0 },     // 画：完全显示
+        { durationSeconds: 0.4, toAbs: 0 },     // 停：保持
+        { durationSeconds: 0.6, toAbs: 170 },    // 擦：擦除一半
+        { durationSeconds: 0.4, toAbs: 170 },    // 停：保持
+        { durationSeconds: 0.8, toAbs: 0 }      // 画：重新画完
+      ]
+    })}
+  </line>
 </svg>
 ```
 
@@ -382,24 +376,23 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 
 ```tsx
 <svg width="400" height="120" viewBox="0 0 400 120">
-  {genAnimatePathStroke({
-    pathLength: 340,
-    initOffset: 340,
-    timeline: [
-      { durationSeconds: 0.5, toValue: 272 },   // 第1段
-      { durationSeconds: 0.3, toValue: 272 },   // 停
-      { durationSeconds: 0.5, toValue: 204 },   // 第2段
-      { durationSeconds: 0.3, toValue: 204 },   // 停
-      { durationSeconds: 0.5, toValue: 136 },   // 第3段
-      { durationSeconds: 0.3, toValue: 136 },   // 停
-      { durationSeconds: 0.5, toValue: 68 },    // 第4段
-      { durationSeconds: 0.3, toValue: 68 },    // 停
-      { durationSeconds: 0.5, toValue: 0 },     // 第5段
-    ],
-    element: (
-      <line x1="30" y1="70" x2="370" y2="70" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" />
-    )
-  })}
+  <line x1="30" y1="70" x2="370" y2="70" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" strokeDasharray="340 340" strokeDashoffset={340}>
+    {animatePathStroke({
+      pathLength: 340,
+      initValue: 340,
+      timeline: [
+        { durationSeconds: 0.5, toAbs: 272 },   // 第1段
+        { durationSeconds: 0.3, toAbs: 272 },   // 停
+        { durationSeconds: 0.5, toAbs: 204 },   // 第2段
+        { durationSeconds: 0.3, toAbs: 204 },   // 停
+        { durationSeconds: 0.5, toAbs: 136 },   // 第3段
+        { durationSeconds: 0.3, toAbs: 136 },   // 停
+        { durationSeconds: 0.5, toAbs: 68 },    // 第4段
+        { durationSeconds: 0.3, toAbs: 68 },    // 停
+        { durationSeconds: 0.5, toAbs: 0 },     // 第5段
+      ]
+    })}
+  </line>
 </svg>
 ```
 
@@ -413,7 +406,7 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 // 总长度 340，分5段，每段长度
 const segmentLength = 340 / 5 = 68
 
-// 每段的 toValue（从后往前算）
+// 每段的 toAbs（从后往前算）
 第1段：340 - 68 × 1 = 272
 第2段：340 - 68 × 2 = 204
 第3段：340 - 68 × 3 = 136
@@ -435,13 +428,13 @@ const segmentCount = 4
 const segmentLength = totalLength / segmentCount  // 125
 
 timeline: [
-  { durationSeconds: 1, toValue: 375 },  // 第1段
-  { durationSeconds: 0.3, toValue: 375 },
-  { durationSeconds: 1, toValue: 250 },  // 第2段
-  { durationSeconds: 0.3, toValue: 250 },
-  { durationSeconds: 1, toValue: 125 },  // 第3段
-  { durationSeconds: 0.3, toValue: 125 },
-  { durationSeconds: 1, toValue: 0 },    // 第4段
+  { durationSeconds: 1, toAbs: 375 },  // 第1段
+  { durationSeconds: 0.3, toAbs: 375 },
+  { durationSeconds: 1, toAbs: 250 },  // 第2段
+  { durationSeconds: 0.3, toAbs: 250 },
+  { durationSeconds: 1, toAbs: 125 },  // 第3段
+  { durationSeconds: 0.3, toAbs: 125 },
+  { durationSeconds: 1, toAbs: 0 },    // 第4段
 ]
 ```
 
@@ -454,23 +447,23 @@ timeline: [
 ```tsx
 // 快走慢停（急促感）
 timeline: [
-  { durationSeconds: 0.3, toValue: 200 },  // 快速走
-  { durationSeconds: 1, toValue: 200 },    // 长时间停
+  { durationSeconds: 0.3, toAbs: 200 },  // 快速走
+  { durationSeconds: 1, toAbs: 200 },    // 长时间停
 ]
 
 // 慢走快停（平滑感）
 timeline: [
-  { durationSeconds: 1.5, toValue: 200 },  // 慢速走
-  { durationSeconds: 0.2, toValue: 200 },   // 短暂停
+  { durationSeconds: 1.5, toAbs: 200 },  // 慢速走
+  { durationSeconds: 0.2, toAbs: 200 },   // 短暂停
 ]
 
 // 逐渐加速（节奏递进）
 timeline: [
-  { durationSeconds: 1, toValue: 250 },
-  { durationSeconds: 0.3, toValue: 250 },
-  { durationSeconds: 0.8, toValue: 150 },   // 更快
-  { durationSeconds: 0.2, toValue: 150 },
-  { durationSeconds: 0.5, toValue: 0 },     // 最快
+  { durationSeconds: 1, toAbs: 250 },
+  { durationSeconds: 0.3, toAbs: 250 },
+  { durationSeconds: 0.8, toAbs: 150 },   // 更快
+  { durationSeconds: 0.2, toAbs: 150 },
+  { durationSeconds: 0.5, toAbs: 0 },     // 最快
 ]
 ```
 
@@ -483,16 +476,16 @@ timeline: [
 ```tsx
 timeline: [
   // 正向画
-  { durationSeconds: 1, toValue: 200 },    // 画到1/3
-  { durationSeconds: 0.3, toValue: 200 },
-  { durationSeconds: 1, toValue: 0 },      // 画完
-  { durationSeconds: 0.5, toValue: 0 },    // 停顿
+  { durationSeconds: 1, toAbs: 200 },    // 画到1/3
+  { durationSeconds: 0.3, toAbs: 200 },
+  { durationSeconds: 1, toAbs: 0 },      // 画完
+  { durationSeconds: 0.5, toAbs: 0 },    // 停顿
   // 反向擦
-  { durationSeconds: 0.8, toValue: 100 },  // 擦除1/3
-  { durationSeconds: 0.3, toValue: 100 },
-  { durationSeconds: 0.8, toValue: 200 },  // 再擦除1/3
-  { durationSeconds: 0.3, toValue: 200 },
-  { durationSeconds: 0.8, toValue: 300 },  // 擦完
+  { durationSeconds: 0.8, toAbs: 100 },  // 擦除1/3
+  { durationSeconds: 0.3, toAbs: 100 },
+  { durationSeconds: 0.8, toAbs: 200 },  // 再擦除1/3
+  { durationSeconds: 0.3, toAbs: 200 },
+  { durationSeconds: 0.8, toAbs: 300 },  // 擦完
 ]
 ```
 
@@ -514,19 +507,19 @@ timeline: [
 
 | 模式 | timeline 配置 | 其他参数 |
 |------|--------------|----------|
-| 单次绘制 | `[{ durationSeconds: 2, toValue: 0 }]` | 默认 |
-| 绘制后擦除 | `[{ durationSeconds: 2, toValue: 0 }, { durationSeconds: 1, toValue: pathLength }]` | 默认 |
-| 循环绘制 | `[{ durationSeconds: 2, toValue: 0 }, { durationSeconds: 1, toValue: pathLength }]` | `loopCount: 0` |
+| 单次绘制 | `[{ durationSeconds: 2, toAbs: 0 }]` | 默认 |
+| 绘制后擦除 | `[{ durationSeconds: 2, toAbs: 0 }, { durationSeconds: 1, toAbs: pathLength }]` | 默认 |
+| 循环绘制 | `[{ durationSeconds: 2, toAbs: 0 }, { durationSeconds: 1, toAbs: pathLength }]` | `loopCount: 0` |
 
 ---
 
 ## 注意事项
 
-⚠️ **loopCount 与 freeze**
+⚠️ **loopCount 与 isFreeze**
 
-- 无限循环（`loopCount=0`）时 `freeze` 参数无效
-- 单次播放时 `freeze` 决定最终状态
+- 无限循环（`loopCount=0`）时 `isFreeze` 参数无效
+- 单次播放时 `isFreeze` 决定最终状态
 
-⚠️ **toValue 的连续性**
+⚠️ **toAbs 的连续性**
 
-每段的 `toValue` 定义该段动画的结束状态，下一段会从这个值开始。确保路径长度一致，避免跳变。
+每段的 `toAbs` 定义该段动画的结束状态，下一段会从这个值开始。确保路径长度一致，避免跳变。

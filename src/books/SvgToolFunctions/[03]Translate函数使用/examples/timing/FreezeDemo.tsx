@@ -1,6 +1,6 @@
 import SectionEx from "@pub-html/basicEx/SectionEx";
 import { ReplayButton } from "../ReplayButton";
-import { genAnimateTranslate } from "@svg-anim/translate";
+import { transformTranslate } from "@guohub8080/expub-tool/smil";
 
 export const FreezeDemo = () => {
     return (
@@ -16,10 +16,10 @@ export const FreezeDemo = () => {
                         {/* 第一行：isFreeze: false */}
                         <text x="20" y="55" fontSize="14" fill="#333" dominantBaseline="middle">isFreeze: false（默认）</text>
                         <circle cx="200" cy="50" r="15" fill="#3498db">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 350, y: 0 }, durationSeconds: 2 }
+                                    { toRel: { x: 350, y: 0 }, durationSeconds: 2 }
                                 ],
                                 isFreeze: false
                             })}
@@ -28,10 +28,10 @@ export const FreezeDemo = () => {
                         {/* 第二行：isFreeze: true */}
                         <text x="20" y="105" fontSize="14" fill="#333" dominantBaseline="middle">isFreeze: true</text>
                         <circle cx="200" cy="100" r="15" fill="#e74c3c">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 350, y: 0 }, durationSeconds: 2 }
+                                    { toRel: { x: 350, y: 0 }, durationSeconds: 2 }
                                 ],
                                 isFreeze: true
                             })}

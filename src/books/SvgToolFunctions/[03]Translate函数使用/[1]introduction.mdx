@@ -1,33 +1,33 @@
 export const title = "函数介绍与基础示例"
 
-import { genAnimateTranslate } from "@svg-anim/translate"
+import { transformTranslate } from "@guohub8080/expub-tool/smil"
 import { ReplayButton } from "./examples/ReplayButton"
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper"
 
 # {title}
 
-`genAnimateTranslate` 是 SVG 位移动画的核心生成工具。本文将介绍函数签名、核心概念，并通过基础示例展示其基本用法。
+`transformTranslate` 是 SVG 位移动画的核心生成工具。本文将介绍函数签名、核心概念，并通过基础示例展示其基本用法。
 
 ---
 
 ## 函数签名
 
 ```tsx
-import { genAnimateTranslate } from '@svg-anim/translate';
+import { transformTranslate } from '@guohub8080/expub-tool/smil';
 
-genAnimateTranslate({
+transformTranslate({
   // ===== 必填参数 =====
-  timeline: TranslateTimelineSegment[],       // 必填：时间线段数组
+  timeline: I_AbsRelKeyframe<Partial<I_TranslateValue>>[],  // 必填：时间线段数组
 
   // ===== 可选参数 =====
-  initValue?: { x: number, y: number },      // 初始坐标，默认 { x: 0, y: 0 }
-  delay?: number,                            // 初始延迟（秒），默认 0
-  additive?: boolean,                        // 是否累加变换，默认 true
-  beginType?: SvgBeginEventType,                // 默认 undefined：动画开始事件类型
+  initValue?: { x?: number, y?: number },   // 初始坐标，默认 { x: 0, y: 0 }
+  begin?: string,                           // 开始时机：'click' / 'click+0.5s' / '2s'，缺省自动开始
+  isAdditive?: boolean,                     // 是否累加变换，默认 true
   calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 动画计算模式，自动
-  freeze?: boolean,                          // 是否保持最终状态，默认 false
-  loopCount?: number,                        // 循环次数（0 = 无限），默认 1
-  isRelativeMove?: boolean,                  // 是否使用相对移动，默认 true
+  isFreeze?: boolean,                       // 是否保持最终状态，默认 false
+  loopCount?: number,                       // 循环次数（0 = 无限），默认 1
+  restart?: 'always' | 'whenNotActive' | 'never',          // 重启策略
+  native?: T_NativeAnimateTransform,          // 透传/覆盖原生 animateTransform 属性（最后展开，同名覆盖生成值）
 })
 ```
 
@@ -44,29 +44,30 @@ genAnimateTranslate({
 
 ### 时间线段
 
-这是最核心的参数，定义动画的每个阶段。
+这是最核心的参数，定义动画的每个阶段。每个时间线段通过 `toRel`（相对位移）或 `toAbs`（绝对坐标）指定目标，二者选一。
 
-**TranslateTimelineSegment 类型：**
+**`I_AbsRelKeyframe<Partial<I_TranslateValue>>` 类型：**
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `toValue` | `Partial<Point2D>` | 上一段位置 | 目标位置（可只指定 x 或 y）|
+| `toRel` | `Partial<{ x, y }>` | - | 相对位移：相对于上一段终点的增量（可只指定 x 或 y）|
+| `toAbs` | `Partial<{ x, y }>` | 上一段位置 | 绝对坐标：目标位置（可只指定 x 或 y）|
 | `durationSeconds` | `number` | 必填 | 该段持续时间（秒）|
-| `keySplines` | `string` | `"0.42 0 0.58 1"` | 贝塞尔缓动参数（可选）|
+| `keySplines` | `string` | `"0 0 1 1"` | 贝塞尔缓动参数（可选）|
 
 **基础示例：**
 
 ```tsx
-import { genAnimateTranslate } from '@svg-anim/translate';
+import { transformTranslate } from '@guohub8080/expub-tool/smil';
 
 export const BasicUsage = () => {
     return (
         <svg width="300" height="100" viewBox="0 0 300 100">
             <circle cx="50" cy="50" r="20" fill="blue">
-                {genAnimateTranslate({
+                {transformTranslate({
                     initValue: { x: 0, y: 0 },
                     timeline: [
-                        { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+                        { toRel: { x: 200, y: 0 }, durationSeconds: 2 }
                     ]
                 })}
             </circle>
@@ -81,10 +82,10 @@ export const BasicUsage = () => {
   <SvgWrapper>
     <svg width="300" height="100" viewBox="0 0 300 100">
       <circle cx="50" cy="50" r="20" fill="blue">
-        {genAnimateTranslate({
+        {transformTranslate({
           initValue: { x: 0, y: 0 },
           timeline: [
-            { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+            { toRel: { x: 200, y: 0 }, durationSeconds: 2 }
           ]
         })}
       </circle>
@@ -98,14 +99,14 @@ export const BasicUsage = () => {
 
 ## 常用默认值
 
-`genAnimateTranslate` 的设计让大多数参数都有合理的默认值，让你能快速创建动画。
+`transformTranslate` 的设计让大多数参数都有合理的默认值，让你能快速创建动画。
 
-- **相对移动模式**（`isRelativeMove: true`）- 推荐使用
-  - `toValue` 是相对于上一阶段的增量
+- **相对位移 toRel**（推荐使用）
+  - `toRel` 是相对于上一段终点的增量
   - 更符合直觉："移动多少"
   - 示例：向右 100px，然后向左 100px
 
-- **累加模式**（`additive: true`）
+- **累加模式**（`isAdditive: true`）
   - 可以与旋转、缩放动画同时进行
   - 自动叠加到其他变换上
 
@@ -113,7 +114,7 @@ export const BasicUsage = () => {
 
 ## 下一步
 
-现在你已经了解了 `genAnimateTransform` 的基本用法。接下来将详细介绍各种位移效果：
+现在你已经了解了 `transformTranslate` 的基本用法。接下来将详细介绍各种位移效果：
 - **单向移动** - 四个方向的移动
 - **往返运动** - 往返运动
 - **多段路径** - 复杂路径

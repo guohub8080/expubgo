@@ -11,34 +11,51 @@
  *   栈里先写好 family 名，CSS 未加载时浏览器自动跳过、回落系统字体，
  *   加载完成后自动升级为 web 字体观感
  *
- * 多源自动降级（大陆可达性）：jsDelivr 主域不稳定时依次降级到
- * fastly（jsDelivr 官方大陆优化域）→ Cloudflare Pages → 字体仓库
- * 自己的 GitHub Pages（与主站同可达性：读者能打开本站就一定能打开它）。
- * 全部失败则保持系统字体，不影响页面可用。
+ * 多源自动选择（2026-09 实测重排 + 赛马竞速）：R2 自有域名与 Cloudflare
+ * Pages 同走 CF 边缘（并发分片 ~0.6s）→ GitHub Pages（同快，且与主站同可达
+ * 性：读者能打开本站就一定能打开它）→ jsDelivr 主域（~3s）→ fastly
+ * （3~4s，所谓大陆优化域在实测路径下反而最慢）。注入采用延迟赛马：首选源
+ * 800ms 内成功时其余源零请求；超时才阶梯并行追加候选，任一先 onload 即胜出
+ * 并移除其余（分片 URL 跟随胜者 CSS 的域名）。全部失败则保持系统字体，不影
+ * 响页面可用。
  *
  * 优先级：访客选择（localStorage）> 站长默认（defaultValues.ts）> 系统栈
  */
 import { isNil, isNotNil } from 'es-toolkit/predicate'
 
 /**
- * 字体仓库的 CDN 源列表，按优先级排序，失败自动降级到下一个（见 injectWithFallback）。
+ * 字体仓库的 CDN 源列表。顺序 = 赛马起始顺序（2026-09 在站长网络实测的
+ * 并发分片耗时：②③ ~0.6s，④⑤ 3~4s；①② 同走 Cloudflare 边缘）。
  *
- * 1. cdn.jsdelivr.net   —— jsDelivr 主域（多 CDN 联盟，海外最快）
- * 2. fastly.jsdelivr.net —— jsDelivr 官方大陆优化域（同内容，Fastly 边缘网络）
- * 3. *.pages.dev        —— Cloudflare Pages 托管的同一仓库（开通见字体仓库 README；
- *                          未开通时此层 404 会自动跳过，不影响链路。若 Cloudflare
+ * 1. assets.guohub.top —— R2 桶 guohub-assets 的 font/ 前缀 + 自有域名，缓存
+ *                          语义自控（woff2/css 一天），域名归自己不受 pages.dev
+ *                          可达性波动影响；内容随发布脚本同步（字体仓库
+ *                          node scripts/upload-r2.mjs，增量清单）。桶空/域名未
+ *                          生效时 404 自动淘汰，不影响赛马
+ * 2. *.pages.dev        —— Cloudflare Pages 托管的同一仓库，实测最快（若 Cloudflare
  *                          项目名不是 guohub-fonts，需同步修改此 URL）
- * 4. github.io          —— 字体仓库自身的 GitHub Pages，与主站同可达性，最终兜底
+ * 3. github.io          —— 字体仓库自身的 GitHub Pages，实测次快、可达性兜底最稳
+ * 4. cdn.jsdelivr.net   —— jsDelivr 主域（多 CDN 联盟；并发吞吐实测差，降为兜底）
+ * 5. fastly.jsdelivr.net —— jsDelivr 大陆优化域（当前路径实测最慢，最终兜底）
  *
  * jsDelivr 两项必须用 tag 引用（@v1 永久不可变缓存，@main 只缓存 12 小时）。
- * 更新字体：字体仓库改动 → 打新 tag 并 push → 把下面两个 @v1 改成 @v2。
+ * 更新字体：字体仓库改动 → 打新 tag 并 push → node scripts/upload-r2.mjs 同步
+ * R2 → 把下面两个 @v1 改成 @v2。
  */
 const WEBFONT_CDN_SOURCES = [
-  'https://cdn.jsdelivr.net/gh/guohub8080/guohub-fonts@v1.2.1',
-  'https://fastly.jsdelivr.net/gh/guohub8080/guohub-fonts@v1.2.1',
+  'https://assets.guohub.top/font',
   'https://guohub-fonts.pages.dev',
   'https://guohub8080.github.io/guohub-fonts',
+  'https://cdn.jsdelivr.net/gh/guohub8080/guohub-fonts@v1.3.1',
+  'https://fastly.jsdelivr.net/gh/guohub8080/guohub-fonts@v1.3.1',
 ] as const
+
+/**
+ * 赛马延迟：首个候选注入后等待这么久仍未 onload，才并行追加下一个候选。
+ * 取 800ms：实测最快源完整下载 ~0.6s，留余量保证快网下零多余请求；
+ * 慢网/源故障时最多 800ms 后开始加码，不会无限等待。
+ */
+const RACE_STAGGER_MS = 800
 
 /** 字体族定义：字体仓库内的相对路径 + 可选的专属 CDN 源 */
 interface WebFontDef {
@@ -46,7 +63,7 @@ interface WebFontDef {
   path: string
   /**
    * 该族专属的 CDN 源列表（完整 URL，按优先级排列）。
-   * 不填则使用全局 WEBFONT_CDN_SOURCES（guohub-fonts 的四层镜像）。
+   * 不填则使用全局 WEBFONT_CDN_SOURCES（guohub-fonts 的五层镜像）。
    * 适用场景：字体不在 guohub-fonts 仓库里——例如直接引用 Google Fonts
    * 的 css2 入口、或商用/私有字体托管在自己的对象存储上。
    * 注意：源的 CSS 里分片若是相对路径，会跟随该 CSS 所在域名解析。
@@ -116,6 +133,7 @@ const WEBFONT_REGISTRY: Record<string, WebFontDef> = {
   'anybody-v': { path: 'english/anybody-v/anybody-v.css' },
   'red-hat-mono-v': { path: 'english/red-hat-mono-v/red-hat-mono-v.css' },
   'ubuntu': { path: 'english/ubuntu/ubuntu.css' },
+  'gentium-book-plus': { path: 'english/gentium-book-plus/gentium-book-plus.css' },
   'ibm-plex-sans': { path: 'english/ibm-plex-sans/ibm-plex-sans.css' },
   'ibm-plex-serif': { path: 'english/ibm-plex-serif/ibm-plex-serif.css' },
   'ibm-plex-mono': { path: 'english/ibm-plex-mono/ibm-plex-mono.css' },
@@ -140,29 +158,60 @@ function buildCandidateUrls(def: WebFontDef): string[] {
   return sources.map((s) => `${s}/${def.path}`)
 }
 
-/** 按优先级依次注入 CSS，失败自动换下一个 URL */
+/**
+ * 延迟赛马注入（Happy Eyeballs 思路）：
+ * 立即注入第一个候选；每 RACE_STAGGER_MS 仍未成功就并行追加下一个；
+ * 任意一个 onload 即胜出——记忆其源（workingSource）、移除其余候选 link。
+ * 快网/健康源下首选 800ms 内成功，其余源零请求；源故障时阶梯加码不空等。
+ */
 function injectWithFallback(family: string, urls: string[]): void {
-  const tryNext = (idx: number): void => {
-    const url = urls[idx]
-    if (isNil(url)) return // 全部源失败：保持系统字体（swap 已保证渲染不受影响）
+  let settled = false
+  const candidates: HTMLLinkElement[] = []
+  let staggerTimers: ReturnType<typeof setTimeout>[] = []
 
+  const cleanupTimers = (): void => {
+    staggerTimers.forEach(clearTimeout)
+    staggerTimers = []
+  }
+
+  const addCandidate = (url: string): void => {
     const link = document.createElement('link')
     link.rel = 'stylesheet'
     link.href = url
     link.onload = () => {
-      // 成功的 URL 若属于某个全局源，记住它（后续族直接从它开始，避免重复试错）
+      if (settled) {
+        link.remove() // 已有胜者，迟到的直接丢弃
+        return
+      }
+      settled = true
+      cleanupTimers()
+      // 胜出的 URL 若属于某个全局源，记住它（后续族直接从它开始，避免重复赛马）
       const src = WEBFONT_CDN_SOURCES.find((s) => url.startsWith(s))
       if (isNotNil(src)) workingSource = src
+      injectedLinks.set(family, link)
+      candidates.forEach((l) => {
+        if (l !== link) l.remove()
+      })
     }
     link.onerror = () => {
       link.remove()
-      tryNext(idx + 1)
+      // 该候选失败：若已无在途定时器且全部候选皆失败，保持系统字体（swap 已保证渲染不受影响）
     }
-    injectedLinks.set(family, link)
+    candidates.push(link)
     document.head.appendChild(link)
   }
 
-  tryNext(0)
+  urls.forEach((url, idx) => {
+    if (idx === 0) {
+      addCandidate(url)
+      return
+    }
+    staggerTimers.push(
+      setTimeout(() => {
+        if (!settled) addCandidate(url)
+      }, RACE_STAGGER_MS * idx),
+    )
+  })
 }
 
 /**

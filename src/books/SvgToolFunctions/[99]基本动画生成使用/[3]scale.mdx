@@ -3,55 +3,43 @@ export const icon = "ZoomIn"
 
 # {title}
 
-`genAnimateScale` 是 SVG 缩放动画的生成工具，可以创建 `<animateTransform type="scale">` 元素。
+`transformScale` 是 SVG 缩放动画的生成工具，可以创建围绕任意支点（pivot）缩放的 `<animateTransform type="scale">` 元素组合。
 
 ---
 
 ## 函数签名
 
 ```tsx
-import { genAnimateScale } from '@svg-anim/scale';
+import { transformScale } from '@guohub8080/expub-tool/smil';
 
-genAnimateScale({
-  initScale?: number,                       // 默认 1：初始缩放比例（1 = 原始大小）
-  timeline: ScaleTimelineSegment[],         // 必填：时间线段数组
-  delay?: number,                           // 默认 0：初始延迟（秒）
-  additive?: boolean,                       // 默认 true：是否累加变换
-  beginType?: SvgBeginEventType,               // 默认 undefined：动画开始事件类型
+transformScale({
+  initValue?: number,                        // 默认 1：初始缩放比例（1 = 原始大小）
+  timeline: ScaleKeyframe[],                 // 必填：时间线段数组
+  pivot: [number, number],                   // 必填：缩放支点 [cx, cy]
+  begin?: string,                            // 默认 undefined：开始时机（SMIL begin 字符串）
   calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 自动：动画计算模式
-  freeze?: boolean,                         // 默认 false：是否保持最终状态
-  loopCount?: number,                       // 默认 1：循环次数（0 = 无限）
-  origin?: ScaleOrigin,                     // 默认 'center'：缩放中心点
-  elementBounds?: { x?, y?, w, h },         // 必填*：元素边界信息
+  isFreeze?: boolean,                        // 默认 false：是否保持最终状态
+  loopCount?: number,                        // 默认 1：循环次数（0 = 无限）
+  isAdditive?: boolean,                      // 默认 true：是否累加变换
+  restart?: 'always' | 'whenNotActive' | 'never',
+  native?: T_NativeAnimateTransform,        // 透传/覆盖原生 animateTransform 属性（最后展开，同名覆盖生成值）
 })
 ```
 
-### ScaleTimelineSegment 类型
+### ScaleKeyframe 类型
 
 ```tsx
-interface ScaleTimelineSegment {
-  toScale?: number,                         // 默认上一段缩放：目标缩放比例
-  durationSeconds: number,                  // 必填：该段持续时间（秒）
-  keySplines?: string,                      // 默认 "0.42 0 0.58 1"：贝塞尔缓动参数
+interface ScaleKeyframe {
+  toAbs: number,                             // 必填：目标缩放比例（绝对值）
+  durationSeconds: number,                   // 必填：该段持续时间（秒）
+  keySplines?: string,                       // 默认线性 "0 0 1 1"：贝塞尔缓动参数
 }
 ```
 
-### ScaleOrigin 类型
+### pivot 必填
 
-```tsx
-type ScaleOrigin =
-  | 'center'       // 中心点 [x+w/2, y+h/2]
-  | 'topCenter'    // 顶部中心 [x+w/2, y]
-  | 'topLeft'      // 左上角 [x, y]
-  | 'topRight'     // 右上角 [x+w, y]
-  | 'bottomCenter' // 底部中心 [x+w/2, y+h]
-  | 'bottomLeft'   // 左下角 [x, y+h]
-  | 'bottomRight'  // 右下角 [x+w, y+h]
-  | 'leftCenter'   // 左侧中心 [x, y+h/2]
-  | 'rightCenter'  // 右侧中心 [x+w, y+h/2]
-  | 'origin'       // SVG 坐标原点 [0, 0]
-  | [number, number]; // 自定义坐标 [cx, cy]
-```
+新 API 用显式坐标 `pivot: [cx, cy]` 指定缩放中心（**必填**），不再支持 `'center'` 等快捷字符串，也不需要 CSS `transform-origin` 配合。
+元素中心按 `x + w/2`、`y + h/2` 计算，例如 circle `cx=100 cy=100` 的 pivot 是 `[100, 100]`。
 
 ---
 
@@ -74,11 +62,12 @@ type ScaleOrigin =
 ```tsx
 <svg width="200" height="200">
   <circle cx="100" cy="100" r="30" fill="blue">
-    {genAnimateScale({
-      initScale: 1,
+    {transformScale({
+      initValue: 1,
+      pivot: [100, 100],  // circle 中心
       timeline: [
-        { toScale: 1.5, durationSeconds: 1 },  // 放大到 1.5 倍
-        { toScale: 1, durationSeconds: 1 }     // 缩小回 1 倍
+        { toAbs: 1.5, durationSeconds: 1 },  // 放大到 1.5 倍
+        { toAbs: 1, durationSeconds: 1 }     // 缩小回 1 倍
       ]
     })}
   </circle>
@@ -88,7 +77,7 @@ type ScaleOrigin =
 **生成的 SVG 代码：**
 
 ```xml
-<!-- 第一步：平移到中心点 -->
+<!-- 第一步：平移到支点 -->
 <animateTransform
   attributeName="transform"
   type="translate"
@@ -106,9 +95,8 @@ type ScaleOrigin =
   type="scale"
   values="1 1; 1.5 1.5; 1 1"
   keyTimes="0; 0.5; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
   dur="2s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="1"
   fill="remove"
   additive="sum"
@@ -129,24 +117,24 @@ type ScaleOrigin =
 
 **效果**：圆形从原始大小放大到 1.5 倍，然后缩小回原始大小
 
-**说明**：为了围绕任意原点缩放，使用了三段变换：translate(cx,cy) → scale(sx,sy) → translate(-cx,-cy)
+**说明**：为了围绕任意支点缩放，使用了三段变换：translate(cx,cy) → scale(sx,sy) → translate(-cx,-cy)
 
 ---
 
-### 中心缩放（推荐配合 CSS）
+### 中心缩放
+
+pivot 直接写元素中心坐标，无需任何 CSS 配合：
 
 ```tsx
-import { getCenterScaleStyle } from '@svg-anim/scale';
-
-<circle
-  cx="100" cy="100" r="30"
-  fill="blue"
-  style={getCenterScaleStyle()}
->
-  {genAnimateScale({
-    origin: 'center',
+<circle cx="100" cy="100" r="30" fill="blue">
+  {transformScale({
+    pivot: [100, 100],
     timeline: [
-      { toScale: 1.5, durationSeconds: 1 }
+      {
+        toAbs: 1.5,
+        keySplines: '0.42 0 0.58 1',
+        durationSeconds: 1
+      }
     ]
   })}
 </circle>
@@ -159,7 +147,7 @@ import { getCenterScaleStyle } from '@svg-anim/scale';
 <animateTransform
   attributeName="transform"
   type="translate"
-  values="0 0; 0 0"
+  values="100 100; 100 100"
   keyTimes="0; 1"
   dur="1s"
   calcMode="linear"
@@ -184,7 +172,7 @@ import { getCenterScaleStyle } from '@svg-anim/scale';
 <animateTransform
   attributeName="transform"
   type="translate"
-  values="0 0; 0 0"
+  values="-100 -100; -100 -100"
   keyTimes="0; 1"
   dur="1s"
   calcMode="linear"
@@ -194,22 +182,17 @@ import { getCenterScaleStyle } from '@svg-anim/scale';
 />
 ```
 
-**CSS 样式：**
-```css
-transform-origin: center;
-transform-box: fill-box;
-```
-
 ---
 
-### 左上角缩放（使用 elementBounds）
+### 左上角缩放
+
+支点取元素左上角坐标：
 
 ```tsx
-{genAnimateScale({
-  origin: 'topLeft',
-  elementBounds: { x: 70, y: 70, w: 60, h: 60 },
+{transformScale({
+  pivot: [70, 70],  // 元素左上角
   timeline: [
-    { toScale: 1.5, durationSeconds: 1 }
+    { toAbs: 1.5, durationSeconds: 1 }
   ]
 })}
 ```
@@ -217,7 +200,7 @@ transform-box: fill-box;
 **生成的 SVG 代码：**
 
 ```xml
-<!-- translate to origin -->
+<!-- translate to pivot -->
 <animateTransform
   attributeName="transform"
   type="translate"
@@ -235,9 +218,8 @@ transform-box: fill-box;
   type="scale"
   values="1 1; 1.5 1.5"
   keyTimes="0; 1"
-  keySplines="0.42 0 0.58 1"
   dur="1s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="1"
   fill="remove"
   additive="sum"
@@ -256,17 +238,17 @@ transform-box: fill-box;
 />
 ```
 
-**说明**：topLeft = [x, y] = [70, 70]
+**说明**：pivot = `[70, 70]`（元素左上角）
 
 ---
 
 ### 自定义坐标缩放
 
 ```tsx
-{genAnimateScale({
-  origin: [100, 100],  // 自定义缩放中心
+{transformScale({
+  pivot: [100, 100],  // 自定义缩放中心
   timeline: [
-    { toScale: 2, durationSeconds: 1 }
+    { toAbs: 2, durationSeconds: 1 }
   ]
 })}
 ```
@@ -274,7 +256,7 @@ transform-box: fill-box;
 **生成的 SVG 代码：**
 
 ```xml
-<!-- translate to origin -->
+<!-- translate to pivot -->
 <animateTransform
   attributeName="transform"
   type="translate"
@@ -292,9 +274,8 @@ transform-box: fill-box;
   type="scale"
   values="1 1; 2 2"
   keyTimes="0; 1"
-  keySplines="0.42 0 0.58 1"
   dur="1s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="1"
   fill="remove"
   additive="sum"
@@ -318,49 +299,24 @@ transform-box: fill-box;
 ### 呼吸效果（反复放大缩小）
 
 ```tsx
-{genAnimateScale({
-  initScale: 1,
+{transformScale({
+  initValue: 1,
+  pivot: [100, 100],
   timeline: [
-    { toScale: 1.2, durationSeconds: 1 },  // 放大
-    { toScale: 1, durationSeconds: 1 }     // 缩小
+    { toAbs: 1.2, durationSeconds: 1 },  // 放大
+    { toAbs: 1, durationSeconds: 1 }     // 缩小
   ],
   loopCount: 0  // 无限循环
 })}
 ```
 
-**生成的 SVG 代码：**
+**生成的 SVG 代码（scale 段，前后 translate 包裹同前）：**
 
 ```xml
-<!-- translate -->
-<animateTransform
-  attributeName="transform"
-  type="translate"
-  values="100 100; 100 100; 100 100"
-  keyTimes="0; 0.5; 1"
-  dur="2s"
-  calcMode="linear"
-  repeatCount="indefinite"
-  fill="remove"
-  additive="sum"
-/>
-<!-- scale -->
 <animateTransform
   attributeName="transform"
   type="scale"
   values="1 1; 1.2 1.2; 1 1"
-  keyTimes="0; 0.5; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
-  dur="2s"
-  calcMode="spline"
-  repeatCount="indefinite"
-  fill="remove"
-  additive="sum"
-/>
-<!-- translate -->
-<animateTransform
-  attributeName="transform"
-  type="translate"
-  values="-100 -100; -100 -100; -100 -100"
   keyTimes="0; 0.5; 1"
   dur="2s"
   calcMode="linear"
@@ -369,57 +325,32 @@ transform-box: fill-box;
   additive="sum"
 />
 ```
+
+> 提示：循环呼吸效果也可以直接用 behaviors 包的 `transformBreathe`，见[呼吸动画 breathe](./[5]breathe.mdx)。
 
 ---
 
 ### 点击放大
 
 ```tsx
-{genAnimateScale({
-  initScale: 1,
+{transformScale({
+  initValue: 1,
+  pivot: [100, 100],
   timeline: [
-    { toScale: 1.5, durationSeconds: 0.3 }
+    { toAbs: 1.5, durationSeconds: 0.3 }
   ],
-  beginType: 'click',  // 点击触发
-  freeze: true             // 保持放大状态
+  begin: 'click',   // 点击触发
+  isFreeze: true       // 保持放大状态
 })}
 ```
 
-**生成的 SVG 代码：**
+**生成的 SVG 代码（scale 段，前后 translate 包裹同前）：**
 
 ```xml
-<!-- translate -->
-<animateTransform
-  attributeName="transform"
-  type="translate"
-  values="100 100; 100 100"
-  keyTimes="0; 1"
-  dur="0.3s"
-  calcMode="linear"
-  begin="click"
-  repeatCount="1"
-  fill="freeze"
-  additive="sum"
-/>
-<!-- scale -->
 <animateTransform
   attributeName="transform"
   type="scale"
   values="1 1; 1.5 1.5"
-  keyTimes="0; 1"
-  keySplines="0.42 0 0.58 1"
-  dur="0.3s"
-  calcMode="spline"
-  begin="click"
-  repeatCount="1"
-  fill="freeze"
-  additive="sum"
-/>
-<!-- translate -->
-<animateTransform
-  attributeName="transform"
-  type="translate"
-  values="-100 -100; -100 -100"
   keyTimes="0; 1"
   dur="0.3s"
   calcMode="linear"
@@ -435,56 +366,32 @@ transform-box: fill-box;
 ### 弹性放大（先快后慢）
 
 ```tsx
-import { getBackBezier } from '@pub-utils/getBezier';
+import { getBackBezier0_1 } from '@guohub8080/expub-tool/smil';
 
-{genAnimateScale({
-  initScale: 0,
+{transformScale({
+  initValue: 0,
+  pivot: [100, 100],
   timeline: [
     {
-      toScale: 1,
-      keySplines: getBackBezier({ overshoot: 1.7 }),  // 弹性效果
+      toAbs: 1,
+      keySplines: getBackBezier0_1({ isOut: true, intensity: 0.55 }),  // 弹性效果（结尾过冲）
       durationSeconds: 0.6
     }
   ]
 })}
 ```
 
-**生成的 SVG 代码：**
+**生成的 SVG 代码（scale 段，前后 translate 包裹同前）：**
 
 ```xml
-<!-- translate -->
-<animateTransform
-  attributeName="transform"
-  type="translate"
-  values="100 100; 100 100"
-  keyTimes="0; 1"
-  dur="0.6s"
-  calcMode="linear"
-  repeatCount="1"
-  fill="remove"
-  additive="sum"
-/>
-<!-- scale -->
 <animateTransform
   attributeName="transform"
   type="scale"
   values="0 0; 1 1"
   keyTimes="0; 1"
-  keySplines="0.34 1.56 0.64 1"
+  keySplines="0.175 0.885 0.32 1.275"
   dur="0.6s"
   calcMode="spline"
-  repeatCount="1"
-  fill="remove"
-  additive="sum"
-/>
-<!-- translate -->
-<animateTransform
-  attributeName="transform"
-  type="translate"
-  values="-100 -100; -100 -100"
-  keyTimes="0; 1"
-  dur="0.6s"
-  calcMode="linear"
   repeatCount="1"
   fill="remove"
   additive="sum"
@@ -496,50 +403,25 @@ import { getBackBezier } from '@pub-utils/getBezier';
 ### 脉冲效果（多次放大缩小）
 
 ```tsx
-{genAnimateScale({
-  initScale: 1,
+{transformScale({
+  initValue: 1,
+  pivot: [100, 100],
   timeline: [
-    { toScale: 1.3, durationSeconds: 0.3 },
-    { toScale: 1, durationSeconds: 0.3 },
-    { toScale: 1.2, durationSeconds: 0.3 },
-    { toScale: 1, durationSeconds: 0.3 }
+    { toAbs: 1.3, durationSeconds: 0.3 },
+    { toAbs: 1, durationSeconds: 0.3 },
+    { toAbs: 1.2, durationSeconds: 0.3 },
+    { toAbs: 1, durationSeconds: 0.3 }
   ]
 })}
 ```
 
-**生成的 SVG 代码：**
+**生成的 SVG 代码（scale 段，前后 translate 包裹同前）：**
 
 ```xml
-<!-- translate -->
-<animateTransform
-  attributeName="transform"
-  type="translate"
-  values="100 100; 100 100; 100 100; 100 100; 100 100"
-  keyTimes="0; 0.25; 0.5; 0.75; 1"
-  dur="1.2s"
-  calcMode="linear"
-  repeatCount="1"
-  fill="remove"
-  additive="sum"
-/>
-<!-- scale -->
 <animateTransform
   attributeName="transform"
   type="scale"
   values="1 1; 1.3 1.3; 1 1; 1.2 1.2; 1 1"
-  keyTimes="0; 0.25; 0.5; 0.75; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
-  dur="1.2s"
-  calcMode="spline"
-  repeatCount="1"
-  fill="remove"
-  additive="sum"
-/>
-<!-- translate -->
-<animateTransform
-  attributeName="transform"
-  type="translate"
-  values="-100 -100; -100 -100; -100 -100; -100 -100; -100 -100"
   keyTimes="0; 0.25; 0.5; 0.75; 1"
   dur="1.2s"
   calcMode="linear"
@@ -554,48 +436,23 @@ import { getBackBezier } from '@pub-utils/getBezier';
 ### 从零出现（从小到大）
 
 ```tsx
-{genAnimateScale({
-  initScale: 0,
+{transformScale({
+  initValue: 0,
+  pivot: [100, 100],
   timeline: [
-    { toScale: 1, durationSeconds: 0.5 }
+    { toAbs: 1, durationSeconds: 0.5 }
   ],
-  freeze: true  // 保持最终状态
+  isFreeze: true  // 保持最终状态
 })}
 ```
 
-**生成的 SVG 代码：**
+**生成的 SVG 代码（scale 段，前后 translate 包裹同前）：**
 
 ```xml
-<!-- translate -->
-<animateTransform
-  attributeName="transform"
-  type="translate"
-  values="100 100; 100 100"
-  keyTimes="0; 1"
-  dur="0.5s"
-  calcMode="linear"
-  repeatCount="1"
-  fill="freeze"
-  additive="sum"
-/>
-<!-- scale -->
 <animateTransform
   attributeName="transform"
   type="scale"
   values="0 0; 1 1"
-  keyTimes="0; 1"
-  keySplines="0.42 0 0.58 1"
-  dur="0.5s"
-  calcMode="spline"
-  repeatCount="1"
-  fill="freeze"
-  additive="sum"
-/>
-<!-- translate -->
-<animateTransform
-  attributeName="transform"
-  type="translate"
-  values="-100 -100; -100 -100"
   keyTimes="0; 1"
   dur="0.5s"
   calcMode="linear"
@@ -610,26 +467,25 @@ import { getBackBezier } from '@pub-utils/getBezier';
 ### 心跳效果
 
 ```tsx
-import { genAnimateScale } from '@svg-anim/scale';
+import { transformScale } from '@guohub8080/expub-tool/smil';
 
 const Heartbeat = () => {
   return (
     <svg width="100" height="100" viewBox="0 0 100 100">
-      {/* 心形 */}
+      {/* 心形（包围盒 x:20 y:10 w:60 h:60 → 中心 [50, 40]） */}
       <path
         d="M50 30 C50 30 20 10 20 30 C20 45 35 55 50 70 C65 55 80 45 80 30 C80 10 50 30 50 30"
         fill="#ef4444"
       >
         {/* 心跳动画 */}
-        {genAnimateScale({
-          origin: 'center',
-          elementBounds: { x: 20, y: 10, w: 60, h: 60 },
-          initScale: 1,
+        {transformScale({
+          pivot: [50, 40],  // 心形中心 = (20 + 30, 10 + 30)
+          initValue: 1,
           timeline: [
-            { toScale: 1.1, durationSeconds: 0.1 },
-            { toScale: 1, durationSeconds: 0.1 },
-            { toScale: 1.15, durationSeconds: 0.1 },
-            { toScale: 1, durationSeconds: 0.7 }
+            { toAbs: 1.1, durationSeconds: 0.1 },
+            { toAbs: 1, durationSeconds: 0.1 },
+            { toAbs: 1.15, durationSeconds: 0.1 },
+            { toAbs: 1, durationSeconds: 0.7 }
           ],
           loopCount: 0
         })}
@@ -639,40 +495,14 @@ const Heartbeat = () => {
 };
 ```
 
-**生成的 SVG 代码：**
+**生成的 SVG 代码（scale 段，前后 translate 包裹同前）：**
 
 ```xml
-<!-- translate -->
-<animateTransform
-  attributeName="transform"
-  type="translate"
-  values="50 40; 50 40; 50 40; 50 40; 50 40"
-  keyTimes="0; 0.1; 0.2; 0.3; 1"
-  dur="1s"
-  calcMode="linear"
-  repeatCount="indefinite"
-  fill="remove"
-  additive="sum"
-/>
-<!-- scale -->
 <animateTransform
   attributeName="transform"
   type="scale"
   values="1 1; 1.1 1.1; 1 1; 1.15 1.15; 1 1"
   keyTimes="0; 0.1; 0.2; 0.3; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
-  dur="1s"
-  calcMode="spline"
-  repeatCount="indefinite"
-  fill="remove"
-  additive="sum"
-/>
-<!-- translate -->
-<animateTransform
-  attributeName="transform"
-  type="translate"
-  values="-50 -40; -50 -40; -50 -40; -50 -40; -50 -40"
-  keyTimes="0; 0.1; 0.2; 0.3; 1"
   dur="1s"
   calcMode="linear"
   repeatCount="indefinite"
@@ -683,37 +513,25 @@ const Heartbeat = () => {
 
 ---
 
-## elementBounds 详解
+## pivot 坐标计算
 
-`elementBounds` 提供元素的位置和尺寸，用于自动计算缩放中心：
+缩放支点直接写 `[cx, cy]` 坐标，按元素位置自行计算。以元素 `x=70, y=70, w=60, h=60` 为例：
 
-```tsx
-// 元素位于 (70, 70)，尺寸 60x60
-elementBounds: {
-  x: 70,   // 元素左上角 X 坐标（可选，默认 0）
-  y: 70,   // 元素左上角 Y 坐标（可选，默认 0）
-  w: 60,   // 元素宽度（必填）
-  h: 60    // 元素高度（必填）
-}
-```
-
-**快捷位置对应的坐标：**
-
-| origin | 计算方式 | 示例值 |
+| 位置 | 计算方式 | pivot 值 |
 |--------|----------|--------|
-| `'center'` | `[x + w/2, y + h/2]` | `[100, 100]` |
-| `'topCenter'` | `[x + w/2, y]` | `[100, 70]` |
-| `'bottomRight'` | `[x + w, y + h]` | `[130, 130]` |
-| `'topLeft'` | `[x, y]` | `[70, 70]` |
+| 中心 | `[x + w/2, y + h/2]` | `[100, 100]` |
+| 顶部中心 | `[x + w/2, y]` | `[100, 70]` |
+| 右下角 | `[x + w, y + h]` | `[130, 130]` |
+| 左上角 | `[x, y]` | `[70, 70]` |
 
 ---
 
 ## 注意事项
 
-### additive 属性
+### isAdditive 属性
 
-- **推荐使用 `additive: true`**（默认）：动画会与其他变换叠加
-- 使用 `additive: false`：动画会替换其他变换
+- **推荐使用 `isAdditive: true`**（默认）：动画会与其他变换叠加
+- 使用 `isAdditive: false`：动画会替换其他变换
 
 ### 缩放比例限制
 
@@ -725,28 +543,30 @@ elementBounds: {
 ```tsx
 <circle cx="100" cy="100" r="30" fill="blue">
   {/* 同时缩放和旋转 */}
-  {genAnimateScale({
-    initScale: 1,
-    timeline: [{ toScale: 1.5, durationSeconds: 2 }]
+  {transformScale({
+    initValue: 1,
+    pivot: [100, 100],
+    timeline: [{ toAbs: 1.5, durationSeconds: 2 }]
   })}
-  {genAnimateRotate({
-    initAngle: 0,
-    timeline: [{ toAngle: 360, durationSeconds: 2 }]
+  {transformRotate({
+    initValue: 0,
+    pivot: [100, 100],
+    timeline: [{ toAbs: 360, durationSeconds: 2 }]
   })}
 </circle>
 ```
 
-### freeze 属性
+### isFreeze 属性
 
-- **`freeze: false`**（默认）：动画结束后回到原始状态
-- **`freeze: true`**：动画结束后停留在最后一帧
+- **`isFreeze: false`**（默认）：动画结束后回到原始状态
+- **`isFreeze: true`**：动画结束后停留在最后一帧
 
 ---
 
 ## 完整示例：交互式按钮（悬停放大）
 
 ```tsx
-import { genAnimateScale } from '@svg-anim/scale';
+import { transformScale } from '@guohub8080/expub-tool/smil';
 
 const InteractiveButton = () => {
   return (
@@ -761,16 +581,14 @@ const InteractiveButton = () => {
           rx="8"
           fill="#3b82f6"
         >
-          {/* 悬停时放大 */}
-          {genAnimateScale({
-            origin: 'center',
-            elementBounds: { x: 10, y: 10, w: 180, h: 40 },
-            initScale: 1,
+          {/* 放大动画（按钮中心 = (10 + 90, 10 + 20)） */}
+          {transformScale({
+            pivot: [100, 30],
+            initValue: 1,
             timeline: [
-              { toScale: 1.05, durationSeconds: 0.2 }
+              { toAbs: 1.05, durationSeconds: 0.2 }
             ],
-            beginType: undefined,
-            freeze: true
+            isFreeze: true
           })}
         </rect>
 

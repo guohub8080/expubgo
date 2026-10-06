@@ -3,35 +3,41 @@ export const icon = "Eye"
 
 # {title}
 
-`genAnimateOpacity` 是 SVG 透明度动画的生成工具，可以创建 `<animate attributeName="opacity">` 元素。
+`animateOpacity` 是 SVG 透明度动画的生成工具，可以创建 `<animate attributeName="opacity">` 元素。
 
 ---
 
 ## 函数签名
 
 ```tsx
-import { genAnimateOpacity } from '@svg-anim/opacity';
+import { animateOpacity } from '@guohub8080/expub-tool/smil';
 
-genAnimateOpacity({
-  initOpacity?: number,                      // 默认 1：初始不透明度（0-1）
-  timeline: OpacityTimelineSegment[],        // 必填：时间线段数组
-  delay?: number,                            // 默认 0：初始延迟（秒）
-  beginType?: SvgBeginEventType,                // 默认 undefined：动画开始事件类型
+animateOpacity({
+  initValue?: number,                        // 默认 1：初始不透明度（0-1）
+  timeline: OpacityKeyframe[],               // 必填：时间线段数组
+  begin?: string,                            // 默认 undefined：开始时机（SMIL begin 字符串）
   calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 自动：动画计算模式
-  freeze?: boolean,                          // 默认 false：是否保持最终状态
+  isFreeze?: boolean,                        // 默认 false：是否保持最终状态
   loopCount?: number,                        // 默认 1：循环次数（0 = 无限）
+  restart?: 'always' | 'whenNotActive' | 'never',
+  native?: T_NativeAnimate,                 // 透传/覆盖原生 animate 属性（最后展开，同名覆盖生成值）
 })
 ```
 
-### OpacityTimelineSegment 类型
+### OpacityKeyframe 类型
 
 ```tsx
-interface OpacityTimelineSegment {
-  toOpacity?: number,                        // 默认上一段透明度：目标不透明度（0-1）
+interface OpacityKeyframe {
+  toAbs: number,                             // 必填：目标不透明度（0-1）
   durationSeconds: number,                   // 必填：该段持续时间（秒）
-  keySplines?: string,                       // 默认 "0.42 0 0.58 1"：贝塞尔缓动参数
+  keySplines?: string,                       // 默认线性 "0 0 1 1"：贝塞尔缓动参数
 }
 ```
+
+### begin 字符串
+
+`begin` 直接写 SMIL begin 字符串，统一表达「延迟开始」与「事件触发」：
+`begin: '2s'`（延迟 2 秒自动开始）、`begin: 'click'`（点击触发）、`begin: 'click+0.5s'`（点击后延迟 0.5 秒）。
 
 ---
 
@@ -54,11 +60,11 @@ interface OpacityTimelineSegment {
 ```tsx
 <svg width="200" height="200">
   <circle cx="100" cy="100" r="30" fill="blue">
-    {genAnimateOpacity({
-      initOpacity: 1,
+    {animateOpacity({
+      initValue: 1,
       timeline: [
-        { toOpacity: 0, durationSeconds: 1 },  // 淡出
-        { toOpacity: 1, durationSeconds: 1 }    // 淡入
+        { toAbs: 0, durationSeconds: 1 },  // 淡出
+        { toAbs: 1, durationSeconds: 1 }   // 淡入
       ]
     })}
   </circle>
@@ -72,9 +78,8 @@ interface OpacityTimelineSegment {
   attributeName="opacity"
   values="1; 0; 1"
   keyTimes="0; 0.5; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
   dur="2s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="1"
   fill="remove"
 />
@@ -87,12 +92,12 @@ interface OpacityTimelineSegment {
 ### 淡入效果（从无到有）
 
 ```tsx
-{genAnimateOpacity({
-  initOpacity: 0,
+{animateOpacity({
+  initValue: 0,
   timeline: [
-    { toOpacity: 1, durationSeconds: 1 }
+    { toAbs: 1, durationSeconds: 1 }
   ],
-  freeze: true  // 保持最终状态
+  isFreeze: true  // 保持最终状态
 })}
 ```
 
@@ -103,9 +108,8 @@ interface OpacityTimelineSegment {
   attributeName="opacity"
   values="0; 1"
   keyTimes="0; 1"
-  keySplines="0.42 0 0.58 1"
   dur="1s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="1"
   fill="freeze"
 />
@@ -116,12 +120,12 @@ interface OpacityTimelineSegment {
 ### 淡出效果（从有到无）
 
 ```tsx
-{genAnimateOpacity({
-  initOpacity: 1,
+{animateOpacity({
+  initValue: 1,
   timeline: [
-    { toOpacity: 0, durationSeconds: 1 }
+    { toAbs: 0, durationSeconds: 1 }
   ],
-  freeze: true  // 保持最终状态
+  isFreeze: true  // 保持最终状态
 })}
 ```
 
@@ -132,9 +136,8 @@ interface OpacityTimelineSegment {
   attributeName="opacity"
   values="1; 0"
   keyTimes="0; 1"
-  keySplines="0.42 0 0.58 1"
   dur="1s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="1"
   fill="freeze"
 />
@@ -145,11 +148,11 @@ interface OpacityTimelineSegment {
 ### 闪烁效果（无限循环）
 
 ```tsx
-{genAnimateOpacity({
-  initOpacity: 1,
+{animateOpacity({
+  initValue: 1,
   timeline: [
-    { toOpacity: 0.2, durationSeconds: 0.5 },
-    { toOpacity: 1, durationSeconds: 0.5 }
+    { toAbs: 0.2, durationSeconds: 0.5 },
+    { toAbs: 1, durationSeconds: 0.5 }
   ],
   loopCount: 0  // 无限循环
 })}
@@ -162,24 +165,25 @@ interface OpacityTimelineSegment {
   attributeName="opacity"
   values="1; 0.2; 1"
   keyTimes="0; 0.5; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
   dur="1s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="indefinite"
   fill="remove"
 />
 ```
+
+> 提示：循环闪烁也可以直接用 behaviors 包的 `animateSoftBlink`，见[闪烁动画 fadeBlink](./[7]fadeBlink.mdx)。
 
 ---
 
 ### 呼吸闪烁（缓慢闪烁）
 
 ```tsx
-{genAnimateOpacity({
-  initOpacity: 0.3,
+{animateOpacity({
+  initValue: 0.3,
   timeline: [
-    { toOpacity: 1, durationSeconds: 2 },
-    { toOpacity: 0.3, durationSeconds: 2 }
+    { toAbs: 1, durationSeconds: 2 },
+    { toAbs: 0.3, durationSeconds: 2 }
   ],
   loopCount: 0
 })}
@@ -192,9 +196,8 @@ interface OpacityTimelineSegment {
   attributeName="opacity"
   values="0.3; 1; 0.3"
   keyTimes="0; 0.5; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
   dur="4s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="indefinite"
   fill="remove"
 />
@@ -205,13 +208,13 @@ interface OpacityTimelineSegment {
 ### 快速闪烁（报警效果）
 
 ```tsx
-{genAnimateOpacity({
-  initOpacity: 1,
+{animateOpacity({
+  initValue: 1,
   timeline: [
-    { toOpacity: 0, durationSeconds: 0.1 },
-    { toOpacity: 1, durationSeconds: 0.1 },
-    { toOpacity: 0, durationSeconds: 0.1 },
-    { toOpacity: 1, durationSeconds: 0.7 }
+    { toAbs: 0, durationSeconds: 0.1 },
+    { toAbs: 1, durationSeconds: 0.1 },
+    { toAbs: 0, durationSeconds: 0.1 },
+    { toAbs: 1, durationSeconds: 0.7 }
   ],
   loopCount: 0
 })}
@@ -224,9 +227,8 @@ interface OpacityTimelineSegment {
   attributeName="opacity"
   values="1; 0; 1; 0; 1"
   keyTimes="0; 0.1; 0.2; 0.3; 1"
-  keySplines="0 0 1 1; 0 0 1 1; 0 0 1 1; 0.42 0 0.58 1"
   dur="1s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="indefinite"
   fill="remove"
 />
@@ -237,18 +239,18 @@ interface OpacityTimelineSegment {
 ### 渐变消失（缓慢淡出）
 
 ```tsx
-import { getEaseBezier } from '@pub-utils/getBezier';
+import { getEaseBezier } from '@guohub8080/expub-tool/smil';
 
-{genAnimateOpacity({
-  initOpacity: 1,
+{animateOpacity({
+  initValue: 1,
   timeline: [
     {
-      toOpacity: 0,
+      toAbs: 0,
       keySplines: getEaseBezier({ isIn: true, isOut: false }),  // ease-out
       durationSeconds: 2
     }
   ],
-  freeze: true
+  isFreeze: true
 })}
 ```
 
@@ -272,13 +274,13 @@ import { getEaseBezier } from '@pub-utils/getBezier';
 ### 点击淡出
 
 ```tsx
-{genAnimateOpacity({
-  initOpacity: 1,
+{animateOpacity({
+  initValue: 1,
   timeline: [
-    { toOpacity: 0, durationSeconds: 0.3 }
+    { toAbs: 0, durationSeconds: 0.3 }
   ],
-  beginType: 'click',  // 点击触发
-  freeze: true             // 保持淡出状态
+  begin: 'click',   // 点击触发
+  isFreeze: true       // 保持淡出状态
 })}
 ```
 
@@ -289,9 +291,8 @@ import { getEaseBezier } from '@pub-utils/getBezier';
   attributeName="opacity"
   values="1; 0"
   keyTimes="0; 1"
-  keySplines="0.42 0 0.58 1"
   dur="0.3s"
-  calcMode="spline"
+  calcMode="linear"
   begin="click"
   repeatCount="1"
   fill="freeze"
@@ -303,13 +304,13 @@ import { getEaseBezier } from '@pub-utils/getBezier';
 ### 多段透明度变化
 
 ```tsx
-{genAnimateOpacity({
-  initOpacity: 1,
+{animateOpacity({
+  initValue: 1,
   timeline: [
-    { toOpacity: 0.5, durationSeconds: 1 },
-    { toOpacity: 0.2, durationSeconds: 1 },
-    { toOpacity: 0.8, durationSeconds: 1 },
-    { toOpacity: 1, durationSeconds: 1 }
+    { toAbs: 0.5, durationSeconds: 1 },
+    { toAbs: 0.2, durationSeconds: 1 },
+    { toAbs: 0.8, durationSeconds: 1 },
+    { toAbs: 1, durationSeconds: 1 }
   ]
 })}
 ```
@@ -321,9 +322,8 @@ import { getEaseBezier } from '@pub-utils/getBezier';
   attributeName="opacity"
   values="1; 0.5; 0.2; 0.8; 1"
   keyTimes="0; 0.25; 0.5; 0.75; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
   dur="4s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="1"
   fill="remove"
 />
@@ -333,10 +333,10 @@ import { getEaseBezier } from '@pub-utils/getBezier';
 
 ## 注意事项
 
-### freeze 属性
+### isFreeze 属性
 
-- **`freeze: false`**（默认）：动画结束后回到原始状态
-- **`freeze: true`**：动画结束后停留在最后一帧
+- **`isFreeze: false`**（默认）：动画结束后回到原始状态
+- **`isFreeze: true`**：动画结束后停留在最后一帧
 
 ### 不透明度范围
 
@@ -353,7 +353,7 @@ import { getEaseBezier } from '@pub-utils/getBezier';
 ## 完整示例：闪烁的星星
 
 ```tsx
-import { genAnimateOpacity } from '@svg-anim/opacity';
+import { animateOpacity } from '@guohub8080/expub-tool/smil';
 
 const TwinklingStar = () => {
   return (
@@ -364,13 +364,13 @@ const TwinklingStar = () => {
         fill="#FFD700"
       >
         {/* 闪烁动画 */}
-        {genAnimateOpacity({
-          initOpacity: 1,
+        {animateOpacity({
+          initValue: 1,
           timeline: [
-            { toOpacity: 0.3, durationSeconds: 0.8 },
-            { toOpacity: 1, durationSeconds: 0.8 },
-            { toOpacity: 0.5, durationSeconds: 0.6 },
-            { toOpacity: 1, durationSeconds: 0.6 }
+            { toAbs: 0.3, durationSeconds: 0.8 },
+            { toAbs: 1, durationSeconds: 0.8 },
+            { toAbs: 0.5, durationSeconds: 0.6 },
+            { toAbs: 1, durationSeconds: 0.6 }
           ],
           loopCount: 0
         })}
@@ -387,9 +387,8 @@ const TwinklingStar = () => {
   attributeName="opacity"
   values="1; 0.3; 1; 0.5; 1"
   keyTimes="0; 0.286; 0.571; 0.857; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
   dur="2.8s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="indefinite"
   fill="remove"
 />

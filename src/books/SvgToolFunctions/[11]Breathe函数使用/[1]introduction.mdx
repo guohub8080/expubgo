@@ -4,25 +4,23 @@ import { BasicBreathe, NormalBreathe, FastBreathe, SlowBreathe, GentleBreathe, S
 
 # {title}
 
-`genAnimateBreathe` 是专门用于创建呼吸动画效果的预设动画工具。呼吸动画是一种自动循环的缩放效果，模拟生物呼吸的节奏，常用于吸引注意力、提示重要信息、营造氛围等场景。
+`transformBreathe` 是专门用于创建呼吸动画效果的行为动画工具。呼吸动画是一种自动循环的缩放效果，模拟生物呼吸的节奏，常用于吸引注意力、提示重要信息、营造氛围等场景。
 
 ---
 
 ## 函数签名
 
 ```tsx
-import { genAnimateBreathe } from '@svg-anim/breathe';
+import { transformBreathe } from '@guohub8080/expub-tool/behaviors';
 
-genAnimateBreathe({
+transformBreathe({
   fromScale?: number,                    // 默认 1：初始缩放比例
-  toScale?: number,                       // 默认 1.1：目标缩放比例
-  onceBreatheDurationSeconds?: number,    // 默认 2：一次呼吸时长（秒）
-  keySplines?: string | string[],         // 默认 '0.42 0 0.58 1'：缓动曲线
-  repeatCount?: number,                   // 默认 0：循环次数（0 = 无限）
-  delay?: number,                         // 默认 0：初始延迟（秒）
-  transformOrigin?: string,               // 默认 'center'：变换原点
-  additive?: boolean,                     // 默认 true：是否累加变换
-  beginType?: SvgBeginEventType,         // 默认 undefined：动画开始事件类型
+  toScale?: number,                      // 默认 1.1：目标缩放比例
+  onceBreatheDurationSeconds?: number,   // 默认 2：一次呼吸时长（秒）
+  pivot: [number, number],               // 必填：缩放支点坐标 [x, y]
+  keySplines?: string,                   // 默认 '0.42 0 0.58 1'：缓动曲线
+  begin?: string,                        // 默认 undefined：开始时机（'2s' / 'click' / 'click+0.5s'）
+  loopCount?: number,                    // 默认 0：循环次数（0 = 无限）
 })
 ```
 
@@ -44,12 +42,10 @@ genAnimateBreathe({
 | `fromScale` | `number` | `1` | 初始缩放比例 |
 | `toScale` | `number` | `1.1` | 目标缩放比例 |
 | `onceBreatheDurationSeconds` | `number` | `2` | 一次呼吸时长（秒）|
-| `keySplines` | `string \| string[]` | `'0.42 0 0.58 1'` | 缓动曲线 |
-| `repeatCount` | `number` | `0` | 重复次数（0 = 无限）|
-| `delay` | `number` | `0` | 初始延迟（秒）|
-| `transformOrigin` | `string` | `'center'` | 变换原点 |
-| `additive` | `boolean` | `true` | 是否累加变换 |
-| `beginType` | `SvgBeginEventType` | `undefined` | 动画开始事件类型 |
+| `pivot` | `[number, number]` | **必填** | 缩放支点坐标 `[x, y]`（通常写元素中心）|
+| `keySplines` | `string` | `'0.42 0 0.58 1'` | 缓动曲线 |
+| `begin` | `string` | `undefined` | 开始时机：`'2s'`（延迟自动开始）、`'click'`、`'click+0.5s'` |
+| `loopCount` | `number` | `0` | 循环次数（0 = 无限）|
 
 ---
 
@@ -57,16 +53,16 @@ genAnimateBreathe({
 
 ### 最简单的呼吸效果
 
-使用默认参数创建标准呼吸效果。
+使用默认参数创建标准呼吸效果（`pivot` 是唯一必填项）。
 
 **代码示例：**
 
 ```tsx
-import { genAnimateBreathe } from "@svg-anim/breathe";
+import { transformBreathe } from "@guohub8080/expub-tool/behaviors";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
-  <g style={{ transformOrigin: 'center', transformBox: 'fill-box' }}>
-    {genAnimateBreathe()}
+  <g>
+    {transformBreathe({ pivot: [100, 100] })}
     <circle cx="100" cy="100" r="50" fill="blue" />
   </g>
 </svg>
@@ -89,9 +85,10 @@ import { genAnimateBreathe } from "@svg-anim/breathe";
 **代码示例：**
 
 ```tsx
-{genAnimateBreathe({
+{transformBreathe({
   toScale: 1.05,
-  onceBreatheDurationSeconds: 2.5
+  onceBreatheDurationSeconds: 2.5,
+  pivot: [100, 100]
 })}
 ```
 
@@ -108,9 +105,10 @@ import { genAnimateBreathe } from "@svg-anim/breathe";
 **代码示例：**
 
 ```tsx
-{genAnimateBreathe({
+{transformBreathe({
   toScale: 1.2,
-  onceBreatheDurationSeconds: 1.5
+  onceBreatheDurationSeconds: 1.5,
+  pivot: [100, 100]
 })}
 ```
 
@@ -124,16 +122,17 @@ import { genAnimateBreathe } from "@svg-anim/breathe";
 
 ## 呼吸速度控制
 
-通过调整 `duration` 参数控制呼吸的速度：
+通过调整 `onceBreatheDurationSeconds` 参数控制呼吸的速度：
 
 ### 快速呼吸（1 秒周期）
 
 **代码示例：**
 
 ```tsx
-{genAnimateBreathe({
+{transformBreathe({
   toScale: 1.15,
-  onceBreatheDurationSeconds: 1
+  onceBreatheDurationSeconds: 1,
+  pivot: [100, 100]
 })}
 ```
 
@@ -150,10 +149,11 @@ import { genAnimateBreathe } from "@svg-anim/breathe";
 **代码示例：**
 
 ```tsx
-{genAnimateBreathe({
+{transformBreathe({
   toScale: 1.08,
   onceBreatheDurationSeconds: 3,
-  keySplines: '0.37 0 0.63 1'
+  keySplines: '0.37 0 0.63 1',
+  pivot: [100, 100]
 })}
 ```
 
@@ -165,84 +165,98 @@ import { genAnimateBreathe } from "@svg-anim/breathe";
 
 ---
 
-## 预设效果
+## 常用配方
 
-`breathePresets` 提供了 6 种常用预设：
+新 API 不再提供呼吸预设对象，直接把常用节奏写成参数字面量即可（数值沿用旧预设语义）：
 
 ```tsx
-import { breathePresets } from '@svg-anim/breathe';
+import { transformBreathe } from '@guohub8080/expub-tool/behaviors';
 
-// 标准呼吸（2秒）
-breathePresets.normal()
+// 标准呼吸（2 秒）
+transformBreathe({ pivot: [100, 100] })
 
-// 快速呼吸（1秒）
-breathePresets.fast()
+// 快速呼吸（1 秒，幅度 1.15）
+transformBreathe({ onceBreatheDurationSeconds: 1, toScale: 1.15, pivot: [100, 100] })
 
-// 慢速呼吸（3秒）
-breathePresets.slow()
+// 慢速呼吸（3 秒，幅度 1.08）
+transformBreathe({
+  onceBreatheDurationSeconds: 3,
+  toScale: 1.08,
+  keySplines: '0.37 0 0.63 1',
+  pivot: [100, 100]
+})
 
-// 轻微呼吸（2.5秒，小幅度）
-breathePresets.gentle()
+// 轻微呼吸（2.5 秒，小幅度 1.05）
+transformBreathe({ onceBreatheDurationSeconds: 2.5, toScale: 1.05, pivot: [100, 100] })
 
-// 强烈呼吸（1.5秒，大幅度）
-breathePresets.strong()
+// 强烈呼吸（1.5 秒，大幅度 1.2）
+transformBreathe({ onceBreatheDurationSeconds: 1.5, toScale: 1.2, pivot: [100, 100] })
 
-// 延迟呼吸（延迟1秒后开始）
-breathePresets.delayed()
+// 延迟呼吸（延迟 1 秒后开始）
+transformBreathe({ begin: '1s', pivot: [100, 100] })
 ```
 
 ---
 
-## transformOrigin 设置
+## pivot 支点设置
 
-呼吸动画需要配合 `transformOrigin` 使用，否则缩放不会以元素中心为原点。
+新 API 不再依赖 CSS `transformOrigin`/`transformBox` 配合，而是通过必填的 `pivot: [x, y]` 显式声明缩放支点（SVG 用户坐标）。想让元素围绕自身中心呼吸，直接写元素中心坐标即可。
 
-### 使用 centerBreatheStyle 常量
+### 写元素中心坐标
 
-推荐直接导入并使用 `centerBreatheStyle` 常量：
+圆 `<circle cx="100" cy="100" r="50" />` 的中心就是 `(100, 100)`：
 
 ```tsx
-import { genAnimateBreathe, centerBreatheStyle } from '@svg-anim/breathe';
+import { transformBreathe } from "@guohub8080/expub-tool/behaviors";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
-  <g style={centerBreatheStyle}>
-    {genAnimateBreathe()}
+  <g>
+    {transformBreathe({ pivot: [100, 100] })}
     <circle cx="100" cy="100" r="50" fill="blue" />
   </g>
 </svg>
 ```
 
-**centerBreatheStyle 包含的样式：**
+### 生成原理
 
-```tsx
-{
-  transformOrigin: 'center',
-  transformBox: 'fill-box'
-}
+`transformBreathe` 内部基于 `transformScale` 的时间线实现，`pivot` 会被编译为三个 `additive="sum"` 的 `animateTransform`（平移到支点 → 缩放 → 平移回来），因此无需任何 CSS 配合：
+
+```xml
+<!-- 平移到支点 -->
+<animateTransform attributeName="transform" type="translate"
+  values="100 100;100 100;100 100" keyTimes="0;0.5;1" dur="2s"
+  calcMode="linear" additive="sum" repeatCount="indefinite" />
+<!-- 围绕支点缩放 -->
+<animateTransform attributeName="transform" type="scale"
+  values="1 1;1.1 1.1;1 1" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"
+  dur="2s" calcMode="spline" additive="sum" repeatCount="indefinite" />
+<!-- 平移回来 -->
+<animateTransform attributeName="transform" type="translate"
+  values="-100 -100;-100 -100;-100 -100" keyTimes="0;0.5;1" dur="2s"
+  calcMode="linear" additive="sum" repeatCount="indefinite" />
 ```
 
-### transformOrigin 取值说明
+### 常见形状的中心求法
 
-| 值 | 说明 | 推荐度 |
-|------|------|--------|
-| `'center'` | 以元素中心为原点 | ⭐⭐⭐⭐⭐ |
-| `'origin'` | 以坐标原点 (0,0) 为原点 | ⭐⭐ |
-| `'50% 50%'` | 自定义：元素中心 | ⭐⭐⭐⭐ |
-| `'100 100'` | 自定义：指定坐标点 | ⭐⭐⭐ |
+| 形状 | 中心坐标 |
+|------|---------|
+| `<circle cx="100" cy="100" r="50" />` | `pivot: [100, 100]`（即 cx、cy）|
+| `<rect x="50" y="60" width="100" height="80" />` | `pivot: [100, 100]`（x + width/2，y + height/2）|
+| `<path>` / 任意图形 | 取包围盒对角线中点，或按 viewBox 目测估算 |
 
 ---
 
 ## 注意事项
 
-### 1. 必须设置 transformOrigin
+### 1. 必须设置 pivot
 
-呼吸动画必须配合 `transformOrigin` 使用，否则缩放可能不符合预期。
+`pivot` 是 `transformBreathe` 唯一必填的参数，缺了它 TypeScript 会直接报错。
 
 **✅ 正确：**
 
 ```tsx
-<g style={{ transformOrigin: 'center', transformBox: 'fill-box' }}>
-  {genAnimateBreathe()}
+<g>
+  {transformBreathe({ pivot: [100, 100] })}
   <circle cx="100" cy="100" r="50" fill="blue" />
 </g>
 ```
@@ -251,28 +265,25 @@ import { genAnimateBreathe, centerBreatheStyle } from '@svg-anim/breathe';
 
 ```tsx
 <g>
-  {genAnimateBreathe()}
+  {transformBreathe()}
   <circle cx="100" cy="100" r="50" fill="blue" />
 </g>
 ```
 
 ---
 
-### 2. additive 参数的使用
+### 2. 与其他动画的组合
 
-`additive` 参数控制是否与其他动画叠加：
+`transformBreathe` 生成的变换默认以 `additive="sum"` 叠加，可与旋转等其他变换动画直接共存：
 
 ```tsx
-// additive: true（默认）- 与其他动画叠加
+// 呼吸 + 旋转叠加
 <g>
-  {genAnimateBreathe({ additive: true })}
-  {genAnimateRotate({ additive: true })}
-  <rect width="100" height="100" fill="red" />
-</g>
-
-// additive: false - 替换其他动画
-<g>
-  {genAnimateBreathe({ additive: false })}
+  {transformBreathe({ pivot: [100, 100] })}
+  {transformRotate({
+    timeline: [{ toAbs: 45, durationSeconds: 2 }],
+    pivot: [100, 100]
+  })}
   <rect width="100" height="100" fill="red" />
 </g>
 ```
@@ -289,7 +300,7 @@ import { genAnimateBreathe, centerBreatheStyle } from '@svg-anim/breathe';
 
 ## 下一步
 
-现在你已经了解了 `genAnimateBreathe` 的基本用法和呼吸效果控制。接下来将学习：
+现在你已经了解了 `transformBreathe` 的基本用法和呼吸效果控制。接下来将学习：
 
 - **时序控制** - 延迟启动、循环次数、点击触发
 - **自定义缓动** - 使用不同的缓动曲线创建特殊效果

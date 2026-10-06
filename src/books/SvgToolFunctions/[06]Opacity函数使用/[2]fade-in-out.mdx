@@ -4,7 +4,7 @@ import { FadeIn, FadeOut } from "./examples"
 
 # {title}
 
-淡入（Fade In）和淡出（Fade Out）是最基础的透明度动画效果。本文介绍如何使用 `genAnimateOpacity` 创建这两种效果。
+淡入（Fade In）和淡出（Fade Out）是最基础的透明度动画效果。本文介绍如何使用 `animateOpacity` 创建这两种效果。
 
 ---
 
@@ -17,16 +17,16 @@ import { FadeIn, FadeOut } from "./examples"
 **代码示例：**
 
 ```tsx
-import { genAnimateOpacity } from "@svg-anim/opacity";
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
   <circle cx="100" cy="100" r="40" fill="blue">
-    {genAnimateOpacity({
-      initOpacity: 0,        // 从完全透明开始
+    {animateOpacity({
+      initValue: 0,          // 从完全透明开始
       timeline: [
-        { toValue: 1, durationSeconds: 2 }  // 2秒淡入到不透明
+        { toAbs: 1, durationSeconds: 2 }  // 2秒淡入到不透明
       ],
-      freeze: true           // 保持最终状态
+      isFreeze: true         // 保持最终状态
     })}
   </circle>
 </svg>
@@ -38,16 +38,26 @@ import { genAnimateOpacity } from "@svg-anim/opacity";
 
 **说明**：圆形从完全透明淡入到完全不透明
 
-### 使用预设
+### 常用配方：淡入
+
+直接用 timeline 表达「淡入」，时长自己写：
 
 ```tsx
-import { opacityPresets } from '@svg-anim/opacity';
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
-// 淡入（默认1秒）
-opacityPresets.fadeIn()
+// 淡入（1秒）
+animateOpacity({
+  initValue: 0,
+  timeline: [{ toAbs: 1, durationSeconds: 1 }],
+  isFreeze: true,
+})
 
-// 自定义时长（2秒）
-opacityPresets.fadeIn(2)
+// 淡入（2秒）
+animateOpacity({
+  initValue: 0,
+  timeline: [{ toAbs: 1, durationSeconds: 2 }],
+  isFreeze: true,
+})
 ```
 
 ---
@@ -61,16 +71,16 @@ opacityPresets.fadeIn(2)
 **代码示例：**
 
 ```tsx
-import { genAnimateOpacity } from "@svg-anim/opacity";
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
   <circle cx="100" cy="100" r="40" fill="blue">
-    {genAnimateOpacity({
-      initOpacity: 1,        // 从不透明开始
+    {animateOpacity({
+      initValue: 1,          // 从不透明开始
       timeline: [
-        { toValue: 0, durationSeconds: 2 }  // 2秒淡出到透明
+        { toAbs: 0, durationSeconds: 2 }  // 2秒淡出到透明
       ],
-      freeze: true           // 保持最终状态
+      isFreeze: true         // 保持最终状态
     })}
   </circle>
 </svg>
@@ -82,28 +92,36 @@ import { genAnimateOpacity } from "@svg-anim/opacity";
 
 **说明**：圆形从完全不透明淡出到完全透明
 
-### 使用预设
+### 常用配方：淡出
 
 ```tsx
-import { opacityPresets } from '@svg-anim/opacity';
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
-// 淡出（默认1秒）
-opacityPresets.fadeOut()
+// 淡出（1秒）
+animateOpacity({
+  initValue: 1,
+  timeline: [{ toAbs: 0, durationSeconds: 1 }],
+  isFreeze: true,
+})
 
-// 自定义时长（2秒）
-opacityPresets.fadeOut(2)
+// 淡出（2秒）
+animateOpacity({
+  initValue: 1,
+  timeline: [{ toAbs: 0, durationSeconds: 2 }],
+  isFreeze: true,
+})
 ```
 
 ---
 
-## freeze 参数说明
+## isFreeze 参数说明
 
 | 值 | 效果 |
 |------|------|
 | `true` | 动画结束后保持最终状态 |
 | `false` | 动画结束后恢复初始状态 |
 
-**淡入动画通常使用 `freeze: true`**，让元素保持可见状态。
+**淡入动画通常使用 `isFreeze: true`**，让元素保持可见状态。
 
 ---
 
@@ -122,29 +140,29 @@ opacityPresets.fadeOut(2)
 ### 渐显效果（延迟后淡入）
 
 ```tsx
-{genAnimateOpacity({
-  initOpacity: 0,
+{animateOpacity({
+  initValue: 0,
   timeline: [
-    { toValue: 1, durationSeconds: 1 }
+    { toAbs: 1, durationSeconds: 1 }
   ],
-  delay: 0.5,       // 延迟0.5秒后开始
-  freeze: true
+  begin: "0.5s",     // 延迟0.5秒后开始
+  isFreeze: true
 })}
 ```
 
 ### 线性淡入（匀速）
 
 ```tsx
-{genAnimateOpacity({
-  initOpacity: 0,
+{animateOpacity({
+  initValue: 0,
   timeline: [
     {
-      toValue: 1,
+      toAbs: 1,
       durationSeconds: 2,
       keySplines: '0 0 1 1'  // 线性缓动
     }
   ],
-  freeze: true
+  isFreeze: true
 })}
 ```
 
@@ -152,10 +170,18 @@ opacityPresets.fadeOut(2)
 
 ```tsx
 // 快速淡入（0.3秒）
-opacityPresets.quickFadeIn()
+animateOpacity({
+  initValue: 0,
+  timeline: [{ toAbs: 1, durationSeconds: 0.3 }],
+  isFreeze: true,
+})
 
 // 快速淡出（0.3秒）
-opacityPresets.quickFadeOut()
+animateOpacity({
+  initValue: 1,
+  timeline: [{ toAbs: 0, durationSeconds: 0.3 }],
+  isFreeze: true,
+})
 ```
 
 ---

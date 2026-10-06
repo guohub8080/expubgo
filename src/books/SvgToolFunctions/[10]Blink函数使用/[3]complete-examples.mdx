@@ -2,7 +2,7 @@ export const title = "完整示例与实战应用"
 
 # {title}
 
-本文档将通过实际应用场景展示 `genAnimateSoftBlink` 的各种用法，帮助你更好地理解如何在项目中使用闪烁动画。
+本文档将通过实际应用场景展示 `animateSoftBlink` 的各种用法，帮助你更好地理解如何在项目中使用闪烁动画。
 
 ---
 
@@ -13,31 +13,30 @@ export const title = "完整示例与实战应用"
 **代码示例：**
 
 ```tsx
-import { genAnimateSoftBlink } from "@svg-anim/blink";
+import { animateSoftBlink } from "@guohub8080/expub-tool/behaviors";
 
 const LoadingIndicator = () => {
   return (
     <svg width="200" height="200" viewBox="0 0 200 200">
       {/* 三个圆点依次闪烁 */}
       <circle cx="60" cy="100" r="15" fill="blue">
-        {genAnimateSoftBlink({
+        {animateSoftBlink({
           minOpacity: 0.3,
-          onceBlinkDurationSeconds: 1,
-          delay: 0
+          onceBlinkDurationSeconds: 1
         })}
       </circle>
       <circle cx="100" cy="100" r="15" fill="blue">
-        {genAnimateSoftBlink({
+        {animateSoftBlink({
           minOpacity: 0.3,
           onceBlinkDurationSeconds: 1,
-          delay: 0.2
+          begin: '0.2s'
         })}
       </circle>
       <circle cx="140" cy="100" r="15" fill="blue">
-        {genAnimateSoftBlink({
+        {animateSoftBlink({
           minOpacity: 0.3,
           onceBlinkDurationSeconds: 1,
-          delay: 0.4
+          begin: '0.4s'
         })}
       </circle>
     </svg>
@@ -47,7 +46,7 @@ const LoadingIndicator = () => {
 
 **效果说明：**
 - 三个圆点依次闪烁，形成波浪效果
-- 使用 `delay` 参数错开每个圆点的开始时间
+- 使用 `begin` 字符串错开每个圆点的开始时间
 - 适中的闪烁速度（1 秒周期）和淡化程度（30%）
 
 ---
@@ -59,7 +58,7 @@ const LoadingIndicator = () => {
 **代码示例：**
 
 ```tsx
-import { genAnimateSoftBlink } from "@svg-anim/blink";
+import { animateSoftBlink } from "@guohub8080/expub-tool/behaviors";
 
 const NotificationBadge = () => {
   return (
@@ -73,7 +72,7 @@ const NotificationBadge = () => {
       {/* 闪烁的红色徽章 */}
       <g transform="translate(140, 60)">
         <circle r="15" fill="red">
-          {genAnimateSoftBlink({
+          {animateSoftBlink({
             minOpacity: 0.5,
             onceBlinkDurationSeconds: 1.5
           })}
@@ -101,7 +100,7 @@ const NotificationBadge = () => {
 **代码示例：**
 
 ```tsx
-import { genAnimateSoftBlink } from "@svg-anim/blink";
+import { animateSoftBlink } from "@guohub8080/expub-tool/behaviors";
 
 const InteractiveButton = () => {
   return (
@@ -112,9 +111,9 @@ const InteractiveButton = () => {
 
         {/* 按钮背景 */}
         <rect x="50" y="70" width="100" height="60" rx="10" fill="green">
-          {genAnimateSoftBlink({
-            beginType: 'click',
-            repeatCount: 2,
+          {animateSoftBlink({
+            begin: 'click',
+            loopCount: 2,
             onceBlinkDurationSeconds: 0.5,
             minOpacity: 0.4
           })}
@@ -132,7 +131,7 @@ const InteractiveButton = () => {
 
 **效果说明：**
 - 点击后按钮快速闪烁 2 次
-- 使用 `beginType: 'click'` 实现点击触发
+- 使用 `begin: 'click'` 实现点击触发
 - 适中的淡化程度（40%）
 
 ---
@@ -144,17 +143,17 @@ const InteractiveButton = () => {
 **代码示例：**
 
 ```tsx
-import { genAnimateSoftBlink } from "@svg-anim/blink";
+import { animateSoftBlink } from "@guohub8080/expub-tool/behaviors";
 
 const ErrorMessage = () => {
   return (
     <svg width="200" height="200" viewBox="0 0 200 200">
       {/* 错误图标背景圆 */}
       <circle cx="100" cy="100" r="40" fill="#ffebee">
-        {genAnimateSoftBlink({
+        {animateSoftBlink({
           minOpacity: 0.2,
           onceBlinkDurationSeconds: 0.8,
-          repeatCount: 5  // 闪烁 5 次后停止
+          loopCount: 5  // 闪烁 5 次后停止
         })}
       </circle>
 
@@ -182,7 +181,7 @@ const ErrorMessage = () => {
 **代码示例：**
 
 ```tsx
-import { genAnimateSoftBlink } from "@svg-anim/blink";
+import { animateSoftBlink } from "@guohub8080/expub-tool/behaviors";
 
 const DecorativeStars = () => {
   return (
@@ -195,10 +194,9 @@ const DecorativeStars = () => {
         d="M40 30 L45 45 L60 45 L48 55 L53 70 L40 60 L27 70 L32 55 L20 45 L35 45 Z"
         fill="yellow"
       >
-        {genAnimateSoftBlink({
+        {animateSoftBlink({
           minOpacity: 0.7,
-          onceBlinkDurationSeconds: 2.5,
-          delay: 0
+          onceBlinkDurationSeconds: 2.5
         })}
       </path>
 
@@ -206,10 +204,10 @@ const DecorativeStars = () => {
         d="M160 50 L163 60 L173 60 L165 67 L168 77 L160 70 L152 77 L155 67 L147 60 L157 60 Z"
         fill="yellow"
       >
-        {genAnimateSoftBlink({
+        {animateSoftBlink({
           minOpacity: 0.6,
           onceBlinkDurationSeconds: 3,
-          delay: 0.5
+          begin: '0.5s'
         })}
       </path>
 
@@ -217,10 +215,10 @@ const DecorativeStars = () => {
         d="M80 120 L83 130 L93 130 L85 137 L88 147 L80 140 L72 147 L75 137 L67 130 L77 130 Z"
         fill="yellow"
       >
-        {genAnimateSoftBlink({
+        {animateSoftBlink({
           minOpacity: 0.8,
           onceBlinkDurationSeconds: 2,
-          delay: 1
+          begin: '1s'
         })}
       </path>
 
@@ -228,10 +226,10 @@ const DecorativeStars = () => {
         d="M140 140 L143 150 L153 150 L145 157 L148 167 L140 160 L132 167 L135 157 L127 150 L137 150 Z"
         fill="yellow"
       >
-        {genAnimateSoftBlink({
+        {animateSoftBlink({
           minOpacity: 0.7,
           onceBlinkDurationSeconds: 2.8,
-          delay: 1.5
+          begin: '1.5s'
         })}
       </path>
     </svg>
@@ -241,7 +239,7 @@ const DecorativeStars = () => {
 
 **效果说明：**
 - 多个星星使用不同的闪烁参数
-- 不同的延迟时间创造错落有致的效果
+- 不同的 `begin` 延迟创造错落有致的效果
 - 微弱的闪烁（淡化到 60-80%）不会干扰主内容
 
 ---
@@ -253,7 +251,7 @@ const DecorativeStars = () => {
 **代码示例：**
 
 ```tsx
-import { genAnimateSoftBlink } from "@svg-anim/blink";
+import { animateSoftBlink } from "@guohub8080/expub-tool/behaviors";
 
 const AnswerReveal = () => {
   return (
@@ -272,9 +270,9 @@ const AnswerReveal = () => {
 
         {/* 答案背景 */}
         <rect x="60" y="100" width="80" height="50" rx="5" fill="#4CAF50">
-          {genAnimateSoftBlink({
-            beginType: 'click',
-            repeatCount: 3,
+          {animateSoftBlink({
+            begin: 'click',
+            loopCount: 3,
             onceBlinkDurationSeconds: 0.6,
             minOpacity: 0.3
           })}
@@ -299,14 +297,14 @@ const AnswerReveal = () => {
 
 ## 参数选择速查表
 
-| 应用场景 | minOpacity | duration | repeatCount | delay | beginType |
-|---------|-----------|----------|-------------|-------|-----------|
-| **加载状态** | 0.3 | 1 | 0 | 0-0.5 | - |
-| **提示徽章** | 0.5 | 1.5 | 0 | 0 | - |
-| **按钮反馈** | 0.4 | 0.5 | 2 | 0 | 'click' |
-| **错误提示** | 0.2 | 0.8 | 5 | 0 | - |
-| **装饰元素** | 0.7 | 2-3 | 0 | 0-2 | - |
-| **答案揭示** | 0.3 | 0.6 | 3 | 0 | 'click' |
+| 应用场景 | minOpacity | onceBlinkDurationSeconds | loopCount | begin |
+|---------|-----------|--------------------------|-----------|-------|
+| **加载状态** | 0.3 | 1 | 0 | - |
+| **提示徽章** | 0.5 | 1.5 | 0 | - |
+| **按钮反馈** | 0.4 | 0.5 | 2 | 'click' |
+| **错误提示** | 0.2 | 0.8 | 5 | - |
+| **装饰元素** | 0.7 | 2-3 | 0 | '0.5s'-'1.5s' |
+| **答案揭示** | 0.3 | 0.6 | 3 | 'click' |
 
 ---
 
@@ -322,13 +320,13 @@ const AnswerReveal = () => {
   <g style={{ cursor: 'pointer' }}>
     <rect width="200" height="200" fill="transparent" />
     <circle cx="100" cy="100" r="50" fill="blue">
-      {genAnimateSoftBlink({ beginType: 'click' })}
+      {animateSoftBlink({ begin: 'click' })}
     </circle>
   </g>
 
   {/* ❌ 错误：没有明确的点击区域 */}
   <circle cx="100" cy="100" r="50" fill="blue">
-    {genAnimateSoftBlink({ beginType: 'click' })}
+    {animateSoftBlink({ begin: 'click' })}
   </circle>
 </svg>
 ```
@@ -337,7 +335,7 @@ const AnswerReveal = () => {
 
 - 避免同时闪烁太多元素（建议不超过 5 个）
 - 装饰性闪烁使用较慢的速度和微弱的淡化
-- 使用 `repeatCount` 限制闪烁次数而不是无限循环
+- 使用 `loopCount` 限制闪烁次数而不是无限循环
 
 ### 3. 可访问性考虑
 
@@ -349,7 +347,7 @@ const AnswerReveal = () => {
 
 ## 下一步
 
-现在你已经掌握了 `genAnimateSoftBlink` 的各种用法和实际应用场景。你可以：
+现在你已经掌握了 `animateSoftBlink` 的各种用法和实际应用场景。你可以：
 
 1. **查看其他动画函数** - Translate、Rotate、Scale、Opacity、Skew、PathMotion、PathStroke
 2. **学习容器组件** - 了解如何组合多个动画

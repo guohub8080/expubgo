@@ -1,16 +1,16 @@
-export const title = "深入理解 toValue 与擦除效果"
+export const title = "深入理解 toAbs 与擦除效果"
 
 import { ToValueDemo } from "./examples"
 
 # {title}
 
-理解 `toValue` 是掌握路径描边动画的关键。本章节深入讲解 `toValue` 的含义、计算方式，以及各种擦除效果的实现原理。
+理解 `toAbs` 是掌握路径描边动画的关键。本章节深入讲解 `toAbs` 的含义、计算方式，以及各种擦除效果的实现原理。
 
 ---
 
-## toValue 是什么？
+## toAbs 是什么？
 
-`toValue` 控制 `stroke-dashoffset`（虚线偏移量）的**目标值**。
+`toAbs` 控制 `stroke-dashoffset`（虚线偏移量）的**目标值**。
 
 **核心公式：**
 
@@ -38,7 +38,7 @@ offset = 200    → 显示程度 = 0% (完全隐藏)
 
 ```tsx
 timeline: [
-  { durationSeconds: 2, toValue: 0 }
+  { durationSeconds: 2, toAbs: 0 }
 ]
 ```
 
@@ -55,7 +55,7 @@ timeline: [
 
 ```tsx
 timeline: [
-  { durationSeconds: 2, toValue: 200 }
+  { durationSeconds: 2, toAbs: 200 }
 ]
 ```
 
@@ -70,26 +70,26 @@ timeline: [
 
 ---
 
-## toValue 设计规则
+## toAbs 设计规则
 
 ### 规则1：始终基于 pathLength
 
-所有 `toValue` 都应该是 `0` 到 `pathLength` 之间的值：
+所有 `toAbs` 都应该是 `0` 到 `pathLength` 之间的值：
 
 ```tsx
-pathLength: 500  // 所有 toValue 应该在 0-500 之间
+pathLength: 500  // 所有 toAbs 应该在 0-500 之间
 
 // ✅ 正确
 timeline: [
-  { toValue: 0 },      // 完全显示
-  { toValue: 250 },    // 半显示
-  { toValue: 500 }     // 完全隐藏
+  { toAbs: 0 },      // 完全显示
+  { toAbs: 250 },    // 半显示
+  { toAbs: 500 }     // 完全隐藏
 ]
 
 // ❌ 错误
 timeline: [
-  { toValue: -100 },   // 超出范围
-  { toValue: 800 }     // 超出范围
+  { toAbs: -100 },   // 超出范围
+  { toAbs: 800 }     // 超出范围
 ]
 ```
 
@@ -97,12 +97,12 @@ timeline: [
 
 ### 规则2：连续性
 
-下一段动画从上一段的 `toValue` 继续：
+下一段动画从上一段的 `toAbs` 继续：
 
 ```tsx
 timeline: [
-  { durationSeconds: 1, toValue: 200 },  // 第1段结束在 200
-  { durationSeconds: 1, toValue: 0 }     // 第2段从 200 开始，变到 0
+  { durationSeconds: 1, toAbs: 200 },  // 第1段结束在 200
+  { durationSeconds: 1, toAbs: 0 }     // 第2段从 200 开始，变到 0
 ]
 
 // 时间轴：
@@ -113,16 +113,16 @@ timeline: [
 
 ---
 
-## 常见 toValue 模式
+## 常见 toAbs 模式
 
 ### 模式1：绘制（隐藏 → 显示）
 
 ```tsx
 {
   pathLength: 500,
-  initOffset: 500,  // 从隐藏开始
+  initValue: 500,  // 从隐藏开始
   timeline: [
-    { durationSeconds: 2, toValue: 0 }  // 画到完全显示
+    { durationSeconds: 2, toAbs: 0 }  // 画到完全显示
   ]
 }
 ```
@@ -134,9 +134,9 @@ timeline: [
 ```tsx
 {
   pathLength: 500,
-  initOffset: 0,    // 从显示开始
+  initValue: 0,    // 从显示开始
   timeline: [
-    { durationSeconds: 2, toValue: 500 }  // 擦除到完全隐藏
+    { durationSeconds: 2, toAbs: 500 }  // 擦除到完全隐藏
   ]
 }
 ```
@@ -149,9 +149,9 @@ timeline: [
 {
   pathLength: 500,
   timeline: [
-    { durationSeconds: 1, toValue: 250 },  // 画到半显示
-    { durationSeconds: 0.5, toValue: 250 },  // 停留0.5秒（保持）
-    { durationSeconds: 1, toValue: 0 }      // 继续画到完全显示
+    { durationSeconds: 1, toAbs: 250 },  // 画到半显示
+    { durationSeconds: 0.5, toAbs: 250 },  // 停留0.5秒（保持）
+    { durationSeconds: 1, toAbs: 0 }      // 继续画到完全显示
   ]
 }
 ```
@@ -164,8 +164,8 @@ timeline: [
 {
   pathLength: 500,
   timeline: [
-    { durationSeconds: 1.5, toValue: 0 },    // 画到完全显示
-    { durationSeconds: 1, toValue: 300 }      // 擦除到 60% 显示
+    { durationSeconds: 1.5, toAbs: 0 },    // 画到完全显示
+    { durationSeconds: 1, toAbs: 300 }      // 擦除到 60% 显示
   ]
 }
 ```
@@ -174,19 +174,19 @@ timeline: [
 
 ## 可视化对比
 
-### toValue 对比示例
+### toAbs 对比示例
 
 **效果预览：**
 
 <ToValueDemo />
 
 **说明：**
-- **左上**：toValue = 0，从隐藏变为完全显示
-- **右上**：toValue = 100，从隐藏变为半显示
-- **左下**：toValue = 200，从显示变为完全隐藏
-- **右下**：toValue = pathLength (200)，从显示变为完全隐藏
+- **左上**：toAbs = 0，从隐藏变为完全显示
+- **右上**：toAbs = 100，从隐藏变为半显示
+- **左下**：toAbs = 200，从显示变为完全隐藏
+- **右下**：toAbs = pathLength (200)，从显示变为完全隐藏
 
-这个示例展示了不同 `toValue` 目标值的显示效果。
+这个示例展示了不同 `toAbs` 目标值的显示效果。
 
 ---
 
@@ -198,7 +198,7 @@ timeline: [
 - 绘制完成后，从路径末端（尾巴）开始逐渐消失
 - 而不是从起点开始倒着擦除
 
-**⚠️ 重要：`genAnimatePathStroke` 无法直接实现"从尾巴开始消失"！**
+**⚠️ 重要：`animatePathStroke` 无法直接实现"从尾巴开始消失"！**
 
 **原因：**
 - `stroke-dashoffset` 控制的是整个虚线的偏移
@@ -216,31 +216,29 @@ timeline: [
 ```tsx
 <svg width="300" height="100" viewBox="0 0 300 100">
   {/* 第1段：前半部分 */}
-  {genAnimatePathStroke({
-    pathLength: 150,
-    initOffset: 0,
-    freeze: true,
-    timeline: [
-      { durationSeconds: 1, toValue: 150 }
-    ],
-    element: (
-      <path d="M 20 50 L 140 50" stroke="#3b82f6" strokeWidth="3" fill="none" />
-    )
-  })}
+  <path d="M 20 50 L 140 50" stroke="#3b82f6" strokeWidth="3" fill="none" strokeDasharray="150 150">
+    {animatePathStroke({
+      pathLength: 150,
+      initValue: 0,
+      isFreeze: true,
+      timeline: [
+        { durationSeconds: 1, toAbs: 150 }
+      ]
+    })}
+  </path>
 
   {/* 第2段：后半部分，延迟擦除 */}
-  {genAnimatePathStroke({
-    pathLength: 150,
-    initOffset: 0,
-    delay: 2,  // 等前半段擦除后
-    freeze: true,
-    timeline: [
-      { durationSeconds: 1, toValue: 150 }
-    ],
-    element: (
-      <path d="M 140 50 L 280 50" stroke="#10b981" strokeWidth="3" fill="none" />
-    )
-  })}
+  <path d="M 140 50 L 280 50" stroke="#10b981" strokeWidth="3" fill="none" strokeDasharray="150 150">
+    {animatePathStroke({
+      pathLength: 150,
+      initValue: 0,
+      begin: "2s",  // 等前半段擦除后
+      isFreeze: true,
+      timeline: [
+        { durationSeconds: 1, toAbs: 150 }
+      ]
+    })}
+  </path>
 </svg>
 ```
 
@@ -289,27 +287,25 @@ timeline: [
 
 ```tsx
 <svg width="300" height="100" viewBox="0 0 300 100">
-  {genAnimatePathStroke({
-    pathLength: 300,
-    timeline: [
-      { durationSeconds: 2, toValue: 0 }
-    ],
-    element: (
-      <path d="M 20 50 L 280 50" stroke="#3b82f6" strokeWidth="3" fill="none" />
-    )
-  })}
+  <path d="M 20 50 L 280 50" stroke="#3b82f6" strokeWidth="3" fill="none" strokeDasharray="300 300" strokeDashoffset={300}>
+    {animatePathStroke({
+      pathLength: 300,
+      timeline: [
+        { durationSeconds: 2, toAbs: 0 }
+      ]
+    })}
+  </path>
 
-  {genAnimatePathStroke({
-    pathLength: 300,
-    initOffset: 0,
-    delay: 2,
-    timeline: [
-      { durationSeconds: 2, toValue: 300 }
-    ],
-    element: (
-      <path d="M 20 50 L 280 50" stroke="#3b82f6" strokeWidth="3" fill="none" />
-    )
-  })}
+  <path d="M 20 50 L 280 50" stroke="#3b82f6" strokeWidth="3" fill="none" strokeDasharray="300 300">
+    {animatePathStroke({
+      pathLength: 300,
+      initValue: 0,
+      begin: "2s",
+      timeline: [
+        { durationSeconds: 2, toAbs: 300 }
+      ]
+    })}
+  </path>
 </svg>
 ```
 
@@ -317,25 +313,25 @@ timeline: [
 
 ---
 
-## toValue 计算技巧
+## toAbs 计算技巧
 
 ### 技巧1：根据显示比例计算
 
-如果你知道路径长度，可以按比例计算 toValue：
+如果你知道路径长度，可以按比例计算 toAbs：
 
 ```tsx
 pathLength: 1000
 
 // 显示 75%
-toValue = 1000 × (1 - 0.75) = 250
+toAbs = 1000 × (1 - 0.75) = 250
 
 // 显示 25%
-toValue = 1000 × (1 - 0.25) = 750
+toAbs = 1000 × (1 - 0.25) = 750
 ```
 
 ---
 
-### 技巧2：反向计算需要的 toValue
+### 技巧2：反向计算需要的 toAbs
 
 如果你想让路径显示特定比例：
 
@@ -343,46 +339,46 @@ toValue = 1000 × (1 - 0.25) = 750
 pathLength: 500
 
 // 想要显示 80%
-toValue = 500 × (1 - 0.8) = 100
+toAbs = 500 × (1 - 0.8) = 100
 ```
 
 ---
 
 ## 常见错误
 
-### ❌ 错误：toValue 超出范围
+### ❌ 错误：toAbs 超出范围
 
 ```tsx
 {
   pathLength: 500,
   timeline: [
-    { toValue: -100 }  // ❌ 负数无效
+    { toAbs: -100 }  // ❌ 负数无效
   ]
 }
 ```
 
-**修正：** toValue 应该在 0 到 pathLength 之间
+**修正：** toAbs 应该在 0 到 pathLength 之间
 
 ---
 
-### ❌ 错误：忘记 pathLength 与 toValue 的关系
+### ❌ 错误：忘记 pathLength 与 toAbs 的关系
 
 ```tsx
 {
   pathLength: 500,
   timeline: [
-    { toValue: 1000 }  // ❌ 超过 pathLength
+    { toAbs: 1000 }  // ❌ 超过 pathLength
   ]
 }
 ```
 
-**修正：** 确保 toValue ≤ pathLength
+**修正：** 确保 toAbs ≤ pathLength
 
 ---
 
-## toValue 速查表
+## toAbs 速查表
 
-| 想要的效果 | initOffset | toValue | 说明 |
+| 想要的效果 | initValue | toAbs | 说明 |
 |----------|------------|---------|------|
 | 从隐藏绘制到显示 | pathLength | 0 | 标准绘制 |
 | 从显示擦除到隐藏 | 0 | pathLength | 标准擦除（倒着回）|
@@ -394,7 +390,7 @@ toValue = 500 × (1 - 0.8) = 100
 
 ## 总结
 
-1. **toValue 控制 stroke-dashoffset 的目标值**
+1. **toAbs 控制 stroke-dashoffset 的目标值**
 2. **显示比例 = 1 - (offset / pathLength)**
-3. **toValue 必须在 0 到 pathLength 之间**
+3. **toAbs 必须在 0 到 pathLength 之间**
 4. **"从尾巴开始消失"需要特殊技巧**（分段路径、遮罩或多路径叠加）

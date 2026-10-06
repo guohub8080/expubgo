@@ -4,10 +4,10 @@ import { BasicSkewX, BasicSkewY } from "./examples"
 
 # {title}
 
-Skew（倾斜）变换是 SVG 动画中创建透视和倾斜效果的函数。本项目提供了两个独立的倾斜函数：
+Skew（倾斜）变换是 SVG 动画中创建透视和倾斜效果的函数。`@guohub8080/expub-tool/smil` 提供了两个独立的倾斜函数：
 
-- **`genAnimateSkewX`** - 沿 X 轴倾斜（水平倾斜）
-- **`genAnimateSkewY`** - 沿 Y 轴倾斜（垂直倾斜）
+- **`transformSkewX`** - 沿 X 轴倾斜（水平倾斜）
+- **`transformSkewY`** - 沿 Y 轴倾斜（垂直倾斜）
 
 ---
 
@@ -16,38 +16,40 @@ Skew（倾斜）变换是 SVG 动画中创建透视和倾斜效果的函数。�
 ### SkewX（水平倾斜）
 
 ```tsx
-import { genAnimateSkewX } from "@svg-anim/skewX";
+import { transformSkewX } from "@guohub8080/expub-tool/smil";
 
-genAnimateSkewX({
+transformSkewX({
   // ===== 必填参数 =====
-  timeline: SkewTimelineSegment[],          // 必填：时间线段数组
+  timeline: { durationSeconds: number, toAbs: number, keySplines?: string }[],  // 必填：时间线段数组
 
   // ===== 可选参数 =====
-  initAngle?: number,                        // 初始倾斜角度，默认 0
-  delay?: number,                            // 初始延迟（秒），默认 0
-  additive?: boolean,                        // 是否累加变换，默认 true
+  initValue?: number,                        // 初始倾斜角度（度），默认 0
+  begin?: string,                            // 开始时机：'2s'（延迟自动开始）、'click'、'click+0.5s'
+  isAdditive?: boolean,                      // 是否累加变换，默认 true
   calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 动画计算模式，自动
-  freeze?: boolean,                          // 是否保持最终状态，默认 false
+  isFreeze?: boolean,                        // 是否保持最终状态，默认 false
   loopCount?: number,                        // 循环次数（0 = 无限），默认 1
+  native?: T_NativeAnimateTransform,         // 透传/覆盖原生 animateTransform 属性（最后展开，同名覆盖生成值）
 })
 ```
 
 ### SkewY（垂直倾斜）
 
 ```tsx
-import { genAnimateSkewY } from "@svg-anim/skewY";
+import { transformSkewY } from "@guohub8080/expub-tool/smil";
 
-genAnimateSkewY({
+transformSkewY({
   // ===== 必填参数 =====
-  timeline: SkewTimelineSegment[],          // 必填：时间线段数组
+  timeline: { durationSeconds: number, toAbs: number, keySplines?: string }[],  // 必填：时间线段数组
 
   // ===== 可选参数 =====
-  initAngle?: number,                        // 初始倾斜角度，默认 0
-  delay?: number,                            // 初始延迟（秒），默认 0
-  additive?: boolean,                        // 是否累加变换，默认 true
+  initValue?: number,                        // 初始倾斜角度（度），默认 0
+  begin?: string,                            // 开始时机：'2s'（延迟自动开始）、'click'、'click+0.5s'
+  isAdditive?: boolean,                      // 是否累加变换，默认 true
   calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 动画计算模式，自动
-  freeze?: boolean,                          // 是否保持最终状态，默认 false
+  isFreeze?: boolean,                        // 是否保持最终状态，默认 false
   loopCount?: number,                        // 循环次数（0 = 无限），默认 1
+  native?: T_NativeAnimateTransform,         // 透传/覆盖原生 animateTransform 属性（最后展开，同名覆盖生成值）
 })
 ```
 
@@ -89,15 +91,15 @@ SkewY 使元素沿 Y 轴倾斜，**正值向下倾斜**，**负值向上倾斜**
 **代码示例：**
 
 ```tsx
-import { genAnimateSkewX } from "@svg-anim/skewX";
+import { transformSkewX } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="150" viewBox="0 0 200 150">
   <rect x="50" y="25" width="100" height="100" fill="blue">
-    {genAnimateSkewX({
+    {transformSkewX({
       timeline: [
-        { toValue: 20, durationSeconds: 1 },
-        { toValue: -20, durationSeconds: 1 },
-        { toValue: 0, durationSeconds: 1 }
+        { toAbs: 20, durationSeconds: 1 },
+        { toAbs: -20, durationSeconds: 1 },
+        { toAbs: 0, durationSeconds: 1 }
       ],
       loopCount: 0
     })}
@@ -118,15 +120,15 @@ import { genAnimateSkewX } from "@svg-anim/skewX";
 **代码示例：**
 
 ```tsx
-import { genAnimateSkewY } from "@svg-anim/skewY";
+import { transformSkewY } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="150" viewBox="0 0 200 150">
   <rect x="50" y="25" width="100" height="100" fill="green">
-    {genAnimateSkewY({
+    {transformSkewY({
       timeline: [
-        { toValue: 20, durationSeconds: 1 },
-        { toValue: -20, durationSeconds: 1 },
-        { toValue: 0, durationSeconds: 1 }
+        { toAbs: 20, durationSeconds: 1 },
+        { toAbs: -20, durationSeconds: 1 },
+        { toAbs: 0, durationSeconds: 1 }
       ],
       loopCount: 0
     })}
@@ -146,10 +148,10 @@ import { genAnimateSkewY } from "@svg-anim/skewY";
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `timeline` | `TimelineSegment[]` | **必填** | 动画时间线配置 |
-| `timeline[].toValue` | `number` | - | 目标倾斜角度（度） |
+| `timeline` | `{ durationSeconds, toAbs, keySplines? }[]` | **必填** | 动画时间线配置 |
+| `timeline[].toAbs` | `number` | - | 目标倾斜角度（度） |
 | `timeline[].durationSeconds` | `number` | - | 该阶段时长（秒） |
-| `initAngle` | `number` | `0` | 初始倾斜角度 |
+| `initValue` | `number` | `0` | 初始倾斜角度（度） |
 
 ---
 

@@ -4,28 +4,30 @@ import { BasicPaperPlane, SlidingBox } from "./examples"
 
 # {title}
 
-`genAnimatePathMotion` 是 SVG 路径运动动画的核心生成工具。它可以让元素沿着任意 SVG 路径移动，并自动控制旋转方向。
+`animateMotion` 是 SVG 路径运动动画的核心生成工具（来自 `@guohub8080/expub-tool/smil`）。它可以让元素沿着任意 SVG 路径移动，并自动控制旋转方向。
 
 ---
 
 ## 函数签名
 
 ```tsx
-import { genAnimatePathMotion } from '@svg-anim/pathMotion';
+import { animateMotion } from '@guohub8080/expub-tool/smil';
 
-genAnimatePathMotion({
+animateMotion({
   // ===== 必填参数 =====
   path: string,                              // 运动路径（SVG 路径语法，必填）
 
   // ===== 可选参数 =====
   durationSeconds?: number,                   // 动画时长（秒），默认 6
   rotate?: 'auto' | 'auto-reverse' | number, // 旋转模式，默认 'auto'
-  delay?: number,                            // 初始延迟（秒），默认 0
-  beginType?: SvgBeginEventType,                // 默认 false：是否点击触发
+  begin?: string,                            // 开始时机，默认加载即播；'2s' 延迟开始，'click' 点击触发
   calcMode?: 'spline' | 'linear' | 'paced',  // 动画计算模式，默认 'linear'
-  keySplines?: string,                       // 缓动参数（可选）
-  freeze?: boolean,                          // 是否保持最终状态，默认 false
+  keySplines?: string,                       // 缓动参数（calcMode='spline' 时生效）
+  keyTimes?: string,                         // 关键时间点（spline 模式默认 "0; 1"）
+  isFreeze?: boolean,                        // 是否保持最终状态，默认 false
   loopCount?: number,                        // 循环次数（0 = 无限），默认 0
+  restart?: 'always' | 'whenNotActive' | 'never',  // 重启模式，默认 'always'
+  native?: T_NativeAnimateMotion,                  // 透传/覆盖原生 animateMotion 属性（最后展开，同名覆盖生成值）
 })
 ```
 
@@ -62,7 +64,7 @@ genAnimatePathMotion({
 1. 在软件中绘制路径
 2. 导出为 SVG 格式
 3. 打开 SVG 文件，复制 `<path>` 标签的 `d` 属性值
-4. 粘贴到 `genAnimatePathMotion` 的 `path` 参数中
+4. 粘贴到 `animateMotion` 的 `path` 参数中
 
 ### 旋转模式（rotate）
 
@@ -83,7 +85,7 @@ genAnimatePathMotion({
 **代码示例：**
 
 ```tsx
-import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+import { animateMotion } from "@guohub8080/expub-tool/smil";
 
 <svg width="400" height="200" viewBox="0 0 400 200">
   <g>
@@ -95,7 +97,7 @@ import { genAnimatePathMotion } from "@svg-anim/pathMotion";
       <path d="M 60 0 L -40 -5 L -30 -2 Z" fill="#e2e8f0" />
     </g>
     {/* 8字形往返运动，自动旋转 */}
-    {genAnimatePathMotion({
+    {animateMotion({
       path: "M 50 100 C 120 40 280 160 350 100 C 280 40 120 160 50 100",
       durationSeconds: 6,
       rotate: 'auto'
@@ -117,7 +119,7 @@ import { genAnimatePathMotion } from "@svg-anim/pathMotion";
 **代码示例：**
 
 ```tsx
-import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+import { animateMotion } from "@guohub8080/expub-tool/smil";
 
 <svg width="400" height="150" viewBox="0 0 400 150">
   <g>
@@ -127,11 +129,11 @@ import { genAnimatePathMotion } from "@svg-anim/pathMotion";
       <path d="M -4 -4 L 4 0 L -4 4" stroke="white" strokeWidth="2.5" fill="none" />
     </g>
     {/* 沿曲线滑动，不旋转，保持最终状态 */}
-    {genAnimatePathMotion({
+    {animateMotion({
       path: "M 30 75 Q 200 20 370 75",
       durationSeconds: 3,
       rotate: 0,
-      freeze: true,
+      isFreeze: true,
       loopCount: 1
     })}
   </g>

@@ -17,14 +17,15 @@ import { Breathe, Blink, Heartbeat, Ghost } from "./examples"
 **代码示例：**
 
 ```tsx
-import { genAnimateOpacity } from "@svg-anim/opacity";
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
   <circle cx="100" cy="100" r="40" fill="blue">
-    {genAnimateOpacity({
+    {animateOpacity({
+      initValue: 1,
       timeline: [
-        { toValue: 0.3, durationSeconds: 2 },  // 淡出到 30%
-        { toValue: 1, durationSeconds: 2 }     // 淡入回 100%
+        { toAbs: 0.3, durationSeconds: 2 },  // 淡出到 30%
+        { toAbs: 1, durationSeconds: 2 }     // 淡入回 100%
       ],
       loopCount: 0  // 无限循环
     })}
@@ -38,16 +39,32 @@ import { genAnimateOpacity } from "@svg-anim/opacity";
 
 **说明**：圆形在 30% 和 100% 透明度之间循环
 
-### 使用预设
+### 常用配方：呼吸
+
+往返两段 timeline + `loopCount: 0`：
 
 ```tsx
-import { opacityPresets } from '@svg-anim/opacity';
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
-// 呼吸效果（默认最低30%，单程2秒）
-opacityPresets.breathe()
+// 呼吸效果（最低30%，单程2秒）
+animateOpacity({
+  initValue: 1,
+  timeline: [
+    { toAbs: 0.3, durationSeconds: 2 },
+    { toAbs: 1, durationSeconds: 2 },
+  ],
+  loopCount: 0,
+})
 
 // 自定义参数（最低20%，单程3秒）
-opacityPresets.breathe(0.2, 3)
+animateOpacity({
+  initValue: 1,
+  timeline: [
+    { toAbs: 0.2, durationSeconds: 3 },
+    { toAbs: 1, durationSeconds: 3 },
+  ],
+  loopCount: 0,
+})
 ```
 
 ---
@@ -61,14 +78,15 @@ opacityPresets.breathe(0.2, 3)
 **代码示例：**
 
 ```tsx
-import { genAnimateOpacity } from "@svg-anim/opacity";
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
   <circle cx="100" cy="100" r="40" fill="blue">
-    {genAnimateOpacity({
+    {animateOpacity({
+      initValue: 1,
       timeline: [
-        { toValue: 0, durationSeconds: 0.5 },  // 0.5秒淡出
-        { toValue: 1, durationSeconds: 0.5 }    // 0.5秒淡入
+        { toAbs: 0, durationSeconds: 0.5 },  // 0.5秒淡出
+        { toAbs: 1, durationSeconds: 0.5 }   // 0.5秒淡入
       ],
       loopCount: 0  // 无限循环
     })}
@@ -82,19 +100,43 @@ import { genAnimateOpacity } from "@svg-anim/opacity";
 
 **说明**：圆形每秒闪烁一次
 
-### 使用预设
+### 常用配方：闪烁
 
 ```tsx
-import { opacityPresets } from '@svg-anim/opacity';
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
-// 闪烁效果（默认3次闪烁，总时长1.5秒）
-opacityPresets.blink()
+// 闪烁效果（3次闪烁，总时长1.5秒，单次明/暗各0.25秒）
+animateOpacity({
+  initValue: 1,
+  timeline: [
+    { toAbs: 0, durationSeconds: 0.25 },
+    { toAbs: 1, durationSeconds: 0.25 },
+    { toAbs: 0, durationSeconds: 0.25 },
+    { toAbs: 1, durationSeconds: 0.25 },
+    { toAbs: 0, durationSeconds: 0.25 },
+    { toAbs: 1, durationSeconds: 0.25 },
+  ],
+})
 
-// 自定义参数（5次闪烁，总时长2秒）
-opacityPresets.blink(5, 2)
+// 自定义参数（5次闪烁，总时长2秒，单次明/暗各0.2秒）
+animateOpacity({
+  initValue: 1,
+  timeline: [
+    { toAbs: 0, durationSeconds: 0.2 },
+    { toAbs: 1, durationSeconds: 0.2 },
+    // ……共 5 组
+  ],
+})
 
-// 慢闪烁（较慢的明暗循环）
-opacityPresets.slowBlink(2)
+// 慢闪烁（2秒一个明暗循环，无限重复，暗到20%）
+animateOpacity({
+  initValue: 1,
+  timeline: [
+    { toAbs: 0.2, durationSeconds: 1 },
+    { toAbs: 1, durationSeconds: 1 },
+  ],
+  loopCount: 0,
+})
 ```
 
 ---
@@ -106,17 +148,18 @@ opacityPresets.slowBlink(2)
 **代码示例：**
 
 ```tsx
-import { genAnimateOpacity } from "@svg-anim/opacity";
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
   <circle cx="100" cy="100" r="40" fill="red">
-    {genAnimateOpacity({
+    {animateOpacity({
+      initValue: 1,
       timeline: [
-        { toValue: 0.6, durationSeconds: 0.2 },  // 第一次跳动
-        { toValue: 1, durationSeconds: 0.2 },
-        { toValue: 0.6, durationSeconds: 0.2 },  // 第二次跳动
-        { toValue: 1, durationSeconds: 0.2 },
-        { durationSeconds: 0.8 }                 // 停顿
+        { toAbs: 0.6, durationSeconds: 0.2 },  // 第一次跳动
+        { toAbs: 1, durationSeconds: 0.2 },
+        { toAbs: 0.6, durationSeconds: 0.2 },  // 第二次跳动
+        { toAbs: 1, durationSeconds: 0.2 },
+        { toAbs: 1, durationSeconds: 0.8 }     // 停顿（保持当前透明度）
       ],
       loopCount: 0
     })}
@@ -139,14 +182,15 @@ import { genAnimateOpacity } from "@svg-anim/opacity";
 **代码示例：**
 
 ```tsx
-import { genAnimateOpacity } from "@svg-anim/opacity";
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
   <circle cx="100" cy="100" r="40" fill="purple">
-    {genAnimateOpacity({
+    {animateOpacity({
+      initValue: 1,
       timeline: [
-        { toValue: 0.5, durationSeconds: 1.5 },  // 半透明
-        { toValue: 1, durationSeconds: 1.5 }     // 不透明
+        { toAbs: 0.5, durationSeconds: 1.5 },  // 半透明
+        { toAbs: 1, durationSeconds: 1.5 }     // 不透明
       ],
       loopCount: 0
     })}
@@ -160,16 +204,30 @@ import { genAnimateOpacity } from "@svg-anim/opacity";
 
 **说明**：紫色圆形营造幽灵飘渺效果
 
-### 使用预设
+### 常用配方：幽灵
 
 ```tsx
-import { opacityPresets } from '@svg-anim/opacity';
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
-// 幽灵效果（默认单程1.5秒）
-opacityPresets.ghost()
+// 幽灵效果（单程1.5秒）
+animateOpacity({
+  initValue: 1,
+  timeline: [
+    { toAbs: 0.5, durationSeconds: 1.5 },
+    { toAbs: 1, durationSeconds: 1.5 },
+  ],
+  loopCount: 0,
+})
 
-// 自定义时长
-opacityPresets.ghost(3)
+// 自定义单程3秒
+animateOpacity({
+  initValue: 1,
+  timeline: [
+    { toAbs: 0.5, durationSeconds: 3 },
+    { toAbs: 1, durationSeconds: 3 },
+  ],
+  loopCount: 0,
+})
 ```
 
 ---
@@ -190,26 +248,52 @@ opacityPresets.ghost(3)
 ### 脉冲效果（快速呼吸）
 
 ```tsx
-import { opacityPresets } from '@svg-anim/opacity';
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
-opacityPresets.pulse(0.5)  // 0.5秒完成一次呼吸
+// 0.5秒完成一次呼吸（暗到40%再回满）
+animateOpacity({
+  initValue: 1,
+  timeline: [
+    { toAbs: 0.4, durationSeconds: 0.25 },
+    { toAbs: 1, durationSeconds: 0.25 },
+  ],
+  loopCount: 0,
+})
 ```
 
 ### 波浪渐变（多段过渡）
 
 ```tsx
-import { opacityPresets } from '@svg-anim/opacity';
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
-opacityPresets.wave(4)  // 4秒完成多段波浪渐变
+// 4秒完成多段波浪渐变（每段1秒）
+animateOpacity({
+  initValue: 1,
+  timeline: [
+    { toAbs: 0.3, durationSeconds: 1 },
+    { toAbs: 0.7, durationSeconds: 1 },
+    { toAbs: 0.3, durationSeconds: 1 },
+    { toAbs: 1, durationSeconds: 1 },
+  ],
+  loopCount: 0,
+})
 ```
 
 ### 淡入停留淡出循环
 
 ```tsx
-import { opacityPresets } from '@svg-anim/opacity';
+import { animateOpacity } from "@guohub8080/expub-tool/smil";
 
-opacityPresets.fadeInOutCycle(1, 2, 1)
-// 淡入1秒 -> 停留2秒 -> 淡出1秒
+// 淡入1秒 -> 停留2秒 -> 淡出1秒，循环
+animateOpacity({
+  initValue: 0,
+  timeline: [
+    { toAbs: 1, durationSeconds: 1 },  // 淡入
+    { toAbs: 1, durationSeconds: 2 },  // 停留2秒（保持当前透明度）
+    { toAbs: 0, durationSeconds: 1 },  // 淡出
+  ],
+  loopCount: 0,
+})
 ```
 
 ---

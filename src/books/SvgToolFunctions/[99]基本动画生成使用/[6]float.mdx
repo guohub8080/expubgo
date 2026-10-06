@@ -3,25 +3,26 @@ export const icon = "Cloud"
 
 # {title}
 
-`genAnimateFloat` 是专门用于创建浮动效果的预设动画工具。浮动动画是一种上下或左右循环移动的效果，常用于云朵、气泡、悬浮物体等场景。
+`transformFloat` 是专门用于创建浮动效果的预设动画工具。浮动动画是一种上下或左右循环移动的效果，常用于云朵、气泡、悬浮物体等场景。
 
 ---
 
 ## 函数签名
 
 ```tsx
-import { genAnimateFloat } from '@svg-anim/float';
+import { transformFloat } from '@guohub8080/expub-tool/behaviors';
 
-genAnimateFloat({
-  floatRangeY?: number,               // 默认 20：Y 轴浮动范围（像素）
-  floatRangeX?: number,               // 默认 0：X 轴浮动范围（像素）
-  duration?: number,                   // 默认 4：单次浮动时长（秒）
-  keySplines?: string,                 // 默认 '0.24 0 0.24 1'：缓动曲线
-  repeatCount?: number,                // 默认 0：循环次数（0 = 无限）
-  delay?: number,                      // 默认 0：初始延迟（秒）
-  beginType?: SvgBeginEventType,          // 默认 undefined：动画开始事件类型
+transformFloat({
+  floatRangeY?: number,                      // 默认 20：Y 轴浮动范围（像素）
+  floatRangeX?: number,                      // 默认 0：X 轴浮动范围（像素）
+  duration?: number,                         // 默认 4：单次浮动时长（秒）
+  keySplines?: string,                       // 默认 '0.24 0 0.24 1'：缓动曲线
+  begin?: string,                            // 默认 undefined：开始时机（SMIL begin 字符串）
+  loopCount?: number,                        // 默认 0：循环次数（0 = 无限）
 })
 ```
+
+**动画轨迹**：从原点出发 → 浮动到 `(-floatRangeX, -floatRangeY)` → 回到原点，循环往复。
 
 ---
 
@@ -32,7 +33,7 @@ genAnimateFloat({
 ```tsx
 <svg width="200" height="200">
   <g>
-    {genAnimateFloat({
+    {transformFloat({
       floatRangeY: 20,  // 上下浮动 20px
       duration: 4       // 4 秒完成一个循环
     })}
@@ -49,11 +50,14 @@ genAnimateFloat({
 <animateTransform
   attributeName="transform"
   type="translate"
-  values="0 20; 0 -20; 0 20"
-  dur="4s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  values="0 0; 0 -20; 0 0"
+  keyTimes="0; 0.5; 1"
   keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+  dur="4s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
 />
 ```
 
@@ -64,7 +68,7 @@ genAnimateFloat({
 ### 左右浮动
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeX: 30,  // 左右浮动 30px
   floatRangeY: 0,
   duration: 3
@@ -78,10 +82,13 @@ genAnimateFloat({
   attributeName="transform"
   type="translate"
   values="30 0; -30 0; 30 0"
-  dur="3s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  keyTimes="0; 0.5; 1"
   keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+  dur="3s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
 />
 ```
 
@@ -90,7 +97,7 @@ genAnimateFloat({
 ### 对角线浮动
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeX: 15,  // X 轴浮动 15px
   floatRangeY: 10,  // Y 轴浮动 10px
   duration: 5
@@ -103,11 +110,14 @@ genAnimateFloat({
 <animateTransform
   attributeName="transform"
   type="translate"
-  values="15 10; -15 -10; 15 10"
-  dur="5s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  values="15 0; -15 -10; 15 0"
+  keyTimes="0; 0.5; 1"
   keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+  dur="5s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
 />
 ```
 
@@ -116,7 +126,7 @@ genAnimateFloat({
 ### 快速浮动
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 15,
   duration: 2  // 2 秒一个循环
 })}
@@ -128,11 +138,14 @@ genAnimateFloat({
 <animateTransform
   attributeName="transform"
   type="translate"
-  values="0 15; 0 -15; 0 15"
-  dur="2s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  values="0 0; 0 -15; 0 0"
+  keyTimes="0; 0.5; 1"
   keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
 />
 ```
 
@@ -141,7 +154,7 @@ genAnimateFloat({
 ### 慢速浮动
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 30,
   duration: 8,  // 8 秒一个循环
   keySplines: '0.37 0 0.63 1'  // 更平滑的缓动
@@ -154,11 +167,14 @@ genAnimateFloat({
 <animateTransform
   attributeName="transform"
   type="translate"
-  values="0 30; 0 -30; 0 30"
-  dur="8s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  values="0 0; 0 -30; 0 0"
+  keyTimes="0; 0.5; 1"
   keySplines="0.37 0 0.63 1; 0.37 0 0.63 1"
+  dur="8s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
 />
 ```
 
@@ -167,7 +183,7 @@ genAnimateFloat({
 ### 微小浮动
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 5,  // 仅浮动 5px
   duration: 3
 })}
@@ -179,11 +195,14 @@ genAnimateFloat({
 <animateTransform
   attributeName="transform"
   type="translate"
-  values="0 5; 0 -5; 0 5"
-  dur="3s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  values="0 0; 0 -5; 0 0"
+  keyTimes="0; 0.5; 1"
   keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+  dur="3s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
 />
 ```
 
@@ -192,9 +211,9 @@ genAnimateFloat({
 ### 点击触发浮动
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 20,
-  beginType: 'click'
+  begin: 'click'
 })}
 ```
 
@@ -204,12 +223,15 @@ genAnimateFloat({
 <animateTransform
   attributeName="transform"
   type="translate"
-  values="0 20; 0 -20; 0 20"
-  dur="4s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  values="0 0; 0 -20; 0 0"
+  keyTimes="0; 0.5; 1"
   keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+  dur="4s"
+  calcMode="spline"
   begin="click"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
 />
 ```
 
@@ -218,9 +240,9 @@ genAnimateFloat({
 ### 延迟浮动
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 20,
-  delay: 2  // 延迟 2 秒后开始
+  begin: '2s'  // 延迟 2 秒后开始
 })}
 ```
 
@@ -230,12 +252,15 @@ genAnimateFloat({
 <animateTransform
   attributeName="transform"
   type="translate"
-  values="0 20; 0 -20; 0 20"
-  dur="4s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  values="0 0; 0 -20; 0 0"
+  keyTimes="0; 0.5; 1"
   keySplines="0.24 0 0.24 1; 0.24 0 0.24 1"
+  dur="4s"
+  calcMode="spline"
   begin="2s"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
 />
 ```
 
@@ -259,14 +284,14 @@ genAnimateFloat({
 ## 完整示例：浮动的云朵
 
 ```tsx
-import { genAnimateFloat } from '@svg-anim/float';
+import { transformFloat } from '@guohub8080/expub-tool/behaviors';
 
 const FloatingCloud = () => {
   return (
     <svg width="200" height="200">
       <g>
         {/* 云朵主体 */}
-        {genAnimateFloat({
+        {transformFloat({
           floatRangeY: 15,
           duration: 5,
           keySplines: '0.37 0 0.63 1'
@@ -286,10 +311,13 @@ const FloatingCloud = () => {
 <animateTransform
   attributeName="transform"
   type="translate"
-  values="0 15; 0 -15; 0 15"
-  dur="5s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  values="0 0; 0 -15; 0 0"
+  keyTimes="0; 0.5; 1"
   keySplines="0.37 0 0.63 1; 0.37 0 0.63 1"
+  dur="5s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
+  additive="sum"
 />
 ```

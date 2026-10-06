@@ -1,6 +1,6 @@
 import React from "react";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
-import { genAnimateHardBlink, hardBlinkPresets } from "@svg-anim/blink";
+import { animateHardBlink } from "@guohub8080/expub-tool/behaviors";
 
 // ============================================ HardBlinkNormal Component ============================================
 
@@ -12,7 +12,7 @@ export const HardBlinkNormal = () => {
                     d="M100 20 L120 80 L180 80 L130 120 L150 180 L100 140 L50 180 L70 120 L20 80 L80 80 Z"
                     fill="yellow"
                 >
-                    {genAnimateHardBlink({
+                    {animateHardBlink({
                         onDurationSeconds: 0.8,
                         offDurationSeconds: 0.3
                     })}
@@ -29,7 +29,7 @@ export const HardBlinkFast = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <circle cx="100" cy="100" r="40" fill="red">
-                    {genAnimateHardBlink({
+                    {animateHardBlink({
                         onDurationSeconds: 0.5,
                         offDurationSeconds: 0.2
                     })}
@@ -46,7 +46,11 @@ export const HardBlinkWarning = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <rect x="60" y="60" width="80" height="80" fill="orange">
-                    {hardBlinkPresets.warning()}
+                    {/* 配方：警示灯（原 warning 预设） */}
+                    {animateHardBlink({
+                        onDurationSeconds: 0.6,
+                        offDurationSeconds: 0.4
+                    })}
                 </rect>
             </svg>
         </SvgWrapper>
@@ -60,7 +64,11 @@ export const HardBlinkSOS = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <circle cx="100" cy="100" r="50" fill="blue">
-                    {hardBlinkPresets.sos()}
+                    {/* 配方：SOS 紧急信号（原 sos 预设） */}
+                    {animateHardBlink({
+                        onDurationSeconds: 0.3,
+                        offDurationSeconds: 0.3
+                    })}
                 </circle>
             </svg>
         </SvgWrapper>

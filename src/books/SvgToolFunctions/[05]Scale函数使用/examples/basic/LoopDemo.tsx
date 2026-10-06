@@ -1,4 +1,4 @@
-import { genAnimateScale } from "@svg-anim/scale";
+import { transformScale } from "@guohub8080/expub-tool/smil";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
 
 export const LoopDemo = () => {
@@ -7,10 +7,10 @@ export const LoopDemo = () => {
             <svg width="200" height="200" viewBox="0 0 200 200">
                 {/* 播放1次 */}
                 <circle cx="50" cy="70" r="15" fill="blue">
-                    {genAnimateScale({
-                        origin: [50, 70],
+                    {transformScale({
+                        pivot: [50, 70],
                         timeline: [
-                            { toValue: 1.8, durationSeconds: 1.5 }
+                            { toAbs: 1.8, durationSeconds: 1.5 }
                         ],
                         loopCount: 1
                     })}
@@ -19,10 +19,10 @@ export const LoopDemo = () => {
 
                 {/* 播放3次 */}
                 <circle cx="100" cy="70" r="15" fill="green">
-                    {genAnimateScale({
-                        origin: [100, 70],
+                    {transformScale({
+                        pivot: [100, 70],
                         timeline: [
-                            { toValue: 1.8, durationSeconds: 1 }
+                            { toAbs: 1.8, durationSeconds: 1 }
                         ],
                         loopCount: 3
                     })}
@@ -31,11 +31,11 @@ export const LoopDemo = () => {
 
                 {/* 无限循环 */}
                 <circle cx="150" cy="70" r="15" fill="purple">
-                    {genAnimateScale({
-                        origin: [150, 70],
+                    {transformScale({
+                        pivot: [150, 70],
                         timeline: [
-                            { toValue: 1.3, durationSeconds: 1 },
-                            { toValue: 0.7, durationSeconds: 1 }
+                            { toAbs: 1.3, durationSeconds: 1 },
+                            { toAbs: 0.7, durationSeconds: 1 }
                         ],
                         loopCount: 0
                     })}

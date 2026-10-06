@@ -1,5 +1,5 @@
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper"
-import { genAnimateSkewY } from "@svg-anim/skewY"
+import { transformSkewY } from "@guohub8080/expub-tool/smil"
 
 export const SkewYDirection = () => {
     return (
@@ -26,11 +26,11 @@ export const SkewYDirection = () => {
                 {/* 动画示例 */}
                 <g transform="translate(140, 150)">
                     <rect x="-100" y="-20" width="200" height="40" fill="rgb(249, 115, 22)" rx="4">
-                        {genAnimateSkewY({
+                        {transformSkewY({
                             timeline: [
-                                { toValue: 15, durationSeconds: 1 },
-                                { toValue: -15, durationSeconds: 1 },
-                                { toValue: 0, durationSeconds: 1 }
+                                { toAbs: 15, durationSeconds: 1 },
+                                { toAbs: -15, durationSeconds: 1 },
+                                { toAbs: 0, durationSeconds: 1 }
                             ],
                             loopCount: 0
                         })}

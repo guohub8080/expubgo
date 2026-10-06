@@ -259,7 +259,7 @@ dur="1s"
 
 **问题：** `stroke-dashoffset` 控制整条路径的显示状态，无法让路径的不同部分有不同的显示状态。
 
-**解决方案：** 将路径分成多段，通过 `delay` 参数控制每段的开始时间，实现"逐渐消失"的视觉效果。
+**解决方案：** 将路径分成多段，通过 `begin` 延迟字符串控制每段的开始时间，实现"逐渐消失"的视觉效果。
 
 ---
 
@@ -270,31 +270,31 @@ dur="1s"
 **代码示例：**
 
 ```tsx
+import { animatePathStroke } from "@guohub8080/expub-tool/smil";
+
 <svg width="400" height="100" viewBox="0 0 400 100">
   {/* 左半段 */}
-  {genAnimatePathStroke({
-    pathLength: 170,
-    initOffset: 0,
-    timeline: [
-      { durationSeconds: 2, toValue: 170 }
-    ],
-    element: (
-      <line x1="30" y1="60" x2="200" y2="60" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
-    )
-  })}
+  <line x1="30" y1="60" x2="200" y2="60" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" strokeDasharray="170 170">
+    {animatePathStroke({
+      pathLength: 170,
+      initValue: 0,
+      timeline: [
+        { durationSeconds: 2, toAbs: 170 }
+      ]
+    })}
+  </line>
 
   {/* 右半段 - 延迟0.5秒后开始擦除 */}
-  {genAnimatePathStroke({
-    pathLength: 170,
-    initOffset: 0,
-    delay: 0.5,
-    timeline: [
-      { durationSeconds: 2, toValue: 170 }
-    ],
-    element: (
-      <line x1="200" y1="60" x2="370" y2="60" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
-    )
-  })}
+  <line x1="200" y1="60" x2="370" y2="60" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" strokeDasharray="170 170">
+    {animatePathStroke({
+      pathLength: 170,
+      initValue: 0,
+      begin: "0.5s",
+      timeline: [
+        { durationSeconds: 2, toAbs: 170 }
+      ]
+    })}
+  </line>
 </svg>
 ```
 
@@ -319,13 +319,13 @@ dur="1s"
 pathLength: 100
 
 // 第1段：立即擦除
-{genAnimatePathStroke({ delay: 0, timeline: [{ toValue: 100 }] }, ...)}
+{animatePathStroke({ timeline: [{ durationSeconds: 1, toAbs: 100 }] }, ...)}
 
 // 第2段：延迟0.5秒
-{genAnimatePathStroke({ delay: 0.5, timeline: [{ toValue: 100 }] }, ...)}
+{animatePathStroke({ begin: "0.5s", timeline: [{ durationSeconds: 1, toAbs: 100 }] }, ...)}
 
 // 第3段：延迟1秒
-{genAnimatePathStroke({ delay: 1, timeline: [{ toValue: 100 }] }, ...)}
+{animatePathStroke({ begin: "1s", timeline: [{ durationSeconds: 1, toAbs: 100 }] }, ...)}
 ```
 
 ---
@@ -335,13 +335,13 @@ pathLength: 100
 ```tsx
 // 将路径分成多段，两端的段先擦除，中间的段后擦除
 // 第1段（最左）
-{genAnimatePathStroke({ delay: 0, ... })}
+{animatePathStroke({ ... })}
 
 // 第2段（中间）
-{genAnimatePathStroke({ delay: 1, ... })}  // 延迟更长
+{animatePathStroke({ begin: "1s", ... })}  // 延迟更长
 
 // 第3段（最右）
-{genAnimatePathStroke({ delay: 0, ... })}
+{animatePathStroke({ ... })}
 ```
 
 ---
@@ -399,15 +399,15 @@ pathLength: 100
 |------|----------|----------|
 | **绘制动画** | 手绘效果、文字显现 | `stroke-dasharray: pathLength`, `stroke-dashoffset` 动画 |
 | **蚂蚁线** | 进度指示、数据流动 | `stroke-dasharray: "实线 间隔"`, `offset` 循环 |
-| **划线消失** | 擦除效果、转场 | 分段路径 + `delay` |
-| **走走停停** | 教程演示、分步说明 | timeline 中 `toValue` 相邻相同 |
+| **划线消失** | 擦除效果、转场 | 分段路径 + `begin` 延迟 |
+| **走走停停** | 教程演示、分步说明 | timeline 中 `toAbs` 相邻相同 |
 
 ---
 
 ## 总结
 
 1. **蚂蚁线**使用 `stroke-dasharray` 定义虚线，`stroke-dashoffset` 动画实现流动
-2. **划线消失**通过分段路径 + delay 实现，无法用单一路径实现
+2. **划线消失**通过分段路径 + begin 延迟实现，无法用单一路径实现
 3. **offset 变化范围**应等于 `stroke-dasharray` 的总和
 4. **微信公众号**只支持 SMIL 动画（`<animate>`），不支持 CSS 动画
 

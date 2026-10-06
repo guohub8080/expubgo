@@ -1,6 +1,6 @@
 import SectionEx from "@pub-html/basicEx/SectionEx";
 import { ReplayButton } from "../ReplayButton";
-import { genAnimateTranslate } from "@svg-anim/translate";
+import { transformTranslate } from "@guohub8080/expub-tool/smil";
 
 export const DelayDemo = () => {
     return (
@@ -16,36 +16,36 @@ export const DelayDemo = () => {
                         {/* 第一行：无延迟 */}
                         <text x="20" y="55" fontSize="14" fill="#333" dominantBaseline="middle">无延迟</text>
                         <circle cx="120" cy="50" r="15" fill="#3498db">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 450, y: 0 }, durationSeconds: 2 }
+                                    { toRel: { x: 450, y: 0 }, durationSeconds: 2 }
                                 ],
-                                delay: 0
+                                begin: '0s'
                             })}
                         </circle>
 
                         {/* 第二行：延迟 1s */}
                         <text x="20" y="115" fontSize="14" fill="#333" dominantBaseline="middle">延迟 1s</text>
                         <circle cx="120" cy="110" r="15" fill="#e74c3c">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 450, y: 0 }, durationSeconds: 2 }
+                                    { toRel: { x: 450, y: 0 }, durationSeconds: 2 }
                                 ],
-                                delay: 1
+                                begin: '1s'
                             })}
                         </circle>
 
                         {/* 第三行：延迟 2s */}
                         <text x="20" y="175" fontSize="14" fill="#333" dominantBaseline="middle">延迟 2s</text>
                         <circle cx="120" cy="170" r="15" fill="#2ecc71">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 450, y: 0 }, durationSeconds: 2 }
+                                    { toRel: { x: 450, y: 0 }, durationSeconds: 2 }
                                 ],
-                                delay: 2
+                                begin: '2s'
                             })}
                         </circle>
                     </svg>

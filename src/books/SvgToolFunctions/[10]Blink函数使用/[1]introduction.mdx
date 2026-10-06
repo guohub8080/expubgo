@@ -4,23 +4,23 @@ import { BasicBlink, GentleBlink, NormalBlink, FastBlink, SlowBlink, SubtleBlink
 
 # {title}
 
-`genAnimateSoftBlink` 是专门用于创建闪烁/淡入淡出效果的预设动画工具。闪烁动画是一种透明度循环变化的效果，常用于吸引注意力、加载状态、错误提示等场景。
+`animateSoftBlink` 是专门用于创建闪烁/淡入淡出效果的行为动画工具。闪烁动画是一种透明度循环变化的效果，常用于吸引注意力、加载状态、错误提示等场景。
 
 ---
 
 ## 函数签名
 
 ```tsx
-import { genAnimateSoftBlink } from '@svg-anim/blink';
+import { animateSoftBlink } from '@guohub8080/expub-tool/behaviors';
 
-genAnimateSoftBlink({
+animateSoftBlink({
   maxOpacity?: number,               // 默认 1：最大透明度（0-1）
   minOpacity?: number,               // 默认 0.2：最小透明度（0-1）
   onceBlinkDurationSeconds?: number, // 默认 1.2：一次闪烁时长（秒）
   keySplines?: string,               // 默认 '0.45 0 0.55 1'：缓动曲线
-  repeatCount?: number,              // 默认 0：循环次数（0 = 无限）
-  delay?: number,                    // 默认 0：初始延迟（秒）
-  beginType?: SvgBeginEventType,        // 默认 undefined：动画开始事件类型
+  begin?: string,                    // 默认 undefined：开始时机（如 '2s'、'click'、'click+0.5s'）
+  loopCount?: number,                // 默认 0：循环次数（0 = 无限）
+  restart?: 'always' | 'whenNotActive' | 'never',
 })
 ```
 
@@ -54,9 +54,9 @@ genAnimateSoftBlink({
 | `minOpacity` | `number` | `0.2` | 最小透明度（0-1）|
 | `onceBlinkDurationSeconds` | `number` | `1.2` | 一次闪烁周期时长（秒）|
 | `keySplines` | `string` | `'0.45 0 0.55 1'` | 贝塞尔缓动曲线 |
-| `repeatCount` | `number` | `0` | 重复次数（0 = 无限循环）|
-| `delay` | `number` | `0` | 初始延迟（秒）|
-| `beginType` | `SvgBeginEventType` | `undefined` | 动画开始事件类型 |
+| `begin` | `string` | `undefined` | 开始时机：延迟自动开始写 `'2s'`，点击触发写 `'click'`，点击后延迟写 `'click+0.5s'` |
+| `loopCount` | `number` | `0` | 循环次数（0 = 无限循环）|
+| `restart` | `'always' \| 'whenNotActive' \| 'never'` | `undefined` | 动画重启动策略 |
 
 ---
 
@@ -69,14 +69,14 @@ genAnimateSoftBlink({
 **代码示例：**
 
 ```tsx
-import { genAnimateSoftBlink } from "@svg-anim/blink";
+import { animateSoftBlink } from "@guohub8080/expub-tool/behaviors";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
   <path
     d="M100 20 L120 80 L180 80 L130 120 L150 180 L100 140 L50 180 L70 120 L20 80 L80 80 Z"
     fill="yellow"
   >
-    {genAnimateSoftBlink()}
+    {animateSoftBlink()}
   </path>
 </svg>
 ```
@@ -98,7 +98,7 @@ import { genAnimateSoftBlink } from "@svg-anim/blink";
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
+{animateSoftBlink({
   minOpacity: 0.5,
   onceBlinkDurationSeconds: 2
 })}
@@ -117,7 +117,7 @@ import { genAnimateSoftBlink } from "@svg-anim/blink";
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
+{animateSoftBlink({
   minOpacity: 0.7,
   onceBlinkDurationSeconds: 2
 })}
@@ -136,7 +136,7 @@ import { genAnimateSoftBlink } from "@svg-anim/blink";
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
+{animateSoftBlink({
   minOpacity: 0.1,
   onceBlinkDurationSeconds: 2.5
 })}
@@ -152,14 +152,14 @@ import { genAnimateSoftBlink } from "@svg-anim/blink";
 
 ## 闪烁速度控制
 
-通过调整 `duration` 参数控制闪烁的速度：
+通过调整 `onceBlinkDurationSeconds` 参数控制闪烁的速度：
 
 ### 快速闪烁（0.8 秒周期）
 
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
+{animateSoftBlink({
   minOpacity: 0.3,
   onceBlinkDurationSeconds: 0.8
 })}
@@ -178,7 +178,7 @@ import { genAnimateSoftBlink } from "@svg-anim/blink";
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
+{animateSoftBlink({
   minOpacity: 0.2,
   onceBlinkDurationSeconds: 3
 })}
@@ -204,33 +204,33 @@ import { genAnimateSoftBlink } from "@svg-anim/blink";
 
 ---
 
-## 预设效果
+## 常用配方
 
-`softBlinkPresets` 提供了 7 种常用预设：
+新 API 不再提供软闪烁预设对象，直接把常用参数组合写成配方字面量即可（数值沿用旧预设语义）：
 
 ```tsx
-import { softBlinkPresets } from '@svg-anim/blink';
+import { animateSoftBlink } from '@guohub8080/expub-tool/behaviors';
 
-// 轻柔淡入淡出
-softBlinkPresets.gentle()     // minOpacity: 0.5, onceBlinkDurationSeconds: 2
+// 轻柔淡入淡出（原 gentle）
+animateSoftBlink({ minOpacity: 0.5, onceBlinkDurationSeconds: 2 })
 
-// 标准淡入淡出
-softBlinkPresets.normal()     // minOpacity: 0.2, onceBlinkDurationSeconds: 1.2
+// 标准淡入淡出（原 normal，等于默认参数）
+animateSoftBlink({ minOpacity: 0.2, onceBlinkDurationSeconds: 1.2 })
 
-// 深度淡化
-softBlinkPresets.deep()       // minOpacity: 0.1, onceBlinkDurationSeconds: 2.5
+// 深度淡化（原 deep）
+animateSoftBlink({ minOpacity: 0.1, onceBlinkDurationSeconds: 2.5 })
 
-// 快速闪烁
-softBlinkPresets.fast()       // minOpacity: 0.3, onceBlinkDurationSeconds: 0.8
+// 快速闪烁（原 fast）
+animateSoftBlink({ minOpacity: 0.3, onceBlinkDurationSeconds: 0.8 })
 
-// 慢速淡化
-softBlinkPresets.slow()       // minOpacity: 0.2, onceBlinkDurationSeconds: 3
+// 慢速淡化（原 slow）
+animateSoftBlink({ minOpacity: 0.2, onceBlinkDurationSeconds: 3 })
 
-// 微弱淡化
-softBlinkPresets.subtle()     // minOpacity: 0.7, onceBlinkDurationSeconds: 2
+// 微弱淡化（原 subtle）
+animateSoftBlink({ minOpacity: 0.7, onceBlinkDurationSeconds: 2 })
 
-// 闪烁效果（完全消失）
-softBlinkPresets.blink()      // minOpacity: 0, onceBlinkDurationSeconds: 0.5
+// 闪烁效果（完全消失，原 blink）
+animateSoftBlink({ minOpacity: 0, onceBlinkDurationSeconds: 0.5 })
 ```
 
 ---
@@ -245,9 +245,9 @@ softBlinkPresets.blink()      // minOpacity: 0, onceBlinkDurationSeconds: 0.5
 
 ### 闪烁频率建议
 
-- **快速闪烁**（duration < 1s）：适合用于提示、警告
-- **中速闪烁**（duration 1-2s）：适合用于加载、状态指示
-- **慢速闪烁**（duration > 2s）：适合用于装饰、氛围
+- **快速闪烁**（onceBlinkDurationSeconds < 1s）：适合用于提示、警告
+- **中速闪烁**（onceBlinkDurationSeconds 1-2s）：适合用于加载、状态指示
+- **慢速闪烁**（onceBlinkDurationSeconds > 2s）：适合用于装饰、氛围
 
 ### 微信公众号兼容性
 
@@ -261,7 +261,7 @@ softBlinkPresets.blink()      // minOpacity: 0, onceBlinkDurationSeconds: 0.5
 
 ## 下一步
 
-现在你已经了解了 `genAnimateSoftBlink` 的基本用法和闪烁强度/速度控制。接下来将学习：
+现在你已经了解了 `animateSoftBlink` 的基本用法和闪烁强度/速度控制。接下来将学习：
 
 - **时序控制** - 延迟启动、循环次数、保持最终状态
 - **点击触发** - 交互式闪烁效果

@@ -97,6 +97,7 @@ export default function FullscreenArticleMenu() {
   return (
     <Dialog open={showFullscreenMenu} onOpenChange={setFullscreenMenu}>
       <DialogContent
+        aria-describedby={undefined}
         className="sm:max-w-[96vw] md:max-w-[88vw] lg:max-w-[80vw] h-[90vh] flex flex-col p-0 gap-0"
         showClose={false}
       >
@@ -250,7 +251,7 @@ export default function FullscreenArticleMenu() {
                       selectedId === article.id ? 'text-white/60' : 'text-muted-foreground'
                     )}>
                       <Calendar className="h-2.5 w-2.5" />
-                      <span>{getDayjs(article.date).format('YYYY-MM-DD')}</span>
+                      <span>{getDayjs(article.date).format('YYYY-MM-DD HH:mm')}</span>
                     </div>
                   )}
                 </div>

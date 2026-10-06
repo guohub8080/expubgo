@@ -1,4 +1,4 @@
-import { genAnimateRotate } from "@svg-anim/rotate";
+import { transformRotate } from "@guohub8080/expub-tool/smil";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
 
 export const CenterOrigin = () => {
@@ -15,9 +15,9 @@ export const CenterOrigin = () => {
 
                 {/* 围绕原点旋转的方块 */}
                 <rect x="80" y="80" width="50" height="50" fill="blue">
-                    {genAnimateRotate({
+                    {transformRotate({
                         timeline: [
-                            { toValue: 360, durationSeconds: 2 }
+                            { toAbs: 360, durationSeconds: 2 }
                         ],
                         loopCount: 0
                     })}

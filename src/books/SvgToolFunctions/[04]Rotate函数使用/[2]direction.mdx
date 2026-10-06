@@ -17,9 +17,9 @@ import { ClockwiseRotate, CounterClockwiseRotate, HalfRotate } from "./examples"
 ```tsx
 <svg width="200" height="200" viewBox="0 0 200 200">
   <circle cx="100" cy="100" r="30" fill="blue">
-    {genAnimateRotate({
+    {transformRotate({
       timeline: [
-        { toValue: 360, durationSeconds: 2 }
+        { toAbs: 360, durationSeconds: 2 }
       ]
     })}
   </circle>
@@ -30,7 +30,7 @@ import { ClockwiseRotate, CounterClockwiseRotate, HalfRotate } from "./examples"
 
 <ClockwiseRotate />
 
-**说明**：蓝色圆形顺时针旋转 360°（完整一圈）
+**说明**：未指定 `pivot` 时围绕坐标原点 (0, 0) 旋转，蓝色圆形顺时针公转 360°（完整一圈）
 
 ---
 
@@ -43,9 +43,9 @@ import { ClockwiseRotate, CounterClockwiseRotate, HalfRotate } from "./examples"
 ```tsx
 <svg width="200" height="200" viewBox="0 0 200 200">
   <circle cx="100" cy="100" r="30" fill="green">
-    {genAnimateRotate({
+    {transformRotate({
       timeline: [
-        { toValue: -360, durationSeconds: 2 }
+        { toAbs: -360, durationSeconds: 2 }
       ]
     })}
   </circle>
@@ -56,7 +56,7 @@ import { ClockwiseRotate, CounterClockwiseRotate, HalfRotate } from "./examples"
 
 <CounterClockwiseRotate />
 
-**说明**：绿色圆形逆时针旋转 360°
+**说明**：绿色圆形绕坐标原点 (0, 0) 逆时针公转 360°
 
 ---
 
@@ -69,11 +69,12 @@ import { ClockwiseRotate, CounterClockwiseRotate, HalfRotate } from "./examples"
 ```tsx
 <svg width="200" height="200" viewBox="0 0 200 200">
   <rect x="75" y="75" width="50" height="50" fill="orange">
-    {genAnimateRotate({
+    {transformRotate({
+      pivot: [100, 100],
       timeline: [
-        { toValue: 180, durationSeconds: 1 }
+        { toAbs: 180, durationSeconds: 1 }
       ],
-      freeze: true
+      isFreeze: true
     })}
   </rect>
 </svg>
@@ -83,7 +84,7 @@ import { ClockwiseRotate, CounterClockwiseRotate, HalfRotate } from "./examples"
 
 <HalfRotate />
 
-**说明**：橙色方块旋转 180° 后保持最终位置
+**说明**：橙色方块围绕自身中心旋转 180° 后保持最终位置
 
 ---
 

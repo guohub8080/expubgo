@@ -3,7 +3,7 @@ import { getDefaultStore } from 'jotai';
 import SideList from './components/SideList';
 import PreviewArea from './components/PreviewArea';
 import ActionPanel from './components/ActionPanel';
-import { Sheet, SheetContent, SheetTitle } from '@shadcn/components/ui/sheet.tsx';
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@shadcn/components/ui/sheet.tsx';
 import { useArticleViewerStore, previewWidthAtom, ARTICLE_VIEWER_LAYOUT } from './store/useArticleViewerStore';
 import useGlobalSettings from '@dev/store/useGlobalSettings';
 import { Card } from '@shadcn/components/ui/card.tsx';
@@ -57,15 +57,15 @@ export default function ArticleViewer() {
     const handleResize = () => {
       const width = window.innerWidth;
 
-      // 检测是否应该使用抽屉模式（1340px = 320+20+650+20+320 + 10px缓冲）
-      setShouldUseLeftDrawer(width < 1340);
-      setShouldUseRightDrawer(width < 1024);
+      // 检测是否应该使用抽屉模式（阈值统一取 ARTICLE_VIEWER_LAYOUT，与 Navigation 按钮同源）
+      setShouldUseLeftDrawer(width < ARTICLE_VIEWER_LAYOUT.LEFT_DRAWER_BREAKPOINT);
+      setShouldUseRightDrawer(width < ARTICLE_VIEWER_LAYOUT.RIGHT_DRAWER_BREAKPOINT);
 
       // 确定当前断点
       let currentBreakpoint: 'narrow' | 'medium' | 'wide';
-      if (width >= 1340) {
+      if (width >= ARTICLE_VIEWER_LAYOUT.LEFT_DRAWER_BREAKPOINT) {
         currentBreakpoint = 'wide';
-      } else if (width >= 1024) {
+      } else if (width >= ARTICLE_VIEWER_LAYOUT.RIGHT_DRAWER_BREAKPOINT) {
         currentBreakpoint = 'medium';
       } else {
         currentBreakpoint = 'narrow';
@@ -141,6 +141,7 @@ export default function ArticleViewer() {
       <Sheet open={mobileShowSideList} onOpenChange={setMobileSideList}>
         <SheetContent side="left" className="p-0" hideClose={true} style={{ width: `${ARTICLE_VIEWER_LAYOUT.SIDE_LIST_WIDTH}px` }}>
           <SheetTitle className="sr-only">文章列表</SheetTitle>
+          <SheetDescription className="sr-only">浏览文章目录</SheetDescription>
           <SideList inDrawer />
         </SheetContent>
       </Sheet>
@@ -149,6 +150,7 @@ export default function ArticleViewer() {
       <Sheet open={mobileShowActionPanel} onOpenChange={setMobileActionPanel}>
         <SheetContent side="right" className="p-0" hideClose={true} style={{ width: `${ARTICLE_VIEWER_LAYOUT.ACTION_PANEL_WIDTH}px` }}>
           <SheetTitle className="sr-only">预览选项</SheetTitle>
+          <SheetDescription className="sr-only">调整文章预览设置</SheetDescription>
           <ActionPanel />
         </SheetContent>
       </Sheet>
@@ -172,6 +174,7 @@ export default function ArticleViewer() {
               width: `${ARTICLE_VIEWER_LAYOUT.SIDE_LIST_WIDTH}px`,
               height: `calc(100vh - ${navigationHeight}px)`,
               top: `${navigationHeight}px`,
+              zIndex: 40,
             }}
           >
             <SideList />
@@ -198,6 +201,7 @@ export default function ArticleViewer() {
               width: `${ARTICLE_VIEWER_LAYOUT.ACTION_PANEL_WIDTH}px`,
               maxHeight: `calc(100vh - ${navigationHeight}px)`,
               top: `${navigationHeight}px`,
+              zIndex: 40,
             }}
           >
             <Card className="bg-card rounded-lg pt-0 pb-0 gap-0 min-h-0 flex flex-col overflow-hidden">

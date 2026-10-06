@@ -1,7 +1,6 @@
 import SectionEx from "@pub-html/basicEx/SectionEx";
 import { ReplayButton } from "../ReplayButton";
-import { genAnimateTranslate } from "@svg-anim/translate";
-import { getEaseBezier } from "@pub-utils/getBezier";
+import { transformTranslate, getEaseBezier } from "@guohub8080/expub-tool/smil";
 
 export const EasingComparison = () => {
     return (
@@ -17,10 +16,10 @@ export const EasingComparison = () => {
                         {/* 加速移动 */}
                         <text x="20" y="55" fontSize="14" fill="#333" dominantBaseline="middle">加速</text>
                         <circle cx="120" cy="50" r="15" fill="#FF6B6B">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 430, y: 0 }, durationSeconds: 2, keySplines: getEaseBezier({ isIn: true }) }
+                                    { toRel: { x: 430, y: 0 }, durationSeconds: 2, keySplines: getEaseBezier({ isIn: true }) }
                                 ],
                                 isFreeze: true
                             })}
@@ -29,10 +28,10 @@ export const EasingComparison = () => {
                         {/* 减速移动 */}
                         <text x="20" y="105" fontSize="14" fill="#333" dominantBaseline="middle">减速</text>
                         <circle cx="120" cy="100" r="15" fill="#4ECDC4">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 430, y: 0 }, durationSeconds: 2, keySplines: getEaseBezier({ isOut: true }) }
+                                    { toRel: { x: 430, y: 0 }, durationSeconds: 2, keySplines: getEaseBezier({ isOut: true }) }
                                 ],
                                 isFreeze: true
                             })}

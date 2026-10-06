@@ -1,5 +1,5 @@
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
-import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+import { animateMotion } from "@guohub8080/expub-tool/smil";
 
 export const SlidingBox = () => {
     return (
@@ -22,7 +22,7 @@ export const SlidingBox = () => {
                         <path d="M -4 -4 L 4 0 L -4 4" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                     </g>
                     {/* 沿曲线滑动，不旋转，保持最终状态 */}
-                    {genAnimatePathMotion({
+                    {animateMotion({
                         path: "M 30 75 Q 200 20 370 75",
                         durationSeconds: 3,
                         rotate: 0,

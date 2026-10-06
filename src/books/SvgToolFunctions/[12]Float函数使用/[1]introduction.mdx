@@ -4,23 +4,22 @@ import { BasicFloat, VerticalFloat, HorizontalFloat, DiagonalFloat, FastFloat, S
 
 # {title}
 
-`genAnimateFloat` 是专门用于创建浮动动画效果的预设动画工具。浮动动画是一种平滑的位移效果，让元素在指定方向上上下、左右或对角浮动，常用于营造悬浮感、漂浮感、轻盈感等视觉效果。
+`transformFloat` 是专门用于创建浮动动画效果的行为动画工具。浮动动画是一种平滑的位移效果，让元素在指定方向上上下、左右或对角浮动，常用于营造悬浮感、漂浮感、轻盈感等视觉效果。
 
 ---
 
 ## 函数签名
 
 ```tsx
-import { genAnimateFloat } from '@svg-anim/float';
+import { transformFloat } from '@guohub8080/expub-tool/behaviors';
 
-genAnimateFloat({
+transformFloat({
   floatRangeY?: number,              // 默认 20：Y轴浮动范围（像素）
   floatRangeX?: number,              // 默认 0：X轴浮动范围（像素）
-  durationSeconds?: number,          // 默认 4：动画时长（秒）
+  duration?: number,                 // 默认 4：一次浮动周期时长（秒）
   keySplines?: string,               // 默认 '0.24 0 0.24 1'：缓动曲线
-  repeatCount?: number,              // 默认 0：重复次数（0 = 无限）
-  delay?: number,                    // 默认 0：初始延迟（秒）
-  beginType?: SvgBeginEventType,     // 默认 undefined：动画开始事件类型
+  begin?: string,                    // 默认 undefined：开始时机（'2s' / 'click' / 'click+0.5s'）
+  loopCount?: number,                // 默认 0：循环次数（0 = 无限）
 })
 ```
 
@@ -42,11 +41,10 @@ genAnimateFloat({
 |------|------|--------|------|
 | `floatRangeY` | `number` | `20` | Y轴浮动范围（像素）|
 | `floatRangeX` | `number` | `0` | X轴浮动范围（像素）|
-| `durationSeconds` | `number` | `4` | 单次浮动周期（秒）|
+| `duration` | `number` | `4` | 单次浮动周期（秒）|
 | `keySplines` | `string` | `'0.24 0 0.24 1'` | 缓动曲线 |
-| `repeatCount` | `number` | `0` | 重复次数（0 = 无限）|
-| `delay` | `number` | `0` | 初始延迟（秒）|
-| `beginType` | `SvgBeginEventType` | `undefined` | 动画开始事件类型 |
+| `begin` | `string` | `undefined` | 开始时机：`'2s'`（延迟自动开始）、`'click'`、`'click+0.5s'` |
+| `loopCount` | `number` | `0` | 循环次数（0 = 无限）|
 
 ---
 
@@ -54,16 +52,16 @@ genAnimateFloat({
 
 ### 最简单的浮动效果
 
-使用默认参数创建标准上下浮动效果。
+使用默认参数创建标准上下浮动效果（无参调用 `transformFloat()` 即可）。
 
 **代码示例：**
 
 ```tsx
-import { genAnimateFloat } from "@svg-anim/float";
+import { transformFloat } from "@guohub8080/expub-tool/behaviors";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
   <g>
-    {genAnimateFloat({ floatRangeY: 20, durationSeconds: 4 })}
+    {transformFloat({ floatRangeY: 20, duration: 4 })}
     <circle cx="100" cy="100" r="50" fill="blue" />
   </g>
 </svg>
@@ -86,10 +84,10 @@ import { genAnimateFloat } from "@svg-anim/float";
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 30,
   floatRangeX: 0,
-  durationSeconds: 3
+  duration: 3
 })}
 ```
 
@@ -106,10 +104,10 @@ import { genAnimateFloat } from "@svg-anim/float";
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 0,
   floatRangeX: 30,
-  durationSeconds: 3
+  duration: 3
 })}
 ```
 
@@ -126,10 +124,10 @@ import { genAnimateFloat } from "@svg-anim/float";
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 20,
   floatRangeX: 20,
-  durationSeconds: 3
+  duration: 3
 })}
 ```
 
@@ -150,9 +148,9 @@ import { genAnimateFloat } from "@svg-anim/float";
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 15,
-  durationSeconds: 1.5
+  duration: 1.5
 })}
 ```
 
@@ -169,9 +167,9 @@ import { genAnimateFloat } from "@svg-anim/float";
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 25,
-  durationSeconds: 6
+  duration: 6
 })}
 ```
 
@@ -192,9 +190,9 @@ import { genAnimateFloat } from "@svg-anim/float";
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 10,
-  durationSeconds: 4
+  duration: 4
 })}
 ```
 
@@ -211,9 +209,9 @@ import { genAnimateFloat } from "@svg-anim/float";
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 40,
-  durationSeconds: 3
+  duration: 3
 })}
 ```
 
@@ -234,10 +232,10 @@ import { genAnimateFloat } from "@svg-anim/float";
 **推荐参数：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeX: 15,
   floatRangeY: 10,
-  durationSeconds: 5
+  duration: 5
 })}
 ```
 
@@ -252,10 +250,10 @@ import { genAnimateFloat } from "@svg-anim/float";
 **推荐参数：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeX: 8,
   floatRangeY: 0,
-  durationSeconds: 2
+  duration: 2
 })}
 ```
 
@@ -270,9 +268,9 @@ import { genAnimateFloat } from "@svg-anim/float";
 **推荐参数：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 5,
-  durationSeconds: 3
+  duration: 3
 })}
 ```
 
@@ -287,10 +285,10 @@ import { genAnimateFloat } from "@svg-anim/float";
 **推荐参数：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeX: 20,
   floatRangeY: 15,
-  durationSeconds: 4
+  duration: 4
 })}
 ```
 
@@ -325,8 +323,11 @@ import { genAnimateFloat } from "@svg-anim/float";
 
 ```tsx
 <g>
-  {genAnimateFloat({ floatRangeY: 20, durationSeconds: 4 })}
-  {genAnimateRotate({ additive: true })}
+  {transformFloat({ floatRangeY: 20, duration: 4 })}
+  {transformRotate({
+    timeline: [{ toRel: 360, durationSeconds: 4 }],
+    pivot: [100, 100]
+  })}
   <rect width="100" height="100" fill="red" />
 </g>
 ```
@@ -335,7 +336,7 @@ import { genAnimateFloat } from "@svg-anim/float";
 
 ## 下一步
 
-现在你已经了解了 `genAnimateFloat` 的基本用法和浮动效果控制。接下来将学习：
+现在你已经了解了 `transformFloat` 的基本用法和浮动效果控制。接下来将学习：
 
 - **时序控制** - 延迟启动、循环次数、点击触发
 - **自定义缓动** - 使用不同的缓动曲线创建特殊效果

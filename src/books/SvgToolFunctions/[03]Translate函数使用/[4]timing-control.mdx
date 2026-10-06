@@ -9,34 +9,41 @@ import {
 
 # {title}
 
-动画的时序控制是创建复杂动画效果的关键。本文介绍 `genAnimateTranslate` 中与时序相关的四个核心参数：`delay`、`loopCount`、`freeze` 和 `beginType`。
+动画的时序控制是创建复杂动画效果的关键。本文介绍 `transformTranslate` 中与时序相关的三个核心参数：`begin`（延迟与事件触发）、`loopCount` 和 `isFreeze`。
 
 ---
 
 ## 核心参数
 
-### delay - 初始延迟
+### begin - 延迟与触发时机
 
-控制动画开始前的等待时间（秒）。
+控制动画何时开始，用一个字符串同时表达"延迟"和"触发事件"。
 
-**类型**：`number`
-**默认值**：`0`
-**单位**：秒
+**类型**：`string`
+**默认值**：缺省（页面加载后自动播放）
+
+**取值形式**：
+
+| 写法 | 含义 |
+|------|------|
+| `'2s'` | 延迟 2 秒后自动开始 |
+| `'click'` | 点击元素后立即开始 |
+| `'click+0.5s'` | 点击元素后再延迟 0.5 秒开始 |
 
 **使用场景**：
 - 序列动画（多个元素依次出现）
 - 入场动画（页面加载后延迟播放）
-- 协调多个动画的时机
+- 交互式动画（点击触发）
 
 **示例**：
 
 ```tsx
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+    { toRel: { x: 200, y: 0 }, durationSeconds: 2 }
   ],
-  delay: 1  // 延迟 1 秒后开始
+  begin: '1s'  // 延迟 1 秒后开始
 })
 ```
 
@@ -65,28 +72,28 @@ genAnimateTranslate({
 
 ```tsx
 // 播放 1 次（默认）
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+    { toRel: { x: 200, y: 0 }, durationSeconds: 2 }
   ],
   loopCount: 1
 })
 
 // 播放 3 次
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+    { toRel: { x: 200, y: 0 }, durationSeconds: 2 }
   ],
   loopCount: 3
 })
 
 // 无限循环
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+    { toRel: { x: 200, y: 0 }, durationSeconds: 2 }
   ],
   loopCount: 0
 })
@@ -100,7 +107,7 @@ genAnimateTranslate({
 
 ---
 
-### freeze - 保持最终状态
+### isFreeze - 保持最终状态
 
 控制动画结束后是否停留在最后一帧。
 
@@ -120,21 +127,21 @@ genAnimateTranslate({
 
 ```tsx
 // 动画结束后回到原位
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+    { toRel: { x: 200, y: 0 }, durationSeconds: 2 }
   ],
-  freeze: false  // 默认值
+  isFreeze: false  // 默认值
 })
 
 // 动画结束后保持最终位置
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+    { toRel: { x: 200, y: 0 }, durationSeconds: 2 }
   ],
-  freeze: true
+  isFreeze: true
 })
 ```
 
@@ -146,15 +153,15 @@ genAnimateTranslate({
 
 ---
 
-### beginType - 点击触发
+### begin - 点击触发
 
-控制动画是否需要点击元素才开始播放。
+控制动画是否需要点击元素才开始播放，把事件名写进 `begin` 字符串即可。
 
-**类型**：`SvgBeginEventType`
-**默认值**：`undefined`
+**类型**：`string`
+**默认值**：缺省
 
 **值说明**：
-- `undefined`（默认）：页面加载后自动播放
+- 缺省（默认）：页面加载后自动播放
 - `'click'`：点击元素后才开始播放
 
 **使用场景**：
@@ -165,13 +172,13 @@ genAnimateTranslate({
 **示例**：
 
 ```tsx
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+    { toRel: { x: 200, y: 0 }, durationSeconds: 2 }
   ],
-  beginType: 'click',
-  freeze: true  // 通常配合 freeze 使用
+  begin: 'click',
+  isFreeze: true  // 通常配合 isFreeze 使用
 })
 ```
 
@@ -190,14 +197,14 @@ genAnimateTranslate({
 创建延迟开始的循环动画。
 
 ```tsx
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 80, y: 0 }, durationSeconds: 1 },
-    { toValue: { x: -80, y: 0 }, durationSeconds: 1 }
+    { toRel: { x: 80, y: 0 }, durationSeconds: 1 },
+    { toRel: { x: -80, y: 0 }, durationSeconds: 1 }
   ],
-  delay: 2,      // 延迟 2 秒
-  loopCount: 0   // 无限循环
+  begin: '2s',    // 延迟 2 秒
+  loopCount: 0    // 无限循环
 })
 ```
 
@@ -210,13 +217,13 @@ genAnimateTranslate({
 创建点击触发的单次动画。
 
 ```tsx
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+    { toRel: { x: 200, y: 0 }, durationSeconds: 2 }
   ],
-  beginType: 'click',  // 点击触发
-  freeze: true             // 保持最终位置
+  begin: 'click',    // 点击触发
+  isFreeze: true     // 保持最终位置
 })
 ```
 
@@ -229,14 +236,13 @@ genAnimateTranslate({
 创建延迟触发的交互式动画。
 
 ```tsx
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+    { toRel: { x: 200, y: 0 }, durationSeconds: 2 }
   ],
-  delay: 1,                // 点击后延迟 1 秒
-  beginType: 'click',  // 点击触发
-  freeze: true             // 保持最终位置
+  begin: 'click+1s',  // 点击触发，点击后延迟 1 秒
+  isFreeze: true      // 保持最终位置
 })
 ```
 
@@ -249,14 +255,14 @@ genAnimateTranslate({
 创建循环指定次数后停留的动画。
 
 ```tsx
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 80, y: 0 }, durationSeconds: 1 },
-    { toValue: { x: -80, y: 0 }, durationSeconds: 1 }
+    { toRel: { x: 80, y: 0 }, durationSeconds: 1 },
+    { toRel: { x: -80, y: 0 }, durationSeconds: 1 }
   ],
-  loopCount: 3,  // 循环 3 次
-  freeze: true   // 最后停留在最终位置
+  loopCount: 3,   // 循环 3 次
+  isFreeze: true  // 最后停留在最终位置
 })
 ```
 
@@ -271,13 +277,13 @@ genAnimateTranslate({
 元素从屏幕外移入，并保持位置。
 
 ```tsx
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: -200, y: 0 },  // 从左侧屏幕外开始
   timeline: [
-    { toValue: { x: 200, y: 0 }, durationSeconds: 1 }
+    { toRel: { x: 200, y: 0 }, durationSeconds: 1 }
   ],
-  delay: 0.5,   // 延迟 0.5 秒
-  freeze: true  // 保持最终位置
+  begin: '0.5s',  // 延迟 0.5 秒
+  isFreeze: true  // 保持最终位置
 })
 ```
 
@@ -288,11 +294,11 @@ genAnimateTranslate({
 元素持续左右摆动。
 
 ```tsx
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 10, y: 0 }, durationSeconds: 1 },
-    { toValue: { x: -10, y: 0 }, durationSeconds: 1 }
+    { toRel: { x: 10, y: 0 }, durationSeconds: 1 },
+    { toRel: { x: -10, y: 0 }, durationSeconds: 1 }
   ],
   loopCount: 0  // 无限循环
 })
@@ -305,13 +311,13 @@ genAnimateTranslate({
 点击元素后触发动画。
 
 ```tsx
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 150, y: 0 }, durationSeconds: 1.5 }
+    { toRel: { x: 150, y: 0 }, durationSeconds: 1.5 }
   ],
-  beginType: 'click',
-  freeze: true
+  begin: 'click',
+  isFreeze: true
 })
 ```
 
@@ -323,33 +329,33 @@ genAnimateTranslate({
 
 ```tsx
 // 第一个元素
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 100, y: 0 }, durationSeconds: 1 }
+    { toRel: { x: 100, y: 0 }, durationSeconds: 1 }
   ],
-  delay: 0,
-  freeze: true
+  begin: '0s',
+  isFreeze: true
 })
 
 // 第二个元素
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 100, y: 0 }, durationSeconds: 1 }
+    { toRel: { x: 100, y: 0 }, durationSeconds: 1 }
   ],
-  delay: 0.5,  // 延迟 0.5 秒
-  freeze: true
+  begin: '0.5s',  // 延迟 0.5 秒
+  isFreeze: true
 })
 
 // 第三个元素
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 100, y: 0 }, durationSeconds: 1 }
+    { toRel: { x: 100, y: 0 }, durationSeconds: 1 }
   ],
-  delay: 1,    // 延迟 1 秒
-  freeze: true
+  begin: '1s',    // 延迟 1 秒
+  isFreeze: true
 })
 ```
 
@@ -357,33 +363,33 @@ genAnimateTranslate({
 
 ## 注意事项
 
-### freeze 与 loopCount 的关系
+### isFreeze 与 loopCount 的关系
 
-当 `loopCount > 1` 或 `loopCount = 0`（无限循环）时，`freeze` 参数的效果：
+当 `loopCount > 1` 或 `loopCount = 0`（无限循环）时，`isFreeze` 参数的效果：
 
-- **loopCount = 1**：`freeze: true` 会停留在最终位置
-- **loopCount > 1**：`freeze: true` 会在最后一次循环结束后停留
-- **loopCount = 0**：`freeze` 参数无效（因为动画永不结束）
+- **loopCount = 1**：`isFreeze: true` 会停留在最终位置
+- **loopCount > 1**：`isFreeze: true` 会在最后一次循环结束后停留
+- **loopCount = 0**：`isFreeze` 参数无效（因为动画永不结束）
 
 ```tsx
-// ✅ 有效：单次动画 + freeze
-genAnimateTranslate({
+// ✅ 有效：单次动画 + isFreeze
+transformTranslate({
   timeline: [...],
   loopCount: 1,
-  freeze: true  // 动画结束后停留
+  isFreeze: true  // 动画结束后停留
 })
 
-// ⚠️ 注意：无限循环 + freeze
-genAnimateTranslate({
+// ⚠️ 注意：无限循环 + isFreeze
+transformTranslate({
   timeline: [...],
   loopCount: 0,
-  freeze: true  // freeze 无效，因为动画永不结束
+  isFreeze: true  // isFreeze 无效，因为动画永不结束
 })
 ```
 
 ---
 
-### beginType 的限制
+### begin 的限制
 
 - 只能点击一次触发动画
 - 如果需要重复点击触发，需要使用 JavaScript 控制
@@ -391,11 +397,11 @@ genAnimateTranslate({
 
 ---
 
-### delay 的计算
+### begin 延迟的计算
 
-- `delay` 是相对于页面加载或点击事件的延迟
-- 如果使用 `beginType: 'click'`，`delay` 是点击后的延迟
-- 多个元素的 `delay` 可以不同，实现序列动画
+- 延迟数字是相对于页面加载或点击事件的
+- 如果使用 `begin: 'click+1s'`，1s 是点击后的延迟
+- 多个元素的 `begin` 延迟可以不同，实现序列动画
 
 ---
 
@@ -403,16 +409,15 @@ genAnimateTranslate({
 
 | 参数 | 默认值 | 说明 | 常用场景 |
 |------|--------|------|----------|
-| `delay` | `0` | 初始延迟（秒） | 序列动画、入场动画 |
+| `begin` | 缺省 | 延迟/触发时机（'2s'、'click'、'click+0.5s'） | 序列动画、交互式动画 |
 | `loopCount` | `1` | 循环次数（0=无限） | 呼吸效果、重复提示 |
-| `freeze` | `false` | 保持最终状态 | 入场动画、状态切换 |
-| `beginType` | `undefined` | 点击触发 | 交互式动画、按需播放 |
+| `isFreeze` | `false` | 保持最终状态 | 入场动画、状态切换 |
 
 **推荐组合**：
-- 入场动画：`delay` + `freeze`
+- 入场动画：`begin: '0.5s'` + `isFreeze`
 - 呼吸效果：`loopCount: 0`
-- 交互式动画：`beginType: 'click'` + `freeze`
-- 序列动画：不同的 `delay` 值
+- 交互式动画：`begin: 'click'` + `isFreeze`
+- 序列动画：不同的 `begin` 延迟值
 
 ---
 
@@ -420,4 +425,4 @@ genAnimateTranslate({
 
 - **基础位移动画** - 各种常见的位移效果示例
 - **函数概览与参数说明** - 完整的参数列表和说明
-- **相对移动与累积移动** - 深入理解 isRelativeMove 参数
+- **相对移动与累积移动** - 深入理解 toRel / toAbs 位移模式

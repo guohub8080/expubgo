@@ -87,8 +87,8 @@ export interface GlobalSettingsState {
   bookContentPadding: number;
   setBookContentPadding: (padding: number) => void;
   
-  bookSideContentGap: number;
-  setBookSideContentGap: (gap: number) => void;
+  bookUniMargin: number;
+  setBookUniMargin: (gap: number) => void;
   
   // 书籍目录显示控制
   isBookTocShow: boolean;

@@ -1,4 +1,4 @@
-import { genAnimateScale } from "@svg-anim/scale";
+import { transformScale } from "@guohub8080/expub-tool/smil";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
 
 export const FreezeDemo = () => {
@@ -7,10 +7,10 @@ export const FreezeDemo = () => {
             <svg width="200" height="200" viewBox="0 0 200 200">
                 {/* isFreeze: false - 回到原位 */}
                 <circle cx="100" cy="60" r="20" fill="blue">
-                    {genAnimateScale({
-                        origin: [100, 60],
+                    {transformScale({
+                        pivot: [100, 60],
                         timeline: [
-                            { toValue: 1.8, durationSeconds: 2 }
+                            { toAbs: 1.8, durationSeconds: 2 }
                         ],
                         isFreeze: false
                     })}
@@ -19,10 +19,10 @@ export const FreezeDemo = () => {
 
                 {/* isFreeze: true - 保持最终大小 */}
                 <circle cx="100" cy="140" r="20" fill="orange">
-                    {genAnimateScale({
-                        origin: [100, 140],
+                    {transformScale({
+                        pivot: [100, 140],
                         timeline: [
-                            { toValue: 1.8, durationSeconds: 2 }
+                            { toAbs: 1.8, durationSeconds: 2 }
                         ],
                         isFreeze: true
                     })}

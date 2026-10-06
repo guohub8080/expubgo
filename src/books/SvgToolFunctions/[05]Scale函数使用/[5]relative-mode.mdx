@@ -4,31 +4,32 @@ import { RelativeMode, AbsoluteMode, ModeComparison } from "./examples"
 
 # {title}
 
-`isRelativeScale` 参数控制缩放的计算方式，有两种不同的计算模式，需要根据场景选择合适的模式。
+`transformScale` 的 timeline 每段只支持 `toAbs`（绝对目标倍数）——没有单独的"相对开关"。所谓"相对"与"绝对"，是书写多段目标值时的两种思维：**累计写法**（以当前值为基准做增减心算）与**绝对写法**（直接写最终倍数）。需要根据场景选择合适的写法。
 
 ---
 
-## 相对缩放模式（isRelativeScale: true，默认值）
+## 相对缩放（累计写法）
 
-每个阶段的 `toValue` 是**相对于上一阶段终点**的增量缩放。
+每个阶段的 `toAbs` 按"**以当前值为基准的增量**"心算得出：想表达"放大 2 倍""减半"这类相对意图时，用当前值乘除算出绝对目标再写入。
 
 ### 工作原理
 
 ```
-当前缩放 = 上一阶段缩放 × toValue
+本段 toAbs = 上一段实际缩放 × 想要的相对倍数
 ```
 
 **示例：**
 
 ```tsx
-genAnimateScale({
-  initScale: 1,
-  isRelativeScale: true,
+transformScale({
+  pivot: [100, 80],
+  initValue: 1,
   timeline: [
-    { toValue: 2, durationSeconds: 1 },    // 1 × 2 = 2
-    { toValue: 0.5, durationSeconds: 1 },  // 2 × 0.5 = 1
-    { toValue: 1.5, durationSeconds: 1 }     // 1 × 1.5 = 1.5
-  ]
+    { toAbs: 2, durationSeconds: 1 },    // 1 × 2 = 2（放大 2 倍）
+    { toAbs: 1, durationSeconds: 1 },    // 2 × 0.5 = 1（想"减半"，以当前值 2 为基准）
+    { toAbs: 1.5, durationSeconds: 1 }   // 1 × 1.5 = 1.5（再放大 50%）
+  ],
+  loopCount: 0
 })
 ```
 
@@ -36,30 +37,30 @@ genAnimateScale({
 
 <RelativeMode />
 
-**说明**：1x → 2x → 1x（保持）→ 1.5x
+**说明**：1x → 2x → 1x → 1.5x（无限循环）
 
 ---
 
-## 绝对缩放模式（isRelativeScale: false）
+## 绝对缩放（绝对写法）
 
-每个阶段的 `toValue` 是**相对于初始值**的绝对缩放。
+每个阶段的 `toAbs` 直接写**最终倍数**，不做换算。
 
 ### 工作原理
 
 ```
-当前缩放 = toValue（绝对坐标）
+本段 toAbs = 想要的绝对缩放值
 ```
 
 **示例：**
 
 ```tsx
-genAnimateScale({
-  initScale: 1,
-  isRelativeScale: false,
+transformScale({
+  pivot: [100, 100],
+  initValue: 1,
   timeline: [
-    { toValue: 2, durationSeconds: 1 },    // 缩放到 2 倍
-    { toValue: 2, durationSeconds: 1 },    // 保持 2 倍
-    { toValue: 1.5, durationSeconds: 1 }     // 缩小到 1.5 倍
+    { toAbs: 2, durationSeconds: 1 },    // 缩放到 2 倍
+    { toAbs: 2, durationSeconds: 1 },    // 保持 2 倍（重复写目标值）
+    { toAbs: 1.5, durationSeconds: 1 }   // 缩小到 1.5 倍
   ]
 })
 ```
@@ -72,40 +73,42 @@ genAnimateScale({
 
 ---
 
-## 两种模式对比
+## 两种写法对比
 
-虽然两个示例最终效果相同，但参数写法不同：
+两种写法渲染出的序列可以不同，取决于你的目标设计：
 
-| 阶段 | 相对模式 `toValue` | 实际缩放 | 绝对模式 `toValue` |
+| 阶段 | 累计写法 `toAbs` | 实际缩放 | 绝对写法 `toAbs` |
 |------|-------------------|---------|-------------------|
 | 初始 | - | 1x | - |
-| 第1段 | `2` | 1 × 2 = **2x** | `2` → **2x** |
-| 第2段 | `0.5` | 2 × 0.5 = **1x** | `2` → **2x** |
-| 第3段 | `1.5` | 1 × 1.5 = **1.5x** | `1.5` → **1.5x** |
+| 第1段 | `2`（1 × 2） | **2x** | `2` → **2x** |
+| 第2段 | `1`（2 × 0.5） | **1x** | `2` → **2x**（保持） |
+| 第3段 | `1.5`（1 × 1.5） | **1.5x** | `1.5` → **1.5x** |
 
 **效果预览对比：**
 
 <ModeComparison />
 
-**说明**：左侧蓝色：相对模式 | 右侧绿色：绝对模式
+**说明**：左侧蓝色：累计写法（2x → 1x → 1.5x） | 右侧绿色：绝对写法（2x → 保持 2x → 1.5x）
 
 ---
 
 ## 关键区别
 
-### 相对模式（推荐）
+### 累计写法（按增减思考时自然）
 
 ```tsx
-// ✅ 保持大小很简单
-{ toValue: 1 }  // 相对于上一阶段，增量为 1（保持）
+// ✅ 想表达"减半"：以当前值 2 为基准，写出 2 × 0.5 = 1
+{ toAbs: 1 }   // 当前是 2 倍，减半回到 1 倍
 ```
 
-### 绝对模式
+### 绝对写法（需要精确停值时直接）
 
 ```tsx
-// ❌ 保持大小需要重复上一个值
-{ toValue: 2 }  // 必须写绝对值 2（保持 2 倍）
+// ✅ 保持大小：重复写上一个值
+{ toAbs: 2 }   // 当前是 2 倍，保持 2 倍
 ```
+
+两种写法最终都落到 `toAbs` 的绝对值上，区别只在书写时的思考路径。
 
 ---
 
@@ -113,41 +116,45 @@ genAnimateScale({
 
 ### 场景 1：单次缩放
 
-两种模式都可以，推荐相对模式（默认）：
+只有一段时两种写法完全一致，直接写目标值：
 
 ```tsx
-genAnimateScale({
+transformScale({
+  pivot: [100, 100],
   timeline: [
-    { toValue: 2, durationSeconds: 2 }
+    { toAbs: 2, durationSeconds: 2 }
   ]
 })
 ```
 
 ### 场景 2：往返缩放
 
-相对模式更直观：
+直接写两个绝对目标，配合无限循环：
 
 ```tsx
-genAnimateScale({
-  initScale: 1,
+transformScale({
+  pivot: [100, 100],
+  initValue: 1,
   timeline: [
-    { toValue: 1.5, durationSeconds: 1 },    // 1 × 1.5 = 1.5 倍
-    { toValue: 0.7, durationSeconds: 1 }     // 1.5 × 0.7 = 1.05 倍
-  ]
+    { toAbs: 1.5, durationSeconds: 1 },    // 放大到 1.5 倍
+    { toAbs: 1, durationSeconds: 1 }       // 回到 1 倍
+  ],
+  loopCount: 0
 })
 ```
 
 ### 场景 3：复杂路径缩放
 
-相对模式更容易理解增量：
+按增减思考更直观时，逐段累计心算：
 
 ```tsx
-genAnimateScale({
-  initScale: 1,
+transformScale({
+  pivot: [100, 100],
+  initValue: 1,
   timeline: [
-    { toValue: 1.2, durationSeconds: 1 },   // 放大到 1.2 倍
-    { toValue: 0.8, durationSeconds: 1 },   // 缩小到 0.8 倍
-    { toValue: 1.2, durationSeconds: 1 },   // 再放大到 1.2 倍
+    { toAbs: 1.2, durationSeconds: 1 },   // 1 × 1.2：放大到 1.2 倍
+    { toAbs: 0.96, durationSeconds: 1 },  // 1.2 × 0.8：缩小 20%
+    { toAbs: 1.152, durationSeconds: 1 }, // 0.96 × 1.2：再放大 20%
   ]
 })
 ```
@@ -156,11 +163,11 @@ genAnimateScale({
 
 ## 总结
 
-| 特性 | 相对模式 | 绝对模式 |
+| 特性 | 累计写法 | 绝对写法 |
 |------|---------|---------|
-| **默认值** | ✅ `true` | `false` |
-| `toValue` 含义 | 增量缩放 | 绝对缩放 |
-| `保持大小` | `{ toValue: 1 }` | 需重复上一缩放值 |
-| `适用场景` | 大多数情况 | 需要精确控制绝对缩放 |
+| **思考路径** | 以当前值为基准做乘除 | 直接写最终倍数 |
+| `toAbs` 含义 | 心算出的绝对目标 | 绝对目标 |
+| `保持大小` | 重复写当前值 | 重复写当前值 |
+| `适用场景` | 增减意图明确（"再放大 30%"） | 需要精确控制每个停点 |
 
-**推荐**：使用相对模式（默认），更符合直觉，代码更简洁。
+**提示**：两种写法最终都写 `toAbs` 绝对值；多段动画建议在注释里标注每段的换算过程，方便回读。

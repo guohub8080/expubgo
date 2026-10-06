@@ -18,11 +18,13 @@
  * - children: 文章主体内容（React 节点）
  */
 import React, { useMemo, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate } from 'react-router';
+import { useWindowSize } from "react-use";
 import { ChevronRight, Home, ArrowLeft, ArrowRight } from "lucide-react";
 import PreviewErrorBoundary from "../../ErrorBoundary";
 import { Button } from "../../../shadcn/components/ui/button.tsx";
 import { useBookLayoutConfig } from "./internal/BookLayoutContext.tsx";
+import { BOOK_MOBILE_BREAKPOINT } from "./internal/bookBreakpoint.ts";
 import useGlobalSettings from "../../../store/useGlobalSettings";
 import type { BookLoader } from "./types/BookLoader.ts";
 
@@ -36,6 +38,10 @@ const ArticleContent = ({ children, loader }: ArticleContentProps) => {
   const navigate = useNavigate();  // 用于编程式导航
   const { basePrefix } = useBookLayoutConfig(); // 获取基础路径前缀
   const { bookContentPadding } = useGlobalSettings();
+
+  // 移动端基准（共享常量 bookBreakpoint.ts），正文排版按分支取值
+  const { width: windowWidth } = useWindowSize();
+  const isMobile = windowWidth < BOOK_MOBILE_BREAKPOINT;
 
   // 路由变化时滚动到顶部
   useEffect(() => {
@@ -145,6 +151,7 @@ const ArticleContent = ({ children, loader }: ArticleContentProps) => {
         {breadcrumbs && (
           <div className="flex items-center gap-2 mb-6 border-b overflow-x-auto flex-wrap py-3" style={{ paddingLeft: bookContentPadding }}>
             {breadcrumbs.map((item, idx) => (
+              // 胶囊内部 nowrap：文字过长时整个胶囊换行，不在胶囊内断行
               <React.Fragment key={idx}>
                 {idx > 0 && <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
                 {idx === 0 && (
@@ -153,7 +160,7 @@ const ArticleContent = ({ children, loader }: ArticleContentProps) => {
                     <circle cx="12" cy="12" r="10" />
                   </svg>
                 )}
-                <span className="text-sm font-medium text-foreground shrink-0">{item.label}</span>
+                <span className="text-sm font-medium text-foreground shrink-0 whitespace-nowrap">{item.label}</span>
               </React.Fragment>
             ))}
           </div>

@@ -2,37 +2,50 @@ export const title = "位移动画 translate"
 
 # {title}
 
-`genAnimateTranslate` 是 SVG 位移动画的生成工具，可以创建 `<animateTransform type="translate">` 元素。
+`transformTranslate` 是 SVG 位移动画的生成工具，可以创建 `<animateTransform type="translate">` 元素。
 
 ---
 
 ## 函数签名
 
 ```tsx
-import { genAnimateTranslate } from '@svg-anim/translate';
+import { transformTranslate } from '@guohub8080/expub-tool/smil';
 
-genAnimateTranslate({
-  initValue?: { x: number, y: number },  // 默认 { x: 0, y: 0 }
-  timeline: TranslateTimelineSegment[],  // 必填：时间线段数组
-  delay?: number,                        // 默认 0：初始延迟（秒）
-  additive?: boolean,                    // 默认 true：是否累加变换
-  beginType?: SvgBeginEventType,            // 默认 undefined：动画开始事件类型
+transformTranslate({
+  initValue?: { x?: number, y?: number },   // 默认 { x: 0, y: 0 }：初始位移
+  timeline: TranslateKeyframe[],            // 必填：时间线段数组（toAbs / toRel 二选一）
+  begin?: string,                           // 默认 undefined：开始时机（SMIL begin 字符串）
   calcMode?: 'spline' | 'linear' | 'discrete' | 'paced',  // 自动：动画计算模式
-  freeze?: boolean,                      // 默认 false：是否保持最终状态
-  loopCount?: number,                    // 默认 1：循环次数（0 = 无限）
-  isRelativeMove?: boolean,              // 默认 true：是否使用相对移动
+  isFreeze?: boolean,                       // 默认 false：是否保持最终状态
+  loopCount?: number,                       // 默认 1：循环次数（0 = 无限）
+  isAdditive?: boolean,                     // 默认 true：是否累加变换
+  restart?: 'always' | 'whenNotActive' | 'never',
+  native?: T_NativeAnimateTransform,        // 透传/覆盖原生 animateTransform 属性（最后展开，同名覆盖生成值）
 })
 ```
 
-### TranslateTimelineSegment 类型
+### TranslateKeyframe 类型
 
 ```tsx
-interface TranslateTimelineSegment {
-  toValue?: Partial<Point2D>,           // 默认上一段位置：目标位置
-  durationSeconds: number,               // 必填：该段持续时间（秒）
-  keySplines?: string,                   // 默认 "0.42 0 0.58 1"：贝塞尔缓动参数
+// toAbs：绝对坐标（相对于初始位置的目标位置）
+// toRel：相对增量（相对于上一段结束位置的位移）
+interface TranslateKeyframe {
+  toAbs?: { x?: number, y?: number },
+  toRel?: { x?: number, y?: number },
+  durationSeconds: number,                  // 必填：该段持续时间（秒）
+  keySplines?: string,                      // 默认线性 "0 0 1 1"：贝塞尔缓动参数
 }
 ```
+
+### begin 字符串
+
+`begin` 直接写 SMIL begin 字符串，统一表达「延迟开始」与「事件触发」：
+
+| 写法 | 含义 |
+|------|------|
+| `begin: '2s'` | 延迟 2 秒自动开始 |
+| `begin: 'click'` | 点击触发 |
+| `begin: 'click+0.5s'` | 点击后延迟 0.5 秒开始 |
 
 ---
 
@@ -43,10 +56,10 @@ interface TranslateTimelineSegment {
 ```tsx
 <svg width="300" height="100">
   <circle cx="50" cy="50" r="20" fill="blue">
-    {genAnimateTranslate({
+    {transformTranslate({
       initValue: { x: 0, y: 0 },
       timeline: [
-        { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+        { toAbs: { x: 200, y: 0 }, durationSeconds: 2 }
       ]
     })}
   </circle>
@@ -76,11 +89,11 @@ interface TranslateTimelineSegment {
 ### 往返移动（先右后左）
 
 ```tsx
-{genAnimateTranslate({
+{transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },  // 向右
-    { toValue: { x: 0, y: 0 }, durationSeconds: 1 }     // 向左
+    { toAbs: { x: 100, y: 0 }, durationSeconds: 1 },  // 向右
+    { toAbs: { x: 0, y: 0 }, durationSeconds: 1 }     // 向左
   ]
 })}
 ```
@@ -93,9 +106,8 @@ interface TranslateTimelineSegment {
   type="translate"
   values="0 0; 100 0; 0 0"
   keyTimes="0; 0.5; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
   dur="2s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="1"
   fill="remove"
   additive="sum"
@@ -107,10 +119,14 @@ interface TranslateTimelineSegment {
 ### 对角线移动
 
 ```tsx
-{genAnimateTranslate({
+{transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 100, y: 50 }, durationSeconds: 2 }
+    {
+      toAbs: { x: 100, y: 50 },
+      keySplines: '0.42 0 0.58 1',
+      durationSeconds: 2
+    }
   ]
 })}
 ```
@@ -137,11 +153,11 @@ interface TranslateTimelineSegment {
 ### 无限循环浮动
 
 ```tsx
-{genAnimateTranslate({
+{transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 0, y: -10 }, durationSeconds: 1 },  // 上浮
-    { toValue: { x: 0, y: 0 }, durationSeconds: 1 }     // 回落
+    { toAbs: { x: 0, y: -10 }, durationSeconds: 1 },  // 上浮
+    { toAbs: { x: 0, y: 0 }, durationSeconds: 1 }     // 回落
   ],
   loopCount: 0  // 无限循环
 })}
@@ -155,9 +171,8 @@ interface TranslateTimelineSegment {
   type="translate"
   values="0 0; 0 -10; 0 0"
   keyTimes="0; 0.5; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
   dur="2s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="indefinite"
   fill="remove"
   additive="sum"
@@ -169,13 +184,13 @@ interface TranslateTimelineSegment {
 ### 复杂路径（多段移动）
 
 ```tsx
-{genAnimateTranslate({
+{transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 50, y: 0 }, durationSeconds: 0.5 },   // 右
-    { toValue: { x: 50, y: 50 }, durationSeconds: 0.5 }, // 下
-    { toValue: { x: 0, y: 50 }, durationSeconds: 0.5 },  // 左
-    { toValue: { x: 0, y: 0 }, durationSeconds: 0.5 }    // 上（回到原点）
+    { toAbs: { x: 50, y: 0 }, durationSeconds: 0.5 },   // 右
+    { toAbs: { x: 50, y: 50 }, durationSeconds: 0.5 },  // 下
+    { toAbs: { x: 0, y: 50 }, durationSeconds: 0.5 },   // 左
+    { toAbs: { x: 0, y: 0 }, durationSeconds: 0.5 }     // 上（回到原点）
   ]
 })}
 ```
@@ -188,9 +203,8 @@ interface TranslateTimelineSegment {
   type="translate"
   values="0 0; 50 0; 50 50; 0 50; 0 0"
   keyTimes="0; 0.25; 0.5; 0.75; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
   dur="2s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="1"
   fill="remove"
   additive="sum"
@@ -199,18 +213,17 @@ interface TranslateTimelineSegment {
 
 ---
 
-### 相对移动模式（isRelativeMove: true，默认）
+### 相对位移模式（toRel）
 
-每个阶段的 `toValue` 是相对于**上一阶段**的增量位移：
+`toRel` 的每段位移是相对于**上一段结束位置**的增量：
 
 ```tsx
-{genAnimateTranslate({
+{transformTranslate({
   initValue: { x: 0, y: 0 },
-  isRelativeMove: true,
   timeline: [
-    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },  // 移动到 (100, 0)
-    { toValue: { x: 0, y: 0 }, durationSeconds: 1 },    // 保持在 (100, 0)，不移动
-    { toValue: { x: 50, y: 0 }, durationSeconds: 1 }    // 移动到 (150, 0)，增量为 (50, 0)
+    { toRel: { x: 100, y: 0 }, durationSeconds: 1 },  // 移动到 (100, 0)
+    { toRel: { x: 0, y: 0 }, durationSeconds: 1 },    // 保持在 (100, 0)，不移动
+    { toRel: { x: 50, y: 0 }, durationSeconds: 1 }    // 移动到 (150, 0)，增量为 (50, 0)
   ]
 })}
 ```
@@ -223,9 +236,8 @@ interface TranslateTimelineSegment {
   type="translate"
   values="0 0; 100 0; 100 0; 150 0"
   keyTimes="0; 0.333; 0.667; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
   dur="3s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="1"
   fill="remove"
   additive="sum"
@@ -234,18 +246,17 @@ interface TranslateTimelineSegment {
 
 ---
 
-### 累积移动模式（isRelativeMove: false）
+### 绝对位移模式（toAbs）
 
-每个阶段的 `toValue` 是相对于**初始位置**的绝对坐标：
+`toAbs` 的每段坐标是相对于**初始位置**的绝对坐标：
 
 ```tsx
-{genAnimateTranslate({
+{transformTranslate({
   initValue: { x: 0, y: 0 },
-  isRelativeMove: false,
   timeline: [
-    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },  // 移动到 (100, 0)
-    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },  // 保持在 (100, 0)
-    { toValue: { x: 150, y: 0 }, durationSeconds: 1 }   // 移动到 (150, 0)，绝对坐标
+    { toAbs: { x: 100, y: 0 }, durationSeconds: 1 },  // 移动到 (100, 0)
+    { toAbs: { x: 100, y: 0 }, durationSeconds: 1 },  // 保持在 (100, 0)
+    { toAbs: { x: 150, y: 0 }, durationSeconds: 1 }   // 移动到 (150, 0)，绝对坐标
   ]
 })}
 ```
@@ -258,9 +269,8 @@ interface TranslateTimelineSegment {
   type="translate"
   values="0 0; 100 0; 100 0; 150 0"
   keyTimes="0; 0.333; 0.667; 1"
-  keySplines="0.42 0 0.58 1; 0.42 0 0.58 1; 0.42 0 0.58 1"
   dur="3s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="1"
   fill="remove"
   additive="sum"
@@ -272,19 +282,19 @@ interface TranslateTimelineSegment {
 ### 配合贝塞尔缓动
 
 ```tsx
-import { getEaseBezier, getBounceBezier } from '@pub-utils/getBezier';
+import { getEaseBezier, getBounceBezier0_1 } from '@guohub8080/expub-tool/smil';
 
-{genAnimateTranslate({
+{transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
     {
-      toValue: { x: 100, y: 0 },
+      toAbs: { x: 100, y: 0 },
       keySplines: getEaseBezier({ isIn: true, isOut: true }),
       durationSeconds: 1
     },
     {
-      toValue: { x: 100, y: 50 },
-      keySplines: getBounceBezier(),
+      toAbs: { x: 100, y: 50 },
+      keySplines: getBounceBezier0_1(),
       durationSeconds: 1
     }
   ]
@@ -299,7 +309,7 @@ import { getEaseBezier, getBounceBezier } from '@pub-utils/getBezier';
   type="translate"
   values="0 0; 100 0; 100 50"
   keyTimes="0; 0.5; 1"
-  keySplines="0.42 0 1 1; 0.68 -0.55 0.265 1.55"
+  keySplines="0.42 0 1 1; 0.75 -0.5 0.22 1.5"
   dur="2s"
   calcMode="spline"
   repeatCount="1"
@@ -312,20 +322,20 @@ import { getEaseBezier, getBounceBezier } from '@pub-utils/getBezier';
 
 ### 单轴移动
 
-可以只指定 X 或 Y 轴的移动：
+`toAbs` 支持部分坐标，只指定 X 或 Y 轴的移动，另一轴保持不变：
 
 ```tsx
 // 只在 X 轴移动
-{genAnimateTranslate({
+{transformTranslate({
   timeline: [
-    { toValue: { x: 100 }, durationSeconds: 1 }  // Y 保持不变
+    { toAbs: { x: 100 }, durationSeconds: 1 }  // Y 保持不变
   ]
 })}
 
 // 只在 Y 轴移动
-{genAnimateTranslate({
+{transformTranslate({
   timeline: [
-    { toValue: { y: 50 }, durationSeconds: 1 }  // X 保持不变
+    { toAbs: { y: 50 }, durationSeconds: 1 }  // X 保持不变
   ]
 })}
 ```
@@ -338,9 +348,8 @@ import { getEaseBezier, getBounceBezier } from '@pub-utils/getBezier';
   type="translate"
   values="0 0; 100 0"
   keyTimes="0; 1"
-  keySplines="0.42 0 0.58 1"
   dur="1s"
-  calcMode="spline"
+  calcMode="linear"
   repeatCount="1"
   fill="remove"
   additive="sum"
@@ -349,11 +358,28 @@ import { getEaseBezier, getBounceBezier } from '@pub-utils/getBezier';
 
 ---
 
+### 延迟与点击触发
+
+```tsx
+// 延迟 2 秒自动开始
+{transformTranslate({
+  timeline: [{ toAbs: { x: 100, y: 0 }, durationSeconds: 1 }],
+  begin: '2s'
+})}
+
+// 点击触发，点击后再延迟 0.5 秒开始
+{transformTranslate({
+  timeline: [{ toAbs: { x: 100, y: 0 }, durationSeconds: 1 }],
+  begin: 'click+0.5s'
+})}
+```
+
+---
+
 ### 完整示例：浮动的云朵
 
 ```tsx
-import { genAnimateTranslate } from '@svg-anim/translate';
-import { getEaseBezier } from '@pub-utils/getBezier';
+import { transformTranslate, getEaseBezier } from '@guohub8080/expub-tool/smil';
 
 const FloatingCloud = () => {
   return (
@@ -366,11 +392,11 @@ const FloatingCloud = () => {
       </g>
 
       {/* 缓慢浮动动画 */}
-      {genAnimateTranslate({
+      {transformTranslate({
         initValue: { x: 0, y: 0 },
         timeline: [
           {
-            toValue: { x: 200, y: 0 },
+            toAbs: { x: 200, y: 0 },
             keySplines: getEaseBezier({ isIn: true, isOut: false }),
             durationSeconds: 10
           }
@@ -403,13 +429,17 @@ const FloatingCloud = () => {
 
 ## 注意事项
 
-### additive 属性
+### isAdditive 属性
 
-- **推荐使用 `additive: true`**（默认）：动画会与其他变换叠加
-- 使用 `additive: false`：动画会替换其他变换（可能导致冲突）
+- **推荐使用 `isAdditive: true`**（默认）：动画会与其他变换叠加
+- 使用 `isAdditive: false`：动画会替换其他变换（可能导致冲突）
 
-### freeze 属性
+### isFreeze 属性
 
-- **`freeze: false`**（默认）：动画结束后回到原始状态
-- **`freeze: true`**：动画结束后停留在最后一帧
+- **`isFreeze: false`**（默认）：动画结束后回到原始状态
+- **`isFreeze: true`**：动画结束后停留在最后一帧
 
+### calcMode 自动推断
+
+- 任一时间线段提供了 `keySplines` → 自动 `calcMode="spline"`
+- 全部未提供 → 自动 `calcMode="linear"`，此时不输出 keySplines 属性

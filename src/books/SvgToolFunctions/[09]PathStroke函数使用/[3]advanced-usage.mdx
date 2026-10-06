@@ -4,38 +4,40 @@ import { ClickDraw } from "./examples"
 
 # {title}
 
-本章节介绍 `genAnimatePathStroke` 的高级用法，包括点击触发、缓动效果、支持的路径元素等。
+本章节介绍 `animatePathStroke` 的高级用法，包括点击触发、缓动效果、支持的路径元素等。
 
 ---
 
-## 点击触发（beginType）
+## 点击触发（begin: 'click'）
 
-用户点击后动画才开始，适合交互式场景。
+用户点击后动画才开始，适合交互式场景。路径本身是隐藏的（点了没用），所以要手写一层 `<g>` 承载静态 dash 属性、`<animate>` 和透明点击热区：
 
 **代码示例：**
 
 ```tsx
-import { genAnimatePathStroke } from "@svg-anim/pathStroke";
+import { animatePathStroke } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
-  {genAnimatePathStroke({
-    pathLength: 400,
-    beginType: 'click',
-    restart: 'never',
-    timeline: [
-      { durationSeconds: 0.001, toValue: 400 },  // 保持隐藏
-      { durationSeconds: 1.5, toValue: 0 }          // 点击后绘制
-    ],
-    element: (
-      <path
-        d="M 100 40 C 100 40, 60 60, 60 90 C 60 130, 100 160, 100 160 C 100 160, 140 130, 140 90 C 140 60, 100 40, 100 40"
-        stroke="#ef4444"
-        strokeWidth="3"
-        fill="none"
-        strokeLinecap="round"
-      />
-    )
-  })}
+  <g strokeDasharray="400 400" strokeDashoffset={400} style={{ cursor: "pointer" }}>
+    {animatePathStroke({
+      pathLength: 400,
+      begin: "click",
+      restart: "never",
+      timeline: [
+        { durationSeconds: 0.001, toAbs: 400 },  // 保持隐藏
+        { durationSeconds: 1.5, toAbs: 0 }          // 点击后绘制
+      ],
+    })}
+    {/* 透明点击热区（整个 svg 范围） */}
+    <rect x="0" y="0" width="200" height="200" fill="transparent" />
+    <path
+      d="M 100 40 C 100 40, 60 60, 60 90 C 60 130, 100 160, 100 160 C 100 160, 140 130, 140 90 C 140 60, 100 40, 100 40"
+      stroke="#ef4444"
+      strokeWidth="3"
+      fill="none"
+      strokeLinecap="round"
+    />
+  </g>
   <text x="100" y="190" fontSize="12" fill="#9ca3af" textAnchor="middle">
     点击心形开始绘制
   </text>
@@ -47,32 +49,29 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 <ClickDraw />
 
 **说明：**
-- `beginType: 'click'` - 点击触发
-- `restart: 'never'` - 避免重复点击重新开始
+- `begin: "click"` - 点击触发
+- `restart: "never"` - 避免重复点击重新开始
+- `<g>` 上的静态 `strokeDasharray` / `strokeDashoffset` 保证点击前保持隐藏
 - 第一段极短时间（0.001秒）保持隐藏状态
 - 第二段（1.5秒）才真正绘制
 
 ---
 
-## 点击触发 + 延迟
+## 点击触发 + 延迟（begin: 'click+Ns'）
 
-点击后等待指定时间再开始。
+点击后等待指定时间再开始，事件名后接 `+Ns`：
 
 **代码示例：**
 
 ```tsx
-{genAnimatePathStroke({
+{animatePathStroke({
   pathLength: 500,
-  beginType: 'click',
-  restart: 'never',
-  delay: 0.5,      // 点击后延迟0.5秒
+  begin: "click+0.5s",      // 点击后延迟0.5秒
+  restart: "never",
   timeline: [
-    { durationSeconds: 0.5, toValue: 500 },
-    { durationSeconds: 2, toValue: 0 }
+    { durationSeconds: 0.5, toAbs: 500 },
+    { durationSeconds: 2, toAbs: 0 }
   ],
-  element: (
-    <path d="..." stroke="blue" strokeWidth="2" fill="none" />
-  )
 })}
 ```
 
@@ -95,19 +94,16 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 **代码示例：**
 
 ```tsx
-{genAnimatePathStroke({
+{animatePathStroke({
   pathLength: 500,
   calcMode: 'spline',  // 使用缓动时必须设置
   timeline: [
     {
       durationSeconds: 2,
-      toValue: 0,
+      toAbs: 0,
       keySplines: "0.42 0 0.58 1"  // ease-in-out
     }
   ],
-  element: (
-    <path d="..." stroke="currentColor" strokeWidth="2" fill="none" />
-  )
 })}
 ```
 
@@ -128,7 +124,7 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 
 ## 支持的路径元素
 
-`genAnimatePathStroke` 支持所有 SVG 路径类元素：
+`animatePathStroke` 支持所有 SVG 路径类元素：
 
 | 元素 | 说明 | pathLength 估算 |
 |------|------|-------------------|
@@ -143,13 +139,12 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 
 ```tsx
 <svg width="300" height="100" viewBox="0 0 300 100">
-  {genAnimatePathStroke({
-    pathLength: 300,
-    timeline: [{ durationSeconds: 1.5, toValue: 0 }],
-    element: (
-      <line x1="20" y1="50" x2="280" y2="50" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
-    )
-  })}
+  <line x1="20" y1="50" x2="280" y2="50" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeDasharray="300 300" strokeDashoffset={300}>
+    {animatePathStroke({
+      pathLength: 300,
+      timeline: [{ durationSeconds: 1.5, toAbs: 0 }]
+    })}
+  </line>
 </svg>
 ```
 
@@ -157,13 +152,12 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 
 ```tsx
 <svg width="200" height="200" viewBox="0 0 200 200">
-  {genAnimatePathStroke({
-    pathLength: 471,
-    timeline: [{ durationSeconds: 2, toValue: 0 }],
-    element: (
-      <circle cx="100" cy="100" r="75" stroke="#8b5cf6" strokeWidth="3" fill="none" />
-    )
-  })}
+  <circle cx="100" cy="100" r="75" stroke="#8b5cf6" strokeWidth="3" fill="none" strokeDasharray="471 471" strokeDashoffset={471}>
+    {animatePathStroke({
+      pathLength: 471,  // 2πr ≈ 471
+      timeline: [{ durationSeconds: 2, toAbs: 0 }]
+    })}
+  </circle>
 </svg>
 ```
 
@@ -176,13 +170,12 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 图标路径通常较简单，pathLength 设为 300-500：
 
 ```tsx
-{genAnimatePathStroke({
-  pathLength: 400,
-  timeline: [{ durationSeconds: 1, toValue: 0 }],
-  element: (
-    <path d={iconPath} stroke="currentColor" strokeWidth="2" fill="none" />
-  )
-})}
+<path d={iconPath} stroke="currentColor" strokeWidth="2" fill="none" strokeDasharray="400 400" strokeDashoffset={400}>
+  {animatePathStroke({
+    pathLength: 400,
+    timeline: [{ durationSeconds: 1, toAbs: 0 }]
+  })}
+</path>
 ```
 
 ---
@@ -192,41 +185,40 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 使用缓动效果模拟手写节奏：
 
 ```tsx
-{genAnimatePathStroke({
-  pathLength: 600,
-  calcMode: 'spline',
-  timeline: [
-    {
-      durationSeconds: 1.5,
-      toValue: 0,
-      keySplines: "0.25 0.1 0.25 1"  // ease
-    }
-  ],
-  element: (
-    <path d={handwritingPath} stroke="#2563eb" strokeWidth="2" fill="none" strokeLinecap="round" />
-  )
-})}
+<path d={handwritingPath} stroke="#2563eb" strokeWidth="2" fill="none" strokeLinecap="round" strokeDasharray="600 600" strokeDashoffset={600}>
+  {animatePathStroke({
+    pathLength: 600,
+    calcMode: 'spline',
+    timeline: [
+      {
+        durationSeconds: 1.5,
+        toAbs: 0,
+        keySplines: "0.25 0.1 0.25 1"  // ease
+      }
+    ]
+  })}
+</path>
 ```
 
 ---
 
 ### 场景3：箭头引导线
 
-绘制箭头引导用户视线：
+绘制箭头引导用户视线（组合图形包一层 `<g>`，把 `<animate>` 放进 `<g>`）：
 
 ```tsx
 <svg width="400" height="100" viewBox="0 0 400 100">
-  {genAnimatePathStroke({
-    pathLength: 350,
-    delay: 1,
-    timeline: [{ durationSeconds: 1, toValue: 0 }],
-    element: (
-      <g>
-        <path d="M 50 50 L 300 50" stroke="#f59e0b" strokeWidth="2" fill="none" />
-        <path d="M 290 40 L 300 50 L 290 60" stroke="#f59e0b" strokeWidth="2" fill="none" />
-      </g>
-    )
-  })}
+  <g strokeDasharray="350 350" strokeDashoffset={350}>
+    {animatePathStroke({
+      pathLength: 350,
+      begin: "1s",  // 延迟1秒
+      timeline: [{ durationSeconds: 1, toAbs: 0 }]
+    })}
+    <g>
+      <path d="M 50 50 L 300 50" stroke="#f59e0b" strokeWidth="2" fill="none" />
+      <path d="M 290 40 L 300 50 L 290 60" stroke="#f59e0b" strokeWidth="2" fill="none" />
+    </g>
+  </g>
 </svg>
 ```
 
@@ -237,14 +229,15 @@ import { genAnimatePathStroke } from "@svg-anim/pathStroke";
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `pathLength` | number | - | 路径总长度（必填）|
-| `initOffset` | number | pathLength | 初始偏移量 |
-| `timeline` | array | - | 时间线配置（必填）|
-| `delay` | number | 0 | 初始延迟（秒）|
-| `beginType` | SvgBeginEventType | false | 是否点击触发 |
+| `initValue` | number | pathLength | 初始偏移量 |
+| `timeline` | array | - | 时间线配置（必填，段内 `toAbs` 必填）|
+| `begin` | string | `undefined` | 开始时机：`'2s'` 延迟、`'click'` 点击触发 |
 | `calcMode` | string | 'linear' | 计算模式 |
-| `freeze` | boolean | true | 是否保持最终状态 |
+| `isFreeze` | boolean | true | 是否保持最终状态 |
 | `loopCount` | number | 1 | 循环次数（0=无限）|
 | `restart` | string | 'always' | 重启模式 |
+
+（`animatePathStrokeWrap` 变体另有 `element`、`clickableAreaSize` 参数）
 
 ---
 

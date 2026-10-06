@@ -4,23 +4,23 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 
 # {title}
 
-`genAnimateFloat` 提供了丰富的时序控制选项，包括延迟启动、循环次数控制、点击触发等，让你能够精确控制浮动动画的时机和次数。
+`transformFloat` 提供了丰富的时序控制选项，包括延迟启动、循环次数控制、点击触发等，让你能够精确控制浮动动画的时机和次数。
 
 ---
 
 ## 延迟启动
 
-使用 `delay` 参数让动画在指定时间后自动开始。
+使用 `begin` 字符串让动画在指定时间后自动开始（如 `begin: '2s'`）。
 
 ### 基础延迟
 
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 20,
-  durationSeconds: 3,
-  delay: 2  // 延迟 2 秒后开始
+  duration: 3,
+  begin: '2s'  // 延迟 2 秒后开始
 })}
 ```
 
@@ -31,11 +31,13 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
   attributeName="transform"
   type="translate"
   values="0 0;0 -20;0 0"
+  keyTimes="0;0.5;1"
   dur="3s"
   begin="2s"
   repeatCount="indefinite"
   calcMode="spline"
   keySplines="0.24 0 0.24 1;0.24 0 0.24 1"
+  additive="sum"
 />
 ```
 
@@ -49,17 +51,17 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 
 ## 循环次数控制
 
-使用 `repeatCount` 参数控制动画重复次数。
+使用 `loopCount` 参数控制动画重复次数。
 
 ### 有限次数循环
 
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 20,
-  durationSeconds: 2,
-  repeatCount: 3  // 浮动 3 次后停止
+  duration: 2,
+  loopCount: 3  // 浮动 3 次后停止
 })}
 ```
 
@@ -70,10 +72,12 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
   attributeName="transform"
   type="translate"
   values="0 0;0 -20;0 0"
+  keyTimes="0;0.5;1"
   dur="2s"
   repeatCount="3"
   calcMode="spline"
   keySplines="0.24 0 0.24 1;0.24 0 0.24 1"
+  additive="sum"
 />
 ```
 
@@ -90,10 +94,10 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 30,
-  durationSeconds: 4,
-  repeatCount: 1  // 只浮动 1 次
+  duration: 4,
+  loopCount: 1  // 只浮动 1 次
 })}
 ```
 
@@ -110,10 +114,10 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 15,
-  durationSeconds: 1,
-  repeatCount: 0  // 0 表示无限循环
+  duration: 1,
+  loopCount: 0  // 0 表示无限循环
 })}
 ```
 
@@ -127,17 +131,17 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 
 ## 点击触发
 
-使用 `beginType: 'click'` 参数让动画在点击时开始。
+使用 `begin: 'click'` 让动画在点击时开始。
 
 ### 基础点击触发
 
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 20,
-  durationSeconds: 3,
-  beginType: 'click'
+  duration: 3,
+  begin: 'click'
 })}
 ```
 
@@ -147,12 +151,14 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 <animateTransform
   attributeName="transform"
   type="translate"
-  values="0 0;0 -20;0 20;0 0"
+  values="0 0;0 -20;0 0"
+  keyTimes="0;0.5;1"
   dur="3s"
   begin="click"
   repeatCount="indefinite"
   calcMode="spline"
-  keySplines="0.24 0 0.24 1;0.24 0 0.24 1;0.24 0 0.24 1"
+  keySplines="0.24 0 0.24 1;0.24 0 0.24 1"
+  additive="sum"
 />
 ```
 
@@ -169,11 +175,10 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 20,
-  durationSeconds: 3,
-  beginType: 'click',
-  delay: 0.5  // 点击后延迟 0.5 秒开始
+  duration: 3,
+  begin: 'click+0.5s'  // 点击后延迟 0.5 秒开始
 })}
 ```
 
@@ -183,12 +188,14 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 <animateTransform
   attributeName="transform"
   type="translate"
-  values="0 0;0 -20;0 20;0 0"
+  values="0 0;0 -20;0 0"
+  keyTimes="0;0.5;1"
   dur="3s"
   begin="click+0.5s"
   repeatCount="indefinite"
   calcMode="spline"
-  keySplines="0.24 0 0.24 1;0.24 0 0.24 1;0.24 0 0.24 1"
+  keySplines="0.24 0 0.24 1;0.24 0 0.24 1"
+  additive="sum"
 />
 ```
 
@@ -207,10 +214,10 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 25,
-  durationSeconds: 2,
-  repeatCount: 3
+  duration: 2,
+  loopCount: 3
 })}
 ```
 
@@ -223,11 +230,11 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 20,
-  durationSeconds: 2.5,
-  delay: 1,
-  repeatCount: 5
+  duration: 2.5,
+  begin: '1s',
+  loopCount: 5
 })}
 ```
 
@@ -240,11 +247,11 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 30,
-  durationSeconds: 3,
-  beginType: 'click',
-  repeatCount: 2
+  duration: 3,
+  begin: 'click',
+  loopCount: 2
 })}
 ```
 
@@ -257,12 +264,11 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 **代码示例：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 20,
-  durationSeconds: 2,
-  beginType: 'click',
-  delay: 0.3,
-  repeatCount: 4
+  duration: 2,
+  begin: 'click+0.3s',
+  loopCount: 4
 })}
 ```
 
@@ -279,11 +285,11 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 **推荐参数：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 10,
-  durationSeconds: 4,
-  delay: 0.5,
-  repeatCount: 0
+  duration: 4,
+  begin: '0.5s',
+  loopCount: 0
 })}
 ```
 
@@ -298,11 +304,11 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 **推荐参数：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 15,
-  durationSeconds: 1.5,
-  beginType: 'click',
-  repeatCount: 3
+  duration: 1.5,
+  begin: 'click',
+  loopCount: 3
 })}
 ```
 
@@ -317,10 +323,10 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 **推荐参数：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 25,
-  durationSeconds: 2,
-  repeatCount: 5
+  duration: 2,
+  loopCount: 5
 })}
 ```
 
@@ -335,11 +341,11 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 **推荐参数：**
 
 ```tsx
-{genAnimateFloat({
+{transformFloat({
   floatRangeY: 8,
   floatRangeX: 5,
-  durationSeconds: 6,
-  repeatCount: 0
+  duration: 6,
+  loopCount: 0
 })}
 ```
 
@@ -364,11 +370,11 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
   <g style={{ cursor: 'pointer' }}>
     <rect width="200" height="200" fill="transparent" />
     <circle cx="100" cy="100" r="50" fill="blue">
-      {genAnimateFloat({
+      {transformFloat({
         floatRangeY: 20,
-        durationSeconds: 3,
-        beginType: 'click',
-        repeatCount: 3
+        duration: 3,
+        begin: 'click',
+        loopCount: 3
       })}
     </circle>
   </g>
@@ -377,7 +383,7 @@ import { DelayFloat, LimitedFloat, ClickFloat, ClickDelayFloat, OnceFloat, Infin
 
 ---
 
-## repeatCount 特殊值说明
+## loopCount 特殊值说明
 
 | 值 | 效果 | 生成的 repeatCount 属性 |
 |------|------|------------------------|

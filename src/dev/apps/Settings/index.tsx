@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router';
 import { isNil } from 'es-toolkit/predicate';
 import { isEmpty } from 'es-toolkit/compat';
 import { ArrowLeft } from 'lucide-react';
+import NetworkSourcesSettings from './components/NetworkSourcesSettings';
 
 /**
  * 设置页面组件
@@ -37,7 +38,7 @@ const Settings: React.FC = () => {
     bookSideWidth,
     bookContentWidth,
     bookContentPadding,
-    bookSideContentGap,
+    bookUniMargin,
     setChineseFontFamily,
     setEnglishFontFamily,
     setCodeFontFamily,
@@ -49,7 +50,7 @@ const Settings: React.FC = () => {
     setBookSideWidth,
     setBookContentWidth,
     setBookContentPadding,
-    setBookSideContentGap,
+    setBookUniMargin,
     resetFontSettings,
     resetBookSettings,
   } = useGlobalSettings();
@@ -85,6 +86,19 @@ const Settings: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 网页连接（网络内容源）——整行宽度 */}
+        <Card className="lg:col-span-2 pb-4">
+          <CardHeader>
+            <CardTitle className="text-xl">网页连接</CardTitle>
+            <CardDescription>
+              连接本地或远程内容源，动态接收作者与文章（数据留在源端，不经过本站）
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-6 pb-0">
+            <NetworkSourcesSettings />
+          </CardContent>
+        </Card>
+
         {/* 主题设置 */}
         <Card>
           <CardHeader>
@@ -265,7 +279,7 @@ const Settings: React.FC = () => {
                   onValueChange={(value) => setBookContentPadding(value[0])}
                   min={10}
                   max={60}
-                  step={5}
+                  step={1}
                   className="w-full"
                 />
                 <p className="text-xs text-muted-foreground">
@@ -273,22 +287,22 @@ const Settings: React.FC = () => {
                 </p>
               </div>
 
-              {/* 侧边栏与内容区间距 */}
+              {/* 统一边距 */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">侧边栏与内容区间距</label>
-                  <Badge variant="secondary">{bookSideContentGap}px</Badge>
+                  <label className="text-sm font-medium">统一边距</label>
+                  <Badge variant="secondary">{bookUniMargin}px</Badge>
                 </div>
                 <Slider
-                  value={[bookSideContentGap]}
-                  onValueChange={(value) => setBookSideContentGap(value[0])}
+                  value={[bookUniMargin]}
+                  onValueChange={(value) => setBookUniMargin(value[0])}
                   min={0}
                   max={40}
-                  step={5}
+                  step={1}
                   className="w-full"
                 />
                 <p className="text-xs text-muted-foreground">
-                  调整侧边栏和内容区之间的间距（0-40px）
+                  统一边距：内容行对视口的安全边距、侧边栏与正文之间的间距（0-40px）
                 </p>
               </div>
             </div>

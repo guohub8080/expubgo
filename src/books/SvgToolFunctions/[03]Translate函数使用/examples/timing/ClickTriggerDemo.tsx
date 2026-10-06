@@ -1,5 +1,5 @@
 import SectionEx from "@pub-html/basicEx/SectionEx";
-import { genAnimateTranslate } from "@svg-anim/translate";
+import { transformTranslate } from "@guohub8080/expub-tool/smil";
 
 export const ClickTriggerDemo = () => {
     const maxWidth = 600;
@@ -15,12 +15,12 @@ export const ClickTriggerDemo = () => {
 
                     {/* 可点击的圆形 */}
                     <circle cx="100" cy="100" r="20" fill="#3498db" style={{ cursor: 'pointer' }}>
-                        {genAnimateTranslate({
+                        {transformTranslate({
                             initValue: { x: 0, y: 0 },
                             timeline: [
-                                { toValue: { x: 200, y: 0 }, durationSeconds: 2 }
+                                { toRel: { x: 200, y: 0 }, durationSeconds: 2 }
                             ],
-                            beginType: 'click',
+                            begin: 'click',
                             isFreeze: true
                         })}
                     </circle>
@@ -29,7 +29,7 @@ export const ClickTriggerDemo = () => {
                     <text x="350" y="105" fill="#666" fontSize="12">← 点击这个圆形</text>
                 </svg>
                 <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '14px', color: '#666' }}>
-                    使用 beginType: 'click' 实现点击触发动画
+                    使用 begin: 'click' 实现点击触发动画
                 </div>
             </div>
         </SectionEx>

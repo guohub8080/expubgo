@@ -15,9 +15,10 @@ import { ContinuousRotate, SwingRotate } from "./examples"
 **代码示例：**
 
 ```tsx
-genAnimateRotate({
+transformRotate({
+  pivot: [100, 100],
   timeline: [
-    { toValue: 360, durationSeconds: 1 }
+    { toAbs: 360, durationSeconds: 1 }
   ],
   loopCount: 0  // 无限循环
 })
@@ -38,11 +39,12 @@ genAnimateRotate({
 **代码示例：**
 
 ```tsx
-genAnimateRotate({
-  initAngle: -30,
+transformRotate({
+  pivot: [100, 100],
+  initValue: -30,
   timeline: [
-    { toValue: 30, durationSeconds: 0.8 },
-    { toValue: -30, durationSeconds: 0.8 }
+    { toAbs: 30, durationSeconds: 0.8 },
+    { toAbs: -30, durationSeconds: 0.8 }
   ],
   loopCount: 0
 })
@@ -56,18 +58,23 @@ genAnimateRotate({
 
 ---
 
-## 使用辅助函数
+## 摇摆配方
 
-`genAnimateRotateSwing` 函数简化了摇摆动画的创建：
+左右摇摆直接用「对称双段 timeline」表达：
 
 ```tsx
-import { genAnimateRotateSwing } from "@svg-anim/rotate";
-
-// 摇摆幅度 30°，完整周期 2 秒
-genAnimateRotateSwing(30, 2)
+// 摇摆幅度 30°，完整周期 2 秒（单程 1 秒）
+transformRotate({
+  initValue: -30,
+  timeline: [
+    { toAbs: 30, durationSeconds: 1, keySplines: '0.45 0 0.55 1' },
+    { toAbs: -30, durationSeconds: 1, keySplines: '0.45 0 0.55 1' }
+  ],
+  loopCount: 0
+})
 ```
 
-这等同于上面的手动配置，但代码更简洁。
+这等同于上面的手动配置，只是补充了缓动曲线。
 
 ---
 
@@ -76,9 +83,9 @@ genAnimateRotateSwing(30, 2)
 ### 加载动画
 
 ```tsx
-genAnimateRotate({
+transformRotate({
   timeline: [
-    { toValue: 360, durationSeconds: 0.8 }
+    { toAbs: 360, durationSeconds: 0.8 }
   ],
   loopCount: 0
 })
@@ -87,17 +94,25 @@ genAnimateRotate({
 ### 提示动画
 
 ```tsx
-genAnimateRotateSwing(15, 1)  // 小幅度摇摆
+// 小幅度摇摆：±15°，完整周期 1 秒
+transformRotate({
+  initValue: -15,
+  timeline: [
+    { toAbs: 15, durationSeconds: 0.5, keySplines: '0.45 0 0.55 1' },
+    { toAbs: -15, durationSeconds: 0.5, keySplines: '0.45 0 0.55 1' }
+  ],
+  loopCount: 0
+})
 ```
 
 ### 呼吸效果
 
 ```tsx
-genAnimateRotate({
-  initAngle: -10,
+transformRotate({
+  initValue: -10,
   timeline: [
-    { toValue: 10, durationSeconds: 1 },
-    { toValue: -10, durationSeconds: 1 }
+    { toAbs: 10, durationSeconds: 1 },
+    { toAbs: -10, durationSeconds: 1 }
   ],
   loopCount: 0
 })
@@ -109,4 +124,4 @@ genAnimateRotate({
 
 - **旋转中心点** - 自定义旋转轴心
 - **多角度旋转** - 复杂旋转路径
-- **旋转时序控制** - 高级时间控制
+- **相对旋转与绝对旋转** - toRel / toAbs 两种写法

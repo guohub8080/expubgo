@@ -4,7 +4,7 @@ import { HardBlinkNormal, HardBlinkFast, HardBlinkWarning, HardBlinkSOS } from "
 
 # {title}
 
-`genAnimateHardBlink` 生成硬闪烁效果，与软闪烁不同，硬闪烁在完全透明（opacity: 0）和完全不透明（opacity: 1）之间直接切换，没有渐变过渡。
+`animateHardBlink` 生成硬闪烁效果，与软闪烁不同，硬闪烁在完全透明（opacity: 0）和完全不透明（opacity: 1）之间直接切换，没有渐变过渡。
 
 ---
 
@@ -17,21 +17,20 @@ import { HardBlinkNormal, HardBlinkFast, HardBlinkWarning, HardBlinkSOS } from "
 | **缓动曲线** | 支持（ease-in-out 等） | 不支持（discrete 模式） |
 | **视觉效果** | 类似呼吸灯 | 类似霓虹灯/警示灯 |
 | **适用场景** | 装饰、柔和提示 | 警示、紧急信号 |
-| **时间控制** | 单个时长参数 | 显示时长 + 隐藏时长 |
+| **时间控制** | 单个时长参数 | 点亮段 + 熄灭段两段时长 |
 
 ---
 
 ## 函数签名
 
 ```tsx
-import { genAnimateHardBlink } from '@svg-anim/blink';
+import { animateHardBlink } from '@guohub8080/expub-tool/behaviors';
 
-genAnimateHardBlink({
-  onDurationSeconds?: number,      // 默认 0.8：完全显示时长（秒）
-  offDurationSeconds?: number,     // 默认 0.3：完全隐藏时长（秒）
-  repeatCount?: number,            // 默认 0：循环次数（0 = 无限）
-  delay?: number,                  // 默认 0：初始延迟（秒）
-  beginType?: SvgBeginEventType,      // 默认 undefined：动画开始事件类型
+animateHardBlink({
+  onDurationSeconds?: number,      // 默认 0.8：0→1（点亮）段时长（秒）
+  offDurationSeconds?: number,     // 默认 0.3：1→0（熄灭）段时长（秒）
+  begin?: string,                  // 默认 undefined：开始时机（'2s' / 'click' / 'click+0.5s'）
+  loopCount?: number,              // 默认 0：循环次数（0 = 无限）
 })
 ```
 
@@ -44,16 +43,16 @@ genAnimateHardBlink({
 **代码示例：**
 
 ```tsx
-import { genAnimateHardBlink } from "@svg-anim/blink";
+import { animateHardBlink } from "@guohub8080/expub-tool/behaviors";
 
 <svg width="200" height="200" viewBox="0 0 200 200">
   <path
     d="M100 20 L120 80 L180 80 L130 120 L150 180 L100 140 L50 180 L70 120 L20 80 L80 80 Z"
     fill="yellow"
   >
-    {genAnimateHardBlink({
-      onDurationSeconds: 0.8,  // 显示 0.8 秒
-      offDurationSeconds: 0.3  // 隐藏 0.3 秒
+    {animateHardBlink({
+      onDurationSeconds: 0.8,  // 点亮段 0.8 秒
+      offDurationSeconds: 0.3  // 熄灭段 0.3 秒
     })}
   </path>
 </svg>
@@ -65,7 +64,7 @@ import { genAnimateHardBlink } from "@svg-anim/blink";
 <animate
   attributeName="opacity"
   values="1; 0; 1"
-  keyTimes="0; 0.727; 1"
+  keyTimes="0; 0.273; 1"
   dur="1.1s"
   repeatCount="indefinite"
   calcMode="discrete"
@@ -76,22 +75,23 @@ import { genAnimateHardBlink } from "@svg-anim/blink";
 
 <HardBlinkNormal />
 
-**说明：** 星星在显示 0.8 秒和隐藏 0.3 秒之间切换，无渐变效果。
+**说明：** 星星以 1.1 秒（0.3s + 0.8s）为周期在点亮与熄灭之间直接切换，无渐变效果。
 
 ---
 
-## 预设效果
+## 常用配方
+
+新 API 不再提供硬闪烁预设对象，直接把常用节奏写成参数字面量（数值沿用旧预设语义）。
 
 ### fast - 快速硬闪烁
 
 **代码示例：**
 
 ```tsx
-import { hardBlinkPresets } from '@svg-anim/blink';
+import { animateHardBlink } from '@guohub8080/expub-tool/behaviors';
 
-{hardBlinkPresets.fast()}
-// 等价于：
-// genAnimateHardBlink({ onDurationSeconds: 0.5, offDurationSeconds: 0.2 })
+{animateHardBlink({ onDurationSeconds: 0.5, offDurationSeconds: 0.2 })}
+// 原等价预设：fast（快速硬闪烁）
 ```
 
 **效果预览：**
@@ -107,9 +107,8 @@ import { hardBlinkPresets } from '@svg-anim/blink';
 **代码示例：**
 
 ```tsx
-{hardBlinkPresets.warning()}
-// 等价于：
-// genAnimateHardBlink({ onDurationSeconds: 0.6, offDurationSeconds: 0.4 })
+{animateHardBlink({ onDurationSeconds: 0.6, offDurationSeconds: 0.4 })}
+// 原等价预设：warning（警示灯）
 ```
 
 **效果预览：**
@@ -125,9 +124,8 @@ import { hardBlinkPresets } from '@svg-anim/blink';
 **代码示例：**
 
 ```tsx
-{hardBlinkPresets.sos()}
-// 等价于：
-// genAnimateHardBlink({ onDurationSeconds: 0.3, offDurationSeconds: 0.3 })
+{animateHardBlink({ onDurationSeconds: 0.3, offDurationSeconds: 0.3 })}
+// 原等价预设：sos（紧急信号）
 ```
 
 **效果预览：**
@@ -138,31 +136,31 @@ import { hardBlinkPresets } from '@svg-anim/blink';
 
 ---
 
-## 所有预设列表
+## 全部配方速查
 
 ```tsx
-import { hardBlinkPresets } from '@svg-anim/blink';
+import { animateHardBlink } from '@guohub8080/expub-tool/behaviors';
 
-// 标准：显示 0.8s，隐藏 0.3s
-hardBlinkPresets.normal()
+// 标准（原 normal）：点亮段 0.8s，熄灭段 0.3s
+animateHardBlink({ onDurationSeconds: 0.8, offDurationSeconds: 0.3 })
 
-// 快速：显示 0.5s，隐藏 0.2s
-hardBlinkPresets.fast()
+// 快速（原 fast）：点亮段 0.5s，熄灭段 0.2s
+animateHardBlink({ onDurationSeconds: 0.5, offDurationSeconds: 0.2 })
 
-// 慢速：显示 1.5s，隐藏 0.5s
-hardBlinkPresets.slow()
+// 慢速（原 slow）：点亮段 1.5s，熄灭段 0.5s
+animateHardBlink({ onDurationSeconds: 1.5, offDurationSeconds: 0.5 })
 
-// 警示：显示 0.6s，隐藏 0.4s
-hardBlinkPresets.warning()
+// 警示（原 warning）：点亮段 0.6s，熄灭段 0.4s
+animateHardBlink({ onDurationSeconds: 0.6, offDurationSeconds: 0.4 })
 
-// SOS：显示 0.3s，隐藏 0.3s
-hardBlinkPresets.sos()
+// SOS（原 sos）：点亮段 0.3s，熄灭段 0.3s
+animateHardBlink({ onDurationSeconds: 0.3, offDurationSeconds: 0.3 })
 
-// 长显示：显示 2s，隐藏 0.3s
-hardBlinkPresets.longOn()
+// 长点亮（原 longOn）：点亮段 2s，熄灭段 0.3s
+animateHardBlink({ onDurationSeconds: 2, offDurationSeconds: 0.3 })
 
-// 短显示：显示 0.3s，隐藏 0.8s
-hardBlinkPresets.shortOn()
+// 短点亮（原 shortOn）：点亮段 0.3s，熄灭段 0.8s
+animateHardBlink({ onDurationSeconds: 0.3, offDurationSeconds: 0.8 })
 ```
 
 ---
@@ -171,37 +169,37 @@ hardBlinkPresets.shortOn()
 
 ### onDurationSeconds / offDurationSeconds
 
-这两个参数控制硬闪烁的节奏：
+这两个参数组成 `values="1;0;1"` 时间线的两段：
 
 | 参数 | 说明 | 默认值 | 推荐值 |
 |------|------|--------|--------|
-| `onDurationSeconds` | 完全显示的时长 | `0.8` | 0.3-2.0 |
-| `offDurationSeconds` | 完全隐藏的时长 | `0.3` | 0.2-1.0 |
+| `onDurationSeconds` | 0→1（点亮）段的时长 | `0.8` | 0.3-2.0 |
+| `offDurationSeconds` | 1→0（熄灭）段的时长 | `0.3` | 0.2-1.0 |
 
 **计算公式：**
 
 ```
 总周期时长 = onDurationSeconds + offDurationSeconds
-显示时间占比 = onDurationSeconds / 总周期时长
+keyTimes 中间点 = offDurationSeconds / 总周期时长
 ```
 
 **示例：**
 
 ```tsx
 // 快速节奏
-genAnimateHardBlink({
+animateHardBlink({
   onDurationSeconds: 0.3,
   offDurationSeconds: 0.3  // 总周期 0.6s
 })
 
 // 慢速节奏
-genAnimateHardBlink({
+animateHardBlink({
   onDurationSeconds: 2,
   offDurationSeconds: 0.5  // 总周期 2.5s
 })
 
 // 偶尔闪烁
-genAnimateHardBlink({
+animateHardBlink({
   onDurationSeconds: 0.2,
   offDurationSeconds: 3    // 总周期 3.2s
 })
@@ -218,14 +216,14 @@ genAnimateHardBlink({
 **代码示例：**
 
 ```tsx
-{genAnimateHardBlink({
+{animateHardBlink({
   onDurationSeconds: 0.6,
   offDurationSeconds: 0.4,
-  repeatCount: 5  // 闪烁 5 次后停止
+  loopCount: 5  // 闪烁 5 次后停止
 })}
 ```
 
-**说明：** 闪烁 5 次后，元素保持显示状态。
+**说明：** 闪烁 5 次后停止。
 
 ---
 
@@ -238,8 +236,8 @@ genAnimateHardBlink({
   <g style={{ cursor: 'pointer' }}>
     <rect width="200" height="200" fill="transparent" />
     <circle cx="100" cy="100" r="50" fill="red">
-      {genAnimateHardBlink({
-        beginType: 'click'
+      {animateHardBlink({
+        begin: 'click'
       })}
     </circle>
   </g>
@@ -255,10 +253,10 @@ genAnimateHardBlink({
 **代码示例：**
 
 ```tsx
-{genAnimateHardBlink({
+{animateHardBlink({
   onDurationSeconds: 0.8,
   offDurationSeconds: 0.3,
-  delay: 2  // 延迟 2 秒后开始
+  begin: '2s'  // 延迟 2 秒后开始
 })}
 ```
 
@@ -273,7 +271,7 @@ genAnimateHardBlink({
 **推荐参数：**
 
 ```tsx
-{genAnimateHardBlink({
+{animateHardBlink({
   onDurationSeconds: 0.5,
   offDurationSeconds: 0.3
 })}
@@ -288,10 +286,10 @@ genAnimateHardBlink({
 **推荐参数：**
 
 ```tsx
-{genAnimateHardBlink({
+{animateHardBlink({
   onDurationSeconds: 0.3,
   offDurationSeconds: 0.3,
-  repeatCount: 10  // 闪烁 10 次后停止
+  loopCount: 10  // 闪烁 10 次后停止
 })}
 ```
 
@@ -304,12 +302,8 @@ genAnimateHardBlink({
 **推荐参数：**
 
 ```tsx
-{hardBlinkPresets.sos()}
-// 或
-{genAnimateHardBlink({
-  onDurationSeconds: 0.3,
-  offDurationSeconds: 0.3
-})}
+{animateHardBlink({ onDurationSeconds: 0.3, offDurationSeconds: 0.3 })}
+// ↑ 原等价预设：sos（紧急信号）
 ```
 
 ---
@@ -321,7 +315,7 @@ genAnimateHardBlink({
 **推荐参数：**
 
 ```tsx
-{genAnimateHardBlink({
+{animateHardBlink({
   onDurationSeconds: 1.5,
   offDurationSeconds: 0.5
 })}
@@ -336,7 +330,7 @@ genAnimateHardBlink({
 ### 软闪烁（平滑过渡）
 
 ```tsx
-{genAnimateSoftBlink({
+{animateSoftBlink({
   minOpacity: 0,
   onceBlinkDurationSeconds: 1.2
 })}
@@ -349,7 +343,7 @@ genAnimateHardBlink({
 ### 硬闪烁（直接切换）
 
 ```tsx
-{genAnimateHardBlink({
+{animateHardBlink({
   onDurationSeconds: 0.8,
   offDurationSeconds: 0.4
 })}

@@ -1,15 +1,15 @@
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper"
-import { genAnimateOpacity } from "@svg-anim/opacity"
+import { animateOpacity } from "@guohub8080/expub-tool/smil"
 
 export const FadeIn = () => {
     return (
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <circle cx="100" cy="100" r="40" fill="#3b82f6">
-                    {genAnimateOpacity({
-                        initOpacity: 0,
+                    {animateOpacity({
+                        initValue: 0,
                         timeline: [
-                            { toValue: 1, durationSeconds: 2 }
+                            { toAbs: 1, durationSeconds: 2 }
                         ],
                         isFreeze: true
                     })}

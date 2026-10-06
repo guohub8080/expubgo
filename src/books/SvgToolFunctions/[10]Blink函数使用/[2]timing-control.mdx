@@ -4,21 +4,21 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
 
 # {title}
 
-`genAnimateSoftBlink` 提供了丰富的时序控制选项，包括延迟启动、循环次数控制、点击触发等，让你能够精确控制闪烁动画的时机和次数。
+`animateSoftBlink` 提供了丰富的时序控制选项，包括延迟启动、循环次数控制、点击触发等，让你能够精确控制闪烁动画的时机和次数。
 
 ---
 
 ## 延迟启动
 
-使用 `delay` 参数让动画在指定时间后自动开始。
+使用 `begin` 字符串让动画在指定时间后自动开始（如 `begin: '2s'`）。
 
 ### 基础延迟
 
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
-  delay: 2,  // 延迟 2 秒后开始
+{animateSoftBlink({
+  begin: '2s',  // 延迟 2 秒后开始
   onceBlinkDurationSeconds: 1.2
 })}
 ```
@@ -45,15 +45,15 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
 
 ## 循环次数控制
 
-使用 `repeatCount` 参数控制动画重复次数。
+使用 `loopCount` 参数控制动画重复次数。
 
 ### 有限次数循环
 
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
-  repeatCount: 3,  // 闪烁 3 次后停止
+{animateSoftBlink({
+  loopCount: 3,  // 闪烁 3 次后停止
   onceBlinkDurationSeconds: 1.2
 })}
 ```
@@ -82,8 +82,8 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
-  repeatCount: 0,  // 0 表示无限循环
+{animateSoftBlink({
+  loopCount: 0,  // 0 表示无限循环
   onceBlinkDurationSeconds: 1.2
 })}
 ```
@@ -105,15 +105,15 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
 
 ## 点击触发
 
-使用 `beginType: 'click'` 参数让动画在点击时开始。
+使用 `begin: 'click'` 让动画在点击时开始。
 
 ### 基础点击触发
 
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
-  beginType: 'click',
+{animateSoftBlink({
+  begin: 'click',
   onceBlinkDurationSeconds: 1.2
 })}
 ```
@@ -143,9 +143,8 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
-  beginType: 'click',
-  delay: 0.5,  // 点击后延迟 0.5 秒开始
+{animateSoftBlink({
+  begin: 'click+0.5s',  // 点击后延迟 0.5 秒开始
   onceBlinkDurationSeconds: 1.2
 })}
 ```
@@ -177,8 +176,8 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
-  repeatCount: 3,
+{animateSoftBlink({
+  loopCount: 3,
   onceBlinkDurationSeconds: 0.8,
   minOpacity: 0.3
 })}
@@ -193,9 +192,9 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
-  delay: 1,
-  repeatCount: 5,
+{animateSoftBlink({
+  begin: '1s',
+  loopCount: 5,
   onceBlinkDurationSeconds: 1,
   minOpacity: 0.2
 })}
@@ -210,9 +209,9 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
 **代码示例：**
 
 ```tsx
-{genAnimateSoftBlink({
-  beginType: 'click',
-  repeatCount: 2,
+{animateSoftBlink({
+  begin: 'click',
+  loopCount: 2,
   onceBlinkDurationSeconds: 1.5
 })}
 ```
@@ -230,8 +229,8 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
 **推荐参数：**
 
 ```tsx
-{genAnimateSoftBlink({
-  repeatCount: 0,  // 无限循环
+{animateSoftBlink({
+  loopCount: 0,  // 无限循环
   onceBlinkDurationSeconds: 1,
   minOpacity: 0.3
 })}
@@ -246,9 +245,9 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
 **推荐参数：**
 
 ```tsx
-{genAnimateSoftBlink({
-  delay: 2,
-  repeatCount: 3,
+{animateSoftBlink({
+  begin: '2s',
+  loopCount: 3,
   onceBlinkDurationSeconds: 0.8,
   minOpacity: 0.2
 })}
@@ -263,12 +262,11 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
 **推荐参数：**
 
 ```tsx
-{genAnimateSoftBlink({
-  beginType: 'click',
-  repeatCount: 2,
+{animateSoftBlink({
+  begin: 'click',
+  loopCount: 2,
   onceBlinkDurationSeconds: 0.5,
-  minOpacity: 0.4,
-  freeze: true
+  minOpacity: 0.4
 })}
 ```
 
@@ -281,9 +279,9 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
 **推荐参数：**
 
 ```tsx
-{genAnimateSoftBlink({
-  delay: 1,
-  repeatCount: 0,
+{animateSoftBlink({
+  begin: '1s',
+  loopCount: 0,
   onceBlinkDurationSeconds: 2.5,
   minOpacity: 0.6
 })}
@@ -308,9 +306,9 @@ import { DelayBlink, LimitedBlink, ClickBlink, ClickDelayBlink } from "./example
   <g style={{ cursor: 'pointer' }}>
     <rect width="200" height="200" fill="transparent" />
     <circle cx="100" cy="100" r="50" fill="blue">
-      {genAnimateSoftBlink({
-        beginType: 'click',
-        repeatCount: 3,
+      {animateSoftBlink({
+        begin: 'click',
+        loopCount: 3,
         onceBlinkDurationSeconds: 0.8
       })}
     </circle>

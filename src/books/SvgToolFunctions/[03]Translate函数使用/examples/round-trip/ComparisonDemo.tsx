@@ -1,6 +1,6 @@
 import SectionEx from "@pub-html/basicEx/SectionEx";
 import { ReplayButton } from "../ReplayButton";
-import { genAnimateTranslate } from "@svg-anim/translate";
+import { transformTranslate } from "@guohub8080/expub-tool/smil";
 
 export const ComparisonDemo = () => {
     return (
@@ -21,12 +21,11 @@ export const ComparisonDemo = () => {
                         <text x="120" y="67" fontSize="10" fill="#9ca3af" textAnchor="middle">起点</text>
                         <text x="220" y="67" fontSize="10" fill="#9ca3af" textAnchor="middle">+100</text>
                         <circle cx="120" cy="50" r="14" fill="#3498db">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
-                                isRelativeMove: true,
                                 timeline: [
-                                    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },
-                                    { toValue: { x: 0, y: 0 }, durationSeconds: 1 }
+                                    { toRel: { x: 100, y: 0 }, durationSeconds: 1 },
+                                    { toRel: { x: 0, y: 0 }, durationSeconds: 1 }
                                 ],
                                 isFreeze: true
                             })}
@@ -41,12 +40,11 @@ export const ComparisonDemo = () => {
                         <text x="120" y="122" fontSize="10" fill="#9ca3af" textAnchor="middle">0</text>
                         <text x="220" y="122" fontSize="10" fill="#9ca3af" textAnchor="middle">100</text>
                         <circle cx="120" cy="105" r="14" fill="#e74c3c">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
-                                isRelativeMove: false,
                                 timeline: [
-                                    { toValue: { x: 100, y: 0 }, durationSeconds: 1 },
-                                    { toValue: { x: 0, y: 0 }, durationSeconds: 1 }
+                                    { toAbs: { x: 100, y: 0 }, durationSeconds: 1 },
+                                    { toAbs: { x: 0, y: 0 }, durationSeconds: 1 }
                                 ],
                                 isFreeze: true
                             })}
@@ -55,9 +53,9 @@ export const ComparisonDemo = () => {
                         {/* 说明文字 */}
                         <text x="480" y="77" fontSize="11" fill="#666" textAnchor="start">
                             <tspan x="480" dy="0">相对移动：</tspan>
-                            <tspan x="480" dy="14">{'{x:0}'}=保持不动</tspan>
+                            <tspan x="480" dy="14">{'toRel:{x:0}'}=保持不动</tspan>
                             <tspan x="480" dy="28">累积移动：</tspan>
-                            <tspan x="480" dy="14">{'{x:0}'}=返回起点</tspan>
+                            <tspan x="480" dy="14">{'toAbs:{x:0}'}=返回起点</tspan>
                         </text>
                     </svg>
                 </ReplayButton>

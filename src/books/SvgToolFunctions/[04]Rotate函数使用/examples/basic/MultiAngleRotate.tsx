@@ -1,4 +1,4 @@
-import { genAnimateRotate } from "@svg-anim/rotate";
+import { transformRotate } from "@guohub8080/expub-tool/smil";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
 
 export const MultiAngleRotate = () => {
@@ -10,15 +10,15 @@ export const MultiAngleRotate = () => {
 
                 {/* 卫星 - 来回摆动 */}
                 <g>
-                    {genAnimateRotate({
-                        origin: [100, 100],
-                        initAngle: 0,
+                    {transformRotate({
+                        pivot: [100, 100],
+                        initValue: 0,
                         timeline: [
-                            { toValue: 120, durationSeconds: 1 },
-                            { toValue: -120, durationSeconds: 2 },
-                            { toValue: 120, durationSeconds: 2 },
-                            { toValue: -120, durationSeconds: 2 },
-                            { toValue: 0, durationSeconds: 1 }
+                            { toAbs: 120, durationSeconds: 1 },
+                            { toAbs: -120, durationSeconds: 2 },
+                            { toAbs: 120, durationSeconds: 2 },
+                            { toAbs: -120, durationSeconds: 2 },
+                            { toAbs: 0, durationSeconds: 1 }
                         ],
                         loopCount: 0
                     })}

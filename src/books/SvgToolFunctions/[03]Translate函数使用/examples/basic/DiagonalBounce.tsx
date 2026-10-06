@@ -1,6 +1,6 @@
 import SectionEx from "@pub-html/basicEx/SectionEx";
 import { ReplayButton } from "../ReplayButton";
-import { genAnimateTranslate } from "@svg-anim/translate";
+import { transformTranslate } from "@guohub8080/expub-tool/smil";
 
 export const DiagonalBounce = () => {
     return (
@@ -20,11 +20,11 @@ export const DiagonalBounce = () => {
                         <text x="310" y="175" fontSize="12" fill="#999" textAnchor="start">终点</text>
                         {/* 移动的圆形 - 从左上角开始 */}
                         <circle cx="100" cy="80" r="25" fill="#4B0082">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 200, y: 90 }, durationSeconds: 1.5 },   // 向右下移动
-                                    { toValue: { x: -200, y: -90 }, durationSeconds: 1.5 }  // 返回左上
+                                    { toRel: { x: 200, y: 90 }, durationSeconds: 1.5 },   // 向右下移动
+                                    { toRel: { x: -200, y: -90 }, durationSeconds: 1.5 }  // 返回左上
                                 ],
                                 loopCount: 0
                             })}

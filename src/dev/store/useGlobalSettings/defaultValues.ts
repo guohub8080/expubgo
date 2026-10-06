@@ -15,7 +15,7 @@ export const DEFAULT_VALUES = {
   // 'source-serif-4-v' / 'cascadia-mono-v' 等；静态：'ibm-plex-sans' / 'jb-mono' 等
   chineseFontFamily: 'minsans-v',
   englishFontFamily: null, // 跟随中文
-  codeFontFamily: null, // 系统等宽栈；可用 'jb-mono'（JetBrains Mono）
+  codeFontFamily: 'jb-mono', // JetBrains Mono（访客可在 Settings 里自行切换）
   japaneseFontFamily: null, // 跟随中文（JP 字族已从字体仓库移除，中文场景用不上）
 
   // 字体权重默认值 - 全局设置（body 使用 font-normal）
@@ -33,7 +33,7 @@ export const DEFAULT_VALUES = {
   bookSideWidth: 280,
   bookContentWidth: 850,
   bookContentPadding: 40,
-  bookSideContentGap: 10,
+  bookUniMargin: 15, // 统一边距：内容行对视口的安全边距、侧边栏与正文之间的间距（原 bookSideContentGap 并入）
 
   // 书籍目录显示控制
   isBookTocShow: true,

@@ -1,4 +1,4 @@
-import { genAnimateRotate } from "@svg-anim/rotate";
+import { transformRotate } from "@guohub8080/expub-tool/smil";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
 
 export const AbsoluteMode = () => {
@@ -9,18 +9,17 @@ export const AbsoluteMode = () => {
                 <circle cx="100" cy="100" r="3" fill="#ccc" />
 
                 <circle cx="100" cy="50" r="25" fill="green">
-                    {genAnimateRotate({
-                        initAngle: 0,
-                        origin: [100, 100],
-                        isRelativeRotate: false,
+                    {transformRotate({
+                        initValue: 0,
+                        pivot: [100, 100],
                         timeline: [
-                            { toValue: 90, durationSeconds: 1 },
-                            { toValue: 90, durationSeconds: 1 },
-                            { toValue: 180, durationSeconds: 1 }
+                            { toAbs: 90, durationSeconds: 1 },
+                            { toAbs: 90, durationSeconds: 1 },
+                            { toAbs: 180, durationSeconds: 1 }
                         ]
                     })}
                 </circle>
-                <text x="100" y="170" textAnchor="middle" fontSize="14" fill="#666">绝对模式</text>
+                <text x="100" y="170" textAnchor="middle" fontSize="14" fill="#666">绝对模式 toAbs</text>
             </svg>
         </SvgWrapper>
     );

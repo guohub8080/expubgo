@@ -14,9 +14,9 @@ Skew 变换可以与 Rotate、Scale、Translate 等其他变换组合使用，�
 
 ```tsx
 <g>
-  {genAnimateSkewX({...})}
-  {genAnimateScale({...})}
-  {genAnimateRotate({...})}
+  {transformSkewX({...})}
+  {transformScale({..., pivot: [x, y]})}
+  {transformRotate({...})}
 </g>
 ```
 
@@ -24,6 +24,8 @@ Skew 变换可以与 Rotate、Scale、Translate 等其他变换组合使用，�
 1. 先应用 Rotate（旋转）
 2. 再应用 Scale（缩放）
 3. 最后应用 SkewX（倾斜）
+
+**注意**：`transformScale` 必须显式给出 `pivot`（缩放支点坐标），详见各示例。
 
 ---
 
@@ -34,29 +36,30 @@ Skew 变换可以与 Rotate、Scale、Translate 等其他变换组合使用，�
 **代码示例：**
 
 ```tsx
-import { genAnimateSkewX } from "@svg-anim/skewX";
-import { genAnimateScale } from "@svg-anim/scale";
+import { transformSkewX, transformScale } from "@guohub8080/expub-tool/smil";
 
 <svg width="100%" height="160" viewBox="0 0 280 160">
   <g transform="translate(140, 80)">
     <rect x="-60" y="-40" width="120" height="80" fill="rgb(59, 130, 246)" rx="8">
-      {genAnimateSkewX({
+      {transformSkewX({
         timeline: [
-          { toValue: 12, durationSeconds: 1.5 },
-          { toValue: -12, durationSeconds: 3 },
-          { toValue: 12, durationSeconds: 1.5 }
+          { toAbs: 12, durationSeconds: 1.5 },
+          { toAbs: -12, durationSeconds: 3 },
+          { toAbs: 12, durationSeconds: 1.5 }
         ],
         loopCount: 0,
-        additive: true
+        isAdditive: true
       })}
-      {genAnimateScale({
+      {transformScale({
+        initValue: 1,
         timeline: [
-          { toValue: 1.3, durationSeconds: 1.5 },
-          { toValue: 0.7, durationSeconds: 3 },
-          { toValue: 1.3, durationSeconds: 1.5 }
+          { toAbs: 1.3, durationSeconds: 1.5 },
+          { toAbs: 0.7, durationSeconds: 3 },
+          { toAbs: 1.3, durationSeconds: 1.5 }
         ],
+        pivot: [0, 0],   // 方块中心在 g 局部坐标系的原点
         loopCount: 0,
-        additive: true
+        isAdditive: true
       })}
     </rect>
   </g>
@@ -78,26 +81,25 @@ import { genAnimateScale } from "@svg-anim/scale";
 **代码示例：**
 
 ```tsx
-import { genAnimateSkewY } from "@svg-anim/skewY";
-import { genAnimateRotate } from "@svg-anim/rotate";
+import { transformSkewY, transformRotate } from "@guohub8080/expub-tool/smil";
 
 <svg width="100%" height="200" viewBox="0 0 280 200">
   <g transform="translate(140, 100)">
     <rect x="-50" y="-50" width="100" height="100" fill="rgb(34, 197, 94)" rx="8">
-      {genAnimateSkewY({
+      {transformSkewY({
         timeline: [
-          { toValue: 10, durationSeconds: 2 },
-          { toValue: -10, durationSeconds: 2 }
+          { toAbs: 10, durationSeconds: 2 },
+          { toAbs: -10, durationSeconds: 2 }
         ],
         loopCount: 0,
-        additive: true
+        isAdditive: true
       })}
-      {genAnimateRotate({
+      {transformRotate({
         timeline: [
-          { toValue: 360, durationSeconds: 4 }
+          { toAbs: 360, durationSeconds: 4 }
         ],
         loopCount: 0,
-        additive: true
+        isAdditive: true
       })}
     </rect>
   </g>
@@ -119,43 +121,42 @@ import { genAnimateRotate } from "@svg-anim/rotate";
 **代码示例：**
 
 ```tsx
-import { genAnimateSkewY } from "@svg-anim/skewY";
-import { genAnimateScale } from "@svg-anim/scale";
-import { genAnimateRotate } from "@svg-anim/rotate";
-import { genAnimateTranslate } from "@svg-anim/translate";
+import { transformSkewY, transformScale, transformRotate, transformTranslate } from "@guohub8080/expub-tool/smil";
 
 <svg width="100%" height="200" viewBox="0 0 280 200">
   <g transform="translate(140, 100)">
-    {genAnimateSkewY({
+    {transformSkewY({
       timeline: [
-        { toValue: 10, durationSeconds: 2 },
-        { toValue: -10, durationSeconds: 2 }
+        { toAbs: 10, durationSeconds: 2 },
+        { toAbs: -10, durationSeconds: 2 }
       ],
       loopCount: 0,
-      additive: true
+      isAdditive: true
     })}
-    {genAnimateScale({
+    {transformScale({
+      initValue: 1,
       timeline: [
-        { toValue: { x: 1.15, y: 0.85 }, durationSeconds: 2 },
-        { toValue: { x: 0.85, y: 1.15 }, durationSeconds: 2 }
+        { toAbs: 1.15, durationSeconds: 2 },
+        { toAbs: 0.85, durationSeconds: 2 }
       ],
+      pivot: [0, 0],   // 方块中心在 g 局部坐标系的原点
       loopCount: 0,
-      additive: true
+      isAdditive: true
     })}
-    {genAnimateRotate({
+    {transformRotate({
       timeline: [
-        { toValue: 180, durationSeconds: 4 }
+        { toAbs: 180, durationSeconds: 4 }
       ],
       loopCount: 0,
-      additive: true
+      isAdditive: true
     })}
-    {genAnimateTranslate({
+    {transformTranslate({
       timeline: [
-        { toValue: { x: 12, y: 0 }, durationSeconds: 2 },
-        { toValue: { x: -12, y: 0 }, durationSeconds: 2 }
+        { toAbs: { x: 12, y: 0 }, durationSeconds: 2 },
+        { toAbs: { x: -12, y: 0 }, durationSeconds: 2 }
       ],
       loopCount: 0,
-      additive: true
+      isAdditive: true
     })}
     <rect x="-60" y="-60" width="120" height="120" fill="rgb(168, 85, 247)" rx="8" />
   </g>
@@ -170,17 +171,17 @@ import { genAnimateTranslate } from "@svg-anim/translate";
 
 ---
 
-## additive 累加模式
+## isAdditive 累加模式
 
-### 理解 additive 参数
+### 理解 isAdditive 参数
 
-`additive: true` 表示变换在**当前状态基础上累加**：
+`isAdditive: true` 表示变换在**当前状态基础上累加**：
 
 ```tsx
-genAnimateSkewX({
-  additive: true,  // 在当前倾斜角度上累加
+transformSkewX({
+  isAdditive: true,  // 在当前倾斜角度上累加
   timeline: [
-    { toValue: 20, durationSeconds: 1 }
+    { toAbs: 20, durationSeconds: 1 }
   ]
 })
 ```
@@ -194,33 +195,35 @@ genAnimateSkewX({
 ```tsx
 <g>
   {/* 旋转动画 */}
-  {genAnimateRotate({
+  {transformRotate({
     timeline: [
-      { toValue: 360, durationSeconds: 4 }
+      { toAbs: 360, durationSeconds: 4 }
     ],
-    additive: true,
+    isAdditive: true,
     loopCount: 0
   })}
 
   {/* 倾斜动画（累加到旋转状态） */}
-  {genAnimateSkewX({
+  {transformSkewX({
     timeline: [
-      { toValue: 30, durationSeconds: 1 },
-      { toValue: 0, durationSeconds: 1 },
-      { toValue: -30, durationSeconds: 1 },
-      { toValue: 0, durationSeconds: 1 }
+      { toAbs: 30, durationSeconds: 1 },
+      { toAbs: 0, durationSeconds: 1 },
+      { toAbs: -30, durationSeconds: 1 },
+      { toAbs: 0, durationSeconds: 1 }
     ],
-    additive: true,
+    isAdditive: true,
     loopCount: 0
   })}
 
   {/* 缩放动画（累加到旋转+倾斜状态） */}
-  {genAnimateScale({
+  {transformScale({
+    initValue: 1,
     timeline: [
-      { toValue: { x: 0.5, y: 0.5 }, durationSeconds: 2 },
-      { toValue: { x: 1, y: 1 }, durationSeconds: 2 }
+      { toAbs: 0.5, durationSeconds: 2 },
+      { toAbs: 1, durationSeconds: 2 }
     ],
-    additive: true,
+    pivot: [0, 0],
+    isAdditive: true,
     loopCount: 0
   })}
 </g>
@@ -244,25 +247,27 @@ genAnimateSkewX({
 
 ```tsx
 // Y 轴倾斜 + 旋转模拟卡片翻转
-{genAnimateSkewY({
+{transformSkewY({
   timeline: [
-    { toValue: 45, durationSeconds: 0.5 },    // 倾斜45度
-    { toValue: -45, durationSeconds: 1 },   // 反向倾斜
-    { toValue: 45, durationSeconds: 1 },    // 循环
-    { toValue: 0, durationSeconds: 0.5 }     // 恢复
+    { toAbs: 45, durationSeconds: 0.5 },    // 倾斜45度
+    { toAbs: -45, durationSeconds: 1 },   // 反向倾斜
+    { toAbs: 45, durationSeconds: 1 },    // 循环
+    { toAbs: 0, durationSeconds: 0.5 }     // 恢复
   ],
   loopCount: 0,
-  additive: true
+  isAdditive: true
 })}
-{genAnimateScale({
+{transformScale({
+  initValue: 1,
   timeline: [
-    { toValue: { x: 0.8, y: 1 }, durationSeconds: 0.5 },   // 水平压缩
-    { toValue: { x: 0.8, y: 1 }, durationSeconds: 1 },
-    { toValue: { x: 0.8, y: 1 }, durationSeconds: 1 },
-    { toValue: { x: 1, y: 1 }, durationSeconds: 0.5 }
+    { toAbs: 0.8, durationSeconds: 0.5 },   // 水平压缩
+    { toAbs: 0.8, durationSeconds: 1 },
+    { toAbs: 0.8, durationSeconds: 1 },
+    { toAbs: 1, durationSeconds: 0.5 }
   ],
+  pivot: [0, 0],
   loopCount: 0,
-  additive: true
+  isAdditive: true
 })}
 ```
 
@@ -270,24 +275,26 @@ genAnimateSkewX({
 
 ```tsx
 // SkewX + ScaleY 模拟弹性
-{genAnimateSkewX({
+{transformSkewX({
   timeline: [
-    { toValue: 25, durationSeconds: 0.3 },
-    { toValue: -20, durationSeconds: 0.6, keySplines: "0.42 0 0.58 1" },
-    { toValue: 20, durationSeconds: 0.6, keySplines: "0.42 0 0.58 1" },
-    { toValue: 0, durationSeconds: 0.3 }
+    { toAbs: 25, durationSeconds: 0.3 },
+    { toAbs: -20, durationSeconds: 0.6, keySplines: "0.42 0 0.58 1" },
+    { toAbs: 20, durationSeconds: 0.6, keySplines: "0.42 0 0.58 1" },
+    { toAbs: 0, durationSeconds: 0.3 }
   ],
   loopCount: 0
 })}
-{genAnimateScale({
+{transformScale({
+  initValue: 1,
   timeline: [
-    { toValue: { x: 1, y: 1.1 }, durationSeconds: 0.3 },      // 拉伸
-    { toValue: { x: 1, y: 1 }, durationSeconds: 0.6 },
-    { toValue: { x: 1, y: 1.1 }, durationSeconds: 0.6 },
-    { toValue: { x: 1, y: 1 }, durationSeconds: 0.3 }        // 恢复
+    { toAbs: 1.1, durationSeconds: 0.3 },      // 拉伸
+    { toAbs: 1, durationSeconds: 0.6 },
+    { toAbs: 1.1, durationSeconds: 0.6 },
+    { toAbs: 1, durationSeconds: 0.3 }        // 恢复
   ],
+  pivot: [0, 0],
   loopCount: 0,
-  additive: true
+  isAdditive: true
 })}
 ```
 
@@ -295,25 +302,27 @@ genAnimateSkewX({
 
 ```tsx
 // SkewY + Scale + Rotate 复杂入场
-{genAnimateSkewY({
+{transformSkewY({
   timeline: [
-    { toValue: 60, durationSeconds: 0.5 },    // 极度倾斜
-    { toValue: 0, durationSeconds: 0.3 }     // 恢复
+    { toAbs: 60, durationSeconds: 0.5 },    // 极度倾斜
+    { toAbs: 0, durationSeconds: 0.3 }     // 恢复
   ],
-  additive: true
+  isAdditive: true
 })}
-{genAnimateScale({
+{transformScale({
+  initValue: 1,
   timeline: [
-    { toValue: { x: 0, y: 0 }, durationSeconds: 0.5 },  // 缩小到0
-    { toValue: { x: 1, y: 1 }, durationSeconds: 0.3 }     // 恢复
+    { toAbs: 0, durationSeconds: 0.5 },  // 缩小到0
+    { toAbs: 1, durationSeconds: 0.3 }     // 恢复
   ],
-  additive: true
+  pivot: [0, 0],
+  isAdditive: true
 })}
-{genAnimateRotate({
+{transformRotate({
   timeline: [
-    { toValue: 180, durationSeconds: 0.8 },   // 旋转180度
+    { toAbs: 180, durationSeconds: 0.8 },   // 旋转180度
   ],
-  additive: true
+  isAdditive: true
 })}
 ```
 
@@ -327,20 +336,20 @@ genAnimateSkewX({
 
 ```tsx
 // 方案 A：先旋转再倾斜
-{genAnimateRotate({...})}
-{genAnimateSkewX({...})}
+{transformRotate({...})}
+{transformSkewX({...})}
 
 // 方案 B：先倾斜再旋转
-{genAnimateSkewX({...})}
-{genAnimateRotate({...})}
+{transformSkewX({...})}
+{transformRotate({...})}
 
 // 结果：方案 A ≠ 方案 B
 ```
 
-### 2. additive 设置
+### 2. isAdditive 设置
 
-- 所有变换都应设置 `additive: true` 确保正确叠加
-- 如果某个变换设置为 `additive: false`，会打断累加链
+- 所有变换都应设置 `isAdditive: true` 确保正确叠加
+- 如果某个变换设置为 `isAdditive: false`，会打断累加链
 
 ### 3. 时间线同步
 
@@ -348,18 +357,20 @@ genAnimateSkewX({
 
 ```tsx
 // 好的实践：时间对齐
-{genAnimateSkewX({
+{transformSkewX({
   timeline: [
-    { toValue: 30, durationSeconds: 2 },
-    { toValue: 0, durationSeconds: 2 }
+    { toAbs: 30, durationSeconds: 2 },
+    { toAbs: 0, durationSeconds: 2 }
   ]
 })}
-{genAnimateScale({
+{transformScale({
+  initValue: 1,
   timeline: [
-    { toValue: 1.5, durationSeconds: 2 },     // 同时进行
-    { toValue: 1, durationSeconds: 2 }        // 同时恢复
-  ]
-}}
+    { toAbs: 1.5, durationSeconds: 2 },     // 同时进行
+    { toAbs: 1, durationSeconds: 2 }        // 同时恢复
+  ],
+  pivot: [0, 0]
+})}
 ```
 
 ---

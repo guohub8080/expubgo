@@ -1,6 +1,6 @@
 import React from "react";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
-import { genAnimateFloat } from "@svg-anim/float";
+import { transformFloat } from "@guohub8080/expub-tool/behaviors";
 
 // ============================================ DelayFloat Component ============================================
 
@@ -9,7 +9,7 @@ export const DelayFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g>
-                    {genAnimateFloat({ floatRangeY: 20, durationSeconds: 3, delay: 2 })}
+                    {transformFloat({ floatRangeY: 20, duration: 3, begin: '2s' })}
                     <circle cx="100" cy="100" r="50" fill="blue" />
                 </g>
             </svg>
@@ -24,7 +24,7 @@ export const LimitedFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g>
-                    {genAnimateFloat({ floatRangeY: 20, durationSeconds: 2, repeatCount: 3 })}
+                    {transformFloat({ floatRangeY: 20, duration: 2, loopCount: 3 })}
                     <circle cx="100" cy="100" r="50" fill="green" />
                 </g>
             </svg>
@@ -39,7 +39,7 @@ export const ClickFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g style={{ cursor: 'pointer' }}>
-                    {genAnimateFloat({ floatRangeY: 20, durationSeconds: 3, beginType: 'click' })}
+                    {transformFloat({ floatRangeY: 20, duration: 3, begin: 'click' })}
                     <circle cx="100" cy="100" r="50" fill="orange" />
                 </g>
             </svg>
@@ -54,7 +54,7 @@ export const ClickDelayFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g style={{ cursor: 'pointer' }}>
-                    {genAnimateFloat({ floatRangeY: 20, durationSeconds: 3, beginType: 'click', delay: 0.5 })}
+                    {transformFloat({ floatRangeY: 20, duration: 3, begin: 'click+0.5s' })}
                     <circle cx="100" cy="100" r="50" fill="purple" />
                 </g>
             </svg>
@@ -69,7 +69,7 @@ export const OnceFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g>
-                    {genAnimateFloat({ floatRangeY: 30, durationSeconds: 4, repeatCount: 1 })}
+                    {transformFloat({ floatRangeY: 30, duration: 4, loopCount: 1 })}
                     <circle cx="100" cy="100" r="50" fill="red" />
                 </g>
             </svg>
@@ -84,7 +84,7 @@ export const InfiniteFastFloat = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <g>
-                    {genAnimateFloat({ floatRangeY: 15, durationSeconds: 1, repeatCount: 0 })}
+                    {transformFloat({ floatRangeY: 15, duration: 1, loopCount: 0 })}
                     <circle cx="100" cy="100" r="50" fill="teal" />
                 </g>
             </svg>

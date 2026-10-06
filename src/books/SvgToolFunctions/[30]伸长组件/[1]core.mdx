@@ -69,8 +69,8 @@ import { ExtrudeContainer } from '@pubSVG/C2_Containers'
 
 ```tsx
 import { ExtrudeContainer } from '@pubSVG/C2_Containers'
-import { OverlayContainer } from '@pubSVG/C2_Containers'
-import { genAnimateExtrude } from '@pub-utils/genSvgAnimate/extrude'
+import { OverlayContainer } from '@guohub8080/expub-tool/svg'
+import { genAnimateExtrude } from '@guohub8080/expub-tool/behaviors'
 
 // 挤出动画的标准结构
 <ExtrudeContainer>
@@ -89,7 +89,7 @@ import { genAnimateExtrude } from '@pub-utils/genSvgAnimate/extrude'
         timeline: [
           { toHeight: 590, durationSeconds: 10 }
         ],
-        delay: 0.5,
+        begin: '0.5s',
       })
     }
   />

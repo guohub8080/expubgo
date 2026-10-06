@@ -9,7 +9,7 @@ import {
 
 # {title}
 
-缩放动画的时序控制是创建复杂动画效果的关键。本文介绍 `genAnimateScale` 中与时序相关的四个核心参数：`delay`、`loopCount`、`freeze` 和 `beginType`。
+缩放动画的时序控制是创建复杂动画效果的关键。本文介绍 `transformScale` 中与时序相关的三个核心参数：`begin`、`loopCount` 和 `isFreeze`。其中 `begin` 用一个字符串统一了"延迟自动开始"与"事件触发"两类开始时机。
 
 ---
 
@@ -17,35 +17,35 @@ import {
 
 | 参数 | 默认值 | 说明 | 使用场景 |
 |------|--------|------|----------|
-| `delay` | `0` | 初始延迟（秒） | 序列动画、入场动画 |
+| `begin` | `undefined`（立即开始） | 开始时机：`'2s'` 延迟自动开始；`'click'` 点击触发 | 序列动画、交互式动画 |
 | `loopCount` | `1` | 循环次数（0 = 无限）| 呼吸效果、重复提示 |
-| `freeze` | `false` | 保持最终状态 | 入场动画、状态切换 |
-| `beginType` | `undefined` | 点击触发 | 交互式动画、按需播放 |
+| `isFreeze` | `false` | 保持最终状态 | 入场动画、状态切换 |
 
 ---
 
-## delay - 初始延迟
+## begin - 开始时机
 
-控制动画开始前的等待时间（秒）。
+`begin` 是字符串，直接写延迟或事件：
 
-**类型**：`number`
-**默认值**：`0`
+| 写法 | 含义 |
+|------|------|
+| `begin: '2s'` | 页面加载 2 秒后自动开始 |
+| `begin: 'click'` | 点击元素后才开始播放 |
+| `begin: 'click+0.5s'` | 点击后延迟 0.5 秒开始 |
 
-**使用场景**：
-- 序列动画（多个元素依次出现）
-- 入场动画（页面加载后延迟播放）
-- 协调多个动画的时机
+**类型**：`string`
+**默认值**：`undefined`（立即开始）
 
-**示例**：
+### 延迟自动开始
 
 ```tsx
-genAnimateScale({
-  origin: [100, 100],
-  initScale: 1,
+transformScale({
+  pivot: [100, 80],
+  initValue: 1,
   timeline: [
-    { toValue: 1.5, durationSeconds: 2 }
+    { toAbs: 1.5, durationSeconds: 2 }
   ],
-  delay: 1  // 延迟 1 秒后开始
+  begin: '1s'  // 延迟 1 秒后开始
 })
 ```
 
@@ -54,6 +54,30 @@ genAnimateScale({
 <DelayDemo />
 
 **说明**：方块延迟 1 秒后开始放大
+
+### 点击触发
+
+```tsx
+transformScale({
+  pivot: [100, 80],
+  timeline: [
+    { toAbs: 1.5, durationSeconds: 2 }
+  ],
+  begin: 'click',
+  isFreeze: true  // 通常配合 isFreeze 使用
+})
+```
+
+**效果预览：**
+
+<ClickTriggerDemo />
+
+**说明**：点击圆圈后才开始放大，动画结束后保持最终大小
+
+**使用场景**：
+- 序列动画（多个元素依次出现，用不同延迟值）
+- 入场动画（页面加载后延迟播放）
+- 交互式动画（用户点击触发、按需播放）
 
 ---
 
@@ -74,29 +98,29 @@ genAnimateScale({
 
 ```tsx
 // 播放 1 次（默认）
-genAnimateScale({
-  origin: [100, 100],
+transformScale({
+  pivot: [100, 100],
   timeline: [
-    { toValue: 1.5, durationSeconds: 2 }
+    { toAbs: 1.5, durationSeconds: 2 }
   ],
   loopCount: 1
 })
 
 // 播放 3 次
-genAnimateScale({
-  origin: [100, 100],
+transformScale({
+  pivot: [100, 100],
   timeline: [
-    { toValue: 1.8, durationSeconds: 2 }
+    { toAbs: 1.8, durationSeconds: 2 }
   ],
   loopCount: 3
 })
 
 // 无限循环
-genAnimateScale({
-  origin: [100, 100],
+transformScale({
+  pivot: [100, 100],
   timeline: [
-    { toValue: 1.2, durationSeconds: 1 },
-    { toValue: 0.8, durationSeconds: 1 }
+    { toAbs: 1.2, durationSeconds: 1 },
+    { toAbs: 0.8, durationSeconds: 1 }
   ],
   loopCount: 0
 })
@@ -110,7 +134,7 @@ genAnimateScale({
 
 ---
 
-## freeze - 保持最终状态
+## isFreeze - 保持最终状态
 
 控制动画结束后是否停留在最后一帧。
 
@@ -130,21 +154,21 @@ genAnimateScale({
 
 ```tsx
 // 动画结束后回到原位
-genAnimateScale({
-  origin: [100, 100],
+transformScale({
+  pivot: [100, 100],
   timeline: [
-    { toValue: 1.5, durationSeconds: 2 }
+    { toAbs: 1.5, durationSeconds: 2 }
   ],
-  freeze: false  // 默认值
+  isFreeze: false  // 默认值
 })
 
 // 动画结束后保持最终位置
-genAnimateScale({
-  origin: [100, 100],
+transformScale({
+  pivot: [100, 100],
   timeline: [
-    { toValue: 1.5, durationSeconds: 2 }
+    { toAbs: 1.5, durationSeconds: 2 }
   ],
-  freeze: true
+  isFreeze: true
 })
 ```
 
@@ -156,43 +180,6 @@ genAnimateScale({
 
 ---
 
-## beginType - 点击触发
-
-控制动画是否需要点击元素才开始播放。
-
-**类型**：`SvgBeginEventType`
-**默认值**：`undefined`
-
-**值说明**：
-- `undefined`（默认）：页面加载后自动播放
-- `'click'`：点击元素后才开始播放
-
-**使用场景**：
-- 交互式动画（用户点击触发）
-- 按需播放（避免自动播放）
-- 游戏元素（点击控制）
-
-**示例：**
-
-```tsx
-genAnimateScale({
-  origin: [100, 100],
-  timeline: [
-    { toValue: 1.5, durationSeconds: 2 }
-  ],
-  beginType: 'click',
-  freeze: true  // 通常配合 freeze 使用
-})
-```
-
-**效果预览：**
-
-<ClickTriggerDemo />
-
-**说明**：点击圆圈后才开始放大，动画结束后保持最终大小
-
----
-
 ## 参数组合
 
 ### 组合 1：延迟 + 循环
@@ -200,15 +187,15 @@ genAnimateScale({
 创建延迟开始的循环动画。
 
 ```tsx
-genAnimateScale({
-  origin: [100, 100],
-  initScale: 1,
+transformScale({
+  pivot: [100, 100],
+  initValue: 1,
   timeline: [
-    { toValue: 1.2, durationSeconds: 1 },
-    { toValue: 0.8, durationSeconds: 1 }
+    { toAbs: 1.2, durationSeconds: 1 },
+    { toAbs: 0.8, durationSeconds: 1 }
   ],
-  delay: 2,      // 延迟 2 秒
-  loopCount: 0   // 无限循环
+  begin: '2s',    // 延迟 2 秒
+  loopCount: 0    // 无限循环
 })
 ```
 
@@ -221,13 +208,13 @@ genAnimateScale({
 创建点击触发的单次动画。
 
 ```tsx
-genAnimateScale({
-  origin: [100, 100],
+transformScale({
+  pivot: [100, 100],
   timeline: [
-    { toValue: 1.5, durationSeconds: 2 }
+    { toAbs: 1.5, durationSeconds: 2 }
   ],
-  beginType: 'click',  // 点击触发
-  freeze: true             // 保持最终位置
+  begin: 'click',  // 点击触发
+  isFreeze: true   // 保持最终位置
 })
 ```
 
@@ -235,19 +222,18 @@ genAnimateScale({
 
 ---
 
-### 组合 3：延迟 + 点击 + 冻结
+### 组合 3：点击 + 延迟 + 冻结
 
 创建延迟触发的交互式动画。
 
 ```tsx
-genAnimateScale({
-  origin: [100, 100],
+transformScale({
+  pivot: [100, 100],
   timeline: [
-    { toValue: 1.5, durationSeconds: 2 }
+    { toAbs: 1.5, durationSeconds: 2 }
   ],
-  delay: 1,                // 点击后延迟 1 秒
-  beginType: 'click',  // 点击触发
-  freeze: true             // 保持最终位置
+  begin: 'click+1s',  // 点击后延迟 1 秒
+  isFreeze: true      // 保持最终位置
 })
 ```
 
@@ -260,14 +246,14 @@ genAnimateScale({
 创建循环指定次数后停留的动画。
 
 ```tsx
-genAnimateScale({
-  origin: [100, 100],
+transformScale({
+  pivot: [100, 100],
   timeline: [
-    { toValue: 1.8, durationSeconds: 1 },
-    { toValue: 0.2, durationSeconds: 1 }
+    { toAbs: 1.8, durationSeconds: 1 },
+    { toAbs: 0.2, durationSeconds: 1 }
   ],
   loopCount: 3,  // 循环 3 次
-  freeze: true   // 最后停留在最终位置
+  isFreeze: true // 最后停留在最终位置
 })
 ```
 
@@ -282,14 +268,14 @@ genAnimateScale({
 元素从小到大出现，并保持大小。
 
 ```tsx
-genAnimateScale({
-  origin: [100, 100],
-  initScale: 0,
+transformScale({
+  pivot: [100, 100],
+  initValue: 0,
   timeline: [
-    { toValue: 1, durationSeconds: 1 }
+    { toAbs: 1, durationSeconds: 1 }
   ],
-  delay: 0.5,   // 延迟 0.5 秒
-  freeze: true  // 保持最终大小
+  begin: '0.5s',  // 延迟 0.5 秒
+  isFreeze: true  // 保持最终大小
 })
 ```
 
@@ -298,11 +284,11 @@ genAnimateScale({
 元素持续放大缩小。
 
 ```tsx
-genAnimateScale({
-  origin: [100, 100],
+transformScale({
+  pivot: [100, 100],
   timeline: [
-    { toValue: 1.2, durationSeconds: 1 },
-    { toValue: 0.8, durationSeconds: 1 }
+    { toAbs: 1.2, durationSeconds: 1 },
+    { toAbs: 0.8, durationSeconds: 1 }
   ],
   loopCount: 0  // 无限循环
 })
@@ -313,13 +299,13 @@ genAnimateScale({
 点击元素后触发缩放。
 
 ```tsx
-genAnimateScale({
-  origin: [100, 100],
+transformScale({
+  pivot: [100, 100],
   timeline: [
-    { toValue: 1.5, durationSeconds: 1.5 }
+    { toAbs: 1.5, durationSeconds: 1.5 }
   ],
-  beginType: 'click',
-  freeze: true
+  begin: 'click',
+  isFreeze: true
 })
 ```
 
@@ -329,13 +315,12 @@ genAnimateScale({
 
 | 参数 | 默认值 | 说明 | 常用场景 |
 |------|--------|------|----------|
-| `delay` | `0` | 初始延迟（秒） | 序列动画、入场动画 |
+| `begin` | `undefined` | 开始时机（`'2s'` / `'click'` / `'click+1s'`） | 序列动画、交互式动画 |
 | `loopCount` | `1` | 循环次数（0 = 无限）| 呼吸效果、重复提示 |
-| `freeze` | `false` | 保持最终状态 | 入场动画、状态切换 |
-| `beginType` | `undefined` | 点击触发 | 交互式动画、按需播放 |
+| `isFreeze` | `false` | 保持最终状态 | 入场动画、状态切换 |
 
 **推荐组合**：
-- 入场动画：`delay` + `freeze`
+- 入场动画：`begin: '0.5s'` + `isFreeze`
 - 呼吸效果：`loopCount: 0`
-- 交互式动画：`beginType: 'click'` + `freeze`
-- 序列动画：不同的 `delay` 值
+- 交互式动画：`begin: 'click'` + `isFreeze`
+- 序列动画：不同的 `begin` 延迟值

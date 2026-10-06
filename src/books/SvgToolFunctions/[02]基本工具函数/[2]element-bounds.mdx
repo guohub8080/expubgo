@@ -3,7 +3,18 @@ export const icon = "BookOpen"
 
 # {title}
 
-`elementBounds` 用于描述 SVG 元素的位置和尺寸，配合 `getOriginNumByText` 函数自动计算变换原点坐标。
+`elementBounds` 用于描述 SVG 元素的位置和尺寸，配合 `getOriginNumByText` 函数自动计算变换支点（pivot）坐标。这些工具都从 `@guohub8080/expub-tool/utils` 导入：
+
+```typescript
+import {
+  getElementBounds,       // 规范化边界对象（补全缺省的 x/y）
+  getOriginNumByText,     // 快捷位置名 → [x, y] 坐标
+  type ElementBoundsType,
+  type OriginPosition
+} from '@guohub8080/expub-tool/utils';
+```
+
+> 💡 **先看这里**：新动画 API（`transformScale` / `transformRotate`）已改为**显式 `pivot` 坐标参数**，多数场景不再需要运行时求 bounds——直接把元素中心或锚点坐标写进 `pivot` 即可。`getElementBounds` / `getOriginNumByText` 适合需要程序化计算 pivot（例如根据 props 动态求坐标）或做图形对齐、锚点计算的场景。
 
 ## 什么是 ElementBounds？
 
@@ -23,29 +34,36 @@ type ElementBoundsType = {
 }
 ```
 
+`getElementBounds` 会把可能缺少 `x`/`y` 的边界对象补全为完整对象（缺省填 0），方便后续计算：
+
+```typescript
+getElementBounds({ w: 100, h: 200 })  // => { x: 0, y: 0, w: 100, h: 200 }
+```
+
 ## 为什么需要 ElementBounds？
 
 SVG 的旋转、缩放等变换默认以坐标原点 `(0, 0)` 为中心。但通常我们希望：
 
-- ✅ **以元素自身的中心**为变换原点
-- ✅ **以元素的某个角落或边缘**为变换原点
+- ✅ **以元素自身的中心**为变换支点
+- ✅ **以元素的某个角落或边缘**为变换支点
 
-`elementBounds` 提供元素的位置和尺寸信息，让函数能够**自动计算**出正确的变换原点坐标。
+`elementBounds` 提供元素的位置和尺寸信息，让 `getOriginNumByText` 能够**自动计算**出正确的支点坐标，再交给动画 API 的 `pivot` 参数使用。
 
-## 完整示例：elementBounds 是如何工作的？
+## 完整示例：pivot 是如何工作的？
 
 ### 基本用法
 
 ```tsx
+import { transformScale } from '@guohub8080/expub-tool/smil';
+
 <svg viewBox="0 0 400 200">
-  {/* 一个图片，位置在 (100, 50)，尺寸 80x80 */}
+  {/* 一个图片，位置在 (100, 50)，尺寸 80x80，中心点即 (140, 90) */}
   <image x="100" y="50" width="80" height="80" href="pic.png">
-    {genAnimateScale({
-      origin: 'center',
-      elementBounds: { x: 100, y: 50, w: 80, h: 80 },  // ← 注意这里的值
+    {transformScale({
+      pivot: [140, 90],  // ← 元素中心：x + w/2 = 140，y + h/2 = 90
       timeline: [
-        { durationSeconds: 1, toValue: 1.5 },
-        { durationSeconds: 1, toValue: 1 }
+        { durationSeconds: 1, toAbs: 1.5 },
+        { durationSeconds: 1, toAbs: 1 }
       ],
       loopCount: 0
     })}
@@ -53,15 +71,13 @@ SVG 的旋转、缩放等变换默认以坐标原点 `(0, 0)` 为中心。但通
 </svg>
 ```
 
-### elementBounds 计算过程
+### pivot 内部计算过程
+
+`transformScale` 内部用「平移到支点 → 缩放 → 平移回去」三个 `animateTransform` 保证绕支点缩放：
 
 ```javascript
-// 1. 根据 elementBounds 和 origin: 'center' 计算中心点
-centerX = x + w/2 = 100 + 80/2 = 140
-centerY = y + h/2 = 50 + 80/2 = 90
-
-// 2. 生成三个 animateTransform 的 values 值
-// 第一个：平移到中心
+// 1. 根据 pivot 计算三个元素的 values
+// 第一个：平移到支点
 values="140 90;140 90;140 90"
 
 // 第二个：缩放
@@ -86,47 +102,44 @@ SVG 坐标系：
 │         └─────────────┘                 │
 │       ↑(100,50)                         │
 │                                         │
-│       中心点坐标：(140, 90)              │
+│       支点坐标：(140, 90)                │
 │       = (100 + 40, 50 + 40)             │
 └─────────────────────────────────────────┘
 ```
 
-### 关键点：elementBounds 必须匹配元素的实际位置
+### 关键点：pivot 必须匹配元素的实际位置
 
 ```tsx
-// ✅ 正确：elementBounds 和 image 的 x,y,w,h 完全一致
+// ✅ 正确：pivot 和 image 的实际中心一致
 <image x="100" y="50" width="80" height="80">
-  {genAnimateScale({
-    elementBounds: { x: 100, y: 50, w: 80, h: 80 }  // 匹配！
+  {transformScale({
+    pivot: [140, 90],  // = (100 + 80/2, 50 + 80/2)，匹配！
+    timeline: [{ durationSeconds: 1, toAbs: 1.5 }]
   })}
 </image>
 
-// ❌ 错误：elementBounds 不匹配
+// ❌ 错误：pivot 不匹配
 <image x="100" y="50" width="80" height="80">
-  {genAnimateScale({
-    elementBounds: { x: 0, y: 0, w: 80, h: 80 }  // 不匹配！缩放中心会错
+  {transformScale({
+    pivot: [40, 40],  // 不是这个元素的中心！缩放支点会错
+    timeline: [{ durationSeconds: 1, toAbs: 1.5 }]
   })}
 </image>
 ```
 
-### 不同 origin 的效果对比
+### 不同支点的效果对比
 
-同样的 `elementBounds: { x: 100, y: 50, w: 80, h: 80 }`，不同的 `origin` 会产生不同的效果：
+同样一个位于 `(100, 50)`、尺寸 `80x80` 的元素，不同的 `pivot` 会产生不同的效果：
 
 ```tsx
-// origin: 'center' → 缩放中心 (140, 90)
-// 元素从自己的中心放大缩小
-
-// origin: 'topLeft' → 缩放中心 (100, 50)
-// 元素从左上角放大，向右下角扩散
-
-// origin: 'bottomRight' → 缩放中心 (180, 130)
-// 元素从右下角放大，向左上角扩散
+// pivot: [140, 90]（中心）→ 元素从自己的中心放大缩小
+// pivot: [100, 50]（左上角）→ 元素从左上角放大，向右下角扩散
+// pivot: [180, 130]（右下角）→ 元素从右下角放大，向左上角扩散
 ```
 
 ## 支持的快捷位置（OriginPosition）
 
-`getOriginNumByText` 函数支持 10 种快捷位置：
+`getOriginNumByText` 函数支持 10 种快捷位置，可以直接算出 pivot 坐标：
 
 假设元素位置为 `x: 50, y: 70`，尺寸为 `w: 80, h: 60`：
 
@@ -143,175 +156,116 @@ SVG 坐标系：
 | bottomRight | [x + w, y + h] | [130, 130] |
 | origin | [0, 0] | [0, 0] |
 
+配合动画 API 使用：
+
+```typescript
+import { transformScale } from '@guohub8080/expub-tool/smil';
+import { getOriginNumByText } from '@guohub8080/expub-tool/utils';
+
+// 程序化求中心支点，等价于手写 pivot: [140, 90]
+transformScale({
+  pivot: getOriginNumByText('center', { x: 100, y: 50, w: 80, h: 80 }),
+  timeline: [{ durationSeconds: 1, toAbs: 1.5 }]
+})
+```
+
 ## 使用示例
 
-### 旋转动画 - 不同原点的效果
+### 旋转动画 - 不同支点的效果
 
-#### origin: 'center' 绕中心旋转
+#### 绕中心旋转（元素在 (157, 30)，尺寸 60x60，中心 (187, 60)）
 
 ```typescript
-genAnimateRotate({
-  origin: 'center',
-  elementBounds: { x: 157, y: 30, w: 60, h: 60 },
-  timeline: [{ durationSeconds: 3, toValue: 360 }],
+transformRotate({
+  pivot: [187, 60],
+  timeline: [{ durationSeconds: 3, toAbs: 360 }],
   loopCount: 0
 })
 ```
 
-#### origin: 'topLeft' 绕左上角旋转
+#### 绕左上角旋转（元素在 (60, 20)）
 
 ```typescript
-genAnimateRotate({
-  origin: 'topLeft',
-  elementBounds: { x: 60, y: 20, w: 60, h: 60 },
-  timeline: [{ durationSeconds: 3, toValue: 360 }],
+transformRotate({
+  pivot: [60, 20],
+  timeline: [{ durationSeconds: 3, toAbs: 360 }],
   loopCount: 0
 })
 ```
 
-#### origin: 'bottomCenter' 绕底部中心旋转（钟摆效果）
+#### 绕底部中心旋转（钟摆效果，元素在 (157, 20)，底部中心 (187, 80)）
 
 ```typescript
-genAnimateRotate({
-  initAngle: -30,
-  origin: 'bottomCenter',
-  elementBounds: { x: 157, y: 20, w: 60, h: 60 },
+transformRotate({
+  initValue: -30,
+  pivot: [187, 80],
   timeline: [
-    { durationSeconds: 1.5, toValue: 30 },
-    { durationSeconds: 1.5, toValue: -30 }
+    { durationSeconds: 1.5, toAbs: 30 },
+    { durationSeconds: 1.5, toAbs: -30 }
   ],
   loopCount: 0
 })
 ```
 
-### 缩放动画 - 不同原点的效果
+### 缩放动画 - 不同支点的效果
 
-#### origin: 'center' 从中心缩放
+#### 从中心缩放（元素在 (157, 30)，中心 (187, 60)）
 
 ```typescript
-genAnimateScale({
-  origin: 'center',
-  elementBounds: { x: 157, y: 30, w: 60, h: 60 },
+transformScale({
+  pivot: [187, 60],
   timeline: [
-    { durationSeconds: 1, toValue: 1.3 },
-    { durationSeconds: 1, toValue: 1 }
+    { durationSeconds: 1, toAbs: 1.3 },
+    { durationSeconds: 1, toAbs: 1 }
   ],
   loopCount: 0
 })
 ```
 
-#### origin: 'topLeft' 从左上角缩放
+#### 从左上角缩放（元素在 (60, 20)）
 
 ```typescript
-genAnimateScale({
-  origin: 'topLeft',
-  elementBounds: { x: 60, y: 20, w: 60, h: 60 },
+transformScale({
+  pivot: [60, 20],
   timeline: [
-    { durationSeconds: 1, toValue: 1.5 },
-    { durationSeconds: 1, toValue: 1 }
+    { durationSeconds: 1, toAbs: 1.5 },
+    { durationSeconds: 1, toAbs: 1 }
   ],
   loopCount: 0
 })
 ```
 
-#### origin: 'bottomRight' 从右下角缩放
+#### 从右下角缩放（元素在 (240, 20)，尺寸 60x60，右下角 (300, 80)）
 
 ```typescript
-genAnimateScale({
-  origin: 'bottomRight',
-  elementBounds: { x: 240, y: 20, w: 60, h: 60 },
+transformScale({
+  pivot: [300, 80],
   timeline: [
-    { durationSeconds: 1, toValue: 1.5 },
-    { durationSeconds: 1, toValue: 1 }
+    { durationSeconds: 1, toAbs: 1.5 },
+    { durationSeconds: 1, toAbs: 1 }
   ],
   loopCount: 0
 })
 ```
 
-## CSS 辅助函数：快速实现中心变换
+## 新 API 已用显式 pivot，不再需要 CSS 辅助
 
-如果你**只需要中心点变换**，且不想手动提供 `elementBounds`，可以使用 CSS 辅助函数：
+旧版方案需要 CSS `transform-origin` + `transform-box` 辅助样式配合实现中心变换；新动画 API（`transformScale` / `transformRotate`）直接通过 `pivot` 坐标在 SMIL 层完成支点控制：
 
-- 💡 `getCenterRotateStyle()` - 旋转中心为元素中心
-- 💡 `getCenterScaleStyle()` - 缩放中心为元素中心
+- ✅ **纯 SVG 实现**，不依赖 CSS 支持，微信内核兼容性更好
+- ✅ `transformScale` 的 `pivot` 为**必填**——每个缩放都必须明确支点
+- ✅ `transformRotate` 的 `pivot` 可选（缺省绕原点），还支持 `pivots` 数组实现多支点旋转
+- ✅ `transformTranslate` / `transformSkewX` / `transformSkewY` 无 pivot 参数（不需要支点）
 
-这两个函数通过 CSS 的 `transform-origin` 和 `transform-box` 实现中心变换。
+## 哪些动画使用 pivot？
 
-### getCenterRotateStyle() 中心旋转
+- **缩放动画（transformScale）** - `pivot` 必填，指定缩放支点
+- **旋转动画（transformRotate）** - `pivot` 可选，指定旋转支点；`pivots` 支持多支点路径式旋转
+- 斜切（transformSkewX/Y）、位移（transformTranslate）不使用 pivot
 
-使用 CSS 方式实现中心旋转，无需手动计算坐标。
-
-**函数返回值：**
-
-```typescript
-{
-  transformOrigin: 'center',
-  transformBox: 'fill-box'
-}
-```
-
-- `transformOrigin: 'center'` - 设置变换原点为元素中心
-- `transformBox: 'fill-box'` - 让原点计算基于元素的填充边界（而不是视口）
-
-```typescript
-// ✅ 简洁方式：使用 CSS 辅助函数
-<g style={getCenterRotateStyle()}>
-  <image href={pic1} x={157} y={30} width={60} height={60}>
-    {genAnimateRotate({
-      origin: 'center',  // 不需要 elementBounds
-      timeline: [{ durationSeconds: 3, toValue: 360 }],
-      loopCount: 0
-    })}
-  </image>
-</g>
-```
-
-### getCenterScaleStyle() 中心缩放
-
-使用 CSS 方式实现中心缩放。
-
-与 `getCenterRotateStyle()` 返回值相同，两者都是通过 CSS 设置变换原点为元素中心。
-
-```typescript
-// ✅ 简洁方式：使用 CSS 辅助函数
-<g style={getCenterScaleStyle()}>
-  <image href={pic1} x={157} y={30} width={60} height={60}>
-    {genAnimateScale({
-      origin: 'center',  // 不需要 elementBounds
-      timeline: [
-        { durationSeconds: 1, toValue: 1.3 },
-        { durationSeconds: 1, toValue: 1 }
-      ],
-      loopCount: 0
-    })}
-  </image>
-</g>
-```
-
-### CSS 方式 vs ElementBounds 方式
-
-| 对比项 | CSS 方式<br/>`getCenterRotateStyle()` | ElementBounds 方式<br/>`elementBounds + origin` |
-|--------|--------------------------------------|------------------------------------------|
-| 代码简洁度 | ✅ 非常简洁，一行代码 | ⚠️ 需要提供位置和尺寸信息 |
-| 支持的原点 | ⚠️ 只支持 `center` | ✅ 支持 10 种快捷位置 + 自定义坐标 |
-| 技术依赖 | ⚠️ 依赖 CSS 支持 | ✅ 纯 SVG，兼容性更好 |
-| 精确控制 | ⚠️ 由浏览器自动计算 | ✅ 完全精确控制 |
-| 推荐场景 | 快速原型、简单中心动画 | 生产环境、复杂变换 |
-
-**选择建议：**
-- 快速开发或只需要中心点变换：使用 `getCenterRotateStyle()` 或 `getCenterScaleStyle()`
-- 需要其他原点（如角落、边缘）或生产环境：使用 `elementBounds` 方式
-
-## 哪些动画使用 ElementBounds？
-
-- **旋转动画（genAnimateRotate）** - 指定旋转中心
-- **缩放动画（genAnimateScale）** - 指定缩放中心
-- 未来可能支持：斜切动画（genAnimateSkewX/Y）
-
-## 三种使用方式对比
+## 两种提供 pivot 的方式对比
 
 | 方式 | 优点 | 缺点 | 适用场景 |
 |------|------|------|----------|
-| `origin: 'center'`<br/>+ `elementBounds` | ✅ 纯 SVG 实现<br/>✅ 精确控制<br/>✅ 支持 9 种快捷位置 | ⚠️ 需要提供尺寸信息 | **推荐使用** |
-| `origin: 'center'`<br/>+ `getCenterRotateStyle()` | ✅ 代码简洁<br/>✅ 自适应元素大小 | ⚠️ 依赖 CSS<br/>⚠️ 只支持 center | 快速原型 |
-| `origin: [x, y]` | ✅ 完全自定义 | ⚠️ 需手动计算坐标 | 特殊需求 |
+| 手写 `pivot: [x, y]` | ✅ 零依赖、一眼可读<br/>✅ 纯静态坐标 | ⚠️ 元素位置变化时要手动同步 | **推荐使用**（静态排版） |
+| `getOriginNumByText(pos, bounds)` | ✅ 程序化计算<br/>✅ 支持 10 种快捷位置 | ⚠️ 需要提供位置和尺寸信息 | 元素位置由 props 动态决定的场景 |

@@ -204,7 +204,7 @@ const PropsSettings: React.FC = () => {
               </button>
             </DialogTrigger>
 
-            <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+            <DialogContent aria-describedby={undefined} className="max-w-md max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Props 属性配置</DialogTitle>
               </DialogHeader>

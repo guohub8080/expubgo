@@ -3,23 +3,23 @@ export const icon = "Zap"
 
 # {title}
 
-`genAnimateSoftBlink` 是专门用于创建闪烁/淡入淡出效果的预设动画工具。闪烁动画是一种透明度循环变化的效果，常用于吸引注意力、加载状态、错误提示等场景。
+`animateSoftBlink` 是专门用于创建闪烁/淡入淡出效果的预设动画工具。闪烁动画是一种透明度循环变化的效果，常用于吸引注意力、加载状态、错误提示等场景。
 
 ---
 
 ## 函数签名
 
 ```tsx
-import { genAnimateSoftBlink } from '@svg-anim/blink';
+import { animateSoftBlink } from '@guohub8080/expub-tool/behaviors';
 
-genAnimateSoftBlink({
-  maxOpacity?: number,               // 默认 1：最大透明度（0-1）
-  minOpacity?: number,               // 默认 0.2：最小透明度（0-1）
-  onceBlinkDurationSeconds?: number, // 默认 1.2：一次闪烁时长（秒）
-  keySplines?: string,               // 默认 '0.45 0 0.55 1'：缓动曲线
-  repeatCount?: number,              // 默认 0：循环次数（0 = 无限）
-  delay?: number,                    // 默认 0：初始延迟（秒）
-  beginType?: SvgBeginEventType,        // 默认 undefined：动画开始事件类型
+animateSoftBlink({
+  maxOpacity?: number,                       // 默认 1：最大透明度（0-1）
+  minOpacity?: number,                       // 默认 0.2：最小透明度（0-1）
+  onceBlinkDurationSeconds?: number,         // 默认 1.2：一次闪烁时长（秒，变暗 + 变亮各占一半）
+  keySplines?: string,                       // 默认 '0.45 0 0.55 1'：缓动曲线（变暗/变亮共用）
+  begin?: string,                            // 默认 undefined：开始时机（SMIL begin 字符串）
+  loopCount?: number,                        // 默认 0：循环次数（0 = 无限）
+  restart?: 'always' | 'whenNotActive' | 'never',
 })
 ```
 
@@ -35,7 +35,7 @@ genAnimateSoftBlink({
     d="M100 20 L120 80 L180 80 L130 120 L150 180 L100 140 L50 180 L70 120 L20 80 L80 80 Z"
     fill="yellow"
   >
-    {genAnimateSoftBlink({
+    {animateSoftBlink({
       maxOpacity: 1,
       minOpacity: 0.2,
       onceBlinkDurationSeconds: 1.2
@@ -50,10 +50,12 @@ genAnimateSoftBlink({
 <animate
   attributeName="opacity"
   values="1; 0.2; 1"
-  dur="1.2s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  keyTimes="0; 0.5; 1"
   keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+  dur="1.2s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
 />
 ```
 
@@ -64,7 +66,7 @@ genAnimateSoftBlink({
 ### 快速闪烁
 
 ```tsx
-{genAnimateSoftBlink({
+{animateSoftBlink({
   minOpacity: 0.3,
   onceBlinkDurationSeconds: 0.8
 })}
@@ -76,10 +78,12 @@ genAnimateSoftBlink({
 <animate
   attributeName="opacity"
   values="1; 0.3; 1"
-  dur="0.8s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  keyTimes="0; 0.5; 1"
   keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+  dur="0.8s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
 />
 ```
 
@@ -88,7 +92,7 @@ genAnimateSoftBlink({
 ### 慢速闪烁
 
 ```tsx
-{genAnimateSoftBlink({
+{animateSoftBlink({
   minOpacity: 0.2,
   onceBlinkDurationSeconds: 3
 })}
@@ -100,10 +104,12 @@ genAnimateSoftBlink({
 <animate
   attributeName="opacity"
   values="1; 0.2; 1"
-  dur="3s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  keyTimes="0; 0.5; 1"
   keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+  dur="3s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
 />
 ```
 
@@ -112,7 +118,7 @@ genAnimateSoftBlink({
 ### 完全闪烁（消失再出现）
 
 ```tsx
-{genAnimateSoftBlink({
+{animateSoftBlink({
   maxOpacity: 1,
   minOpacity: 0,  // 完全消失
   onceBlinkDurationSeconds: 1
@@ -125,10 +131,12 @@ genAnimateSoftBlink({
 <animate
   attributeName="opacity"
   values="1; 0; 1"
-  dur="1s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  keyTimes="0; 0.5; 1"
   keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+  dur="1s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
 />
 ```
 
@@ -137,7 +145,7 @@ genAnimateSoftBlink({
 ### 轻柔闪烁
 
 ```tsx
-{genAnimateSoftBlink({
+{animateSoftBlink({
   minOpacity: 0.5,  // 只淡化到 50%
   onceBlinkDurationSeconds: 2
 })}
@@ -149,10 +157,12 @@ genAnimateSoftBlink({
 <animate
   attributeName="opacity"
   values="1; 0.5; 1"
-  dur="2s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  keyTimes="0; 0.5; 1"
   keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
 />
 ```
 
@@ -161,7 +171,7 @@ genAnimateSoftBlink({
 ### 微弱闪烁
 
 ```tsx
-{genAnimateSoftBlink({
+{animateSoftBlink({
   minOpacity: 0.7,  // 只淡化到 70%
   onceBlinkDurationSeconds: 2
 })}
@@ -173,10 +183,12 @@ genAnimateSoftBlink({
 <animate
   attributeName="opacity"
   values="1; 0.7; 1"
-  dur="2s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  keyTimes="0; 0.5; 1"
   keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+  dur="2s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
 />
 ```
 
@@ -185,7 +197,7 @@ genAnimateSoftBlink({
 ### 深度淡化
 
 ```tsx
-{genAnimateSoftBlink({
+{animateSoftBlink({
   minOpacity: 0.1,  // 淡化到 10%
   onceBlinkDurationSeconds: 2.5
 })}
@@ -197,10 +209,12 @@ genAnimateSoftBlink({
 <animate
   attributeName="opacity"
   values="1; 0.1; 1"
-  dur="2.5s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  keyTimes="0; 0.5; 1"
   keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+  dur="2.5s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
 />
 ```
 
@@ -209,8 +223,8 @@ genAnimateSoftBlink({
 ### 点击闪烁
 
 ```tsx
-{genAnimateSoftBlink({
-  beginType: 'click'
+{animateSoftBlink({
+  begin: 'click'
 })}
 ```
 
@@ -220,11 +234,13 @@ genAnimateSoftBlink({
 <animate
   attributeName="opacity"
   values="1; 0.2; 1"
-  dur="1.2s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  keyTimes="0; 0.5; 1"
   keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+  dur="1.2s"
+  calcMode="spline"
   begin="click"
+  repeatCount="indefinite"
+  fill="remove"
 />
 ```
 
@@ -233,8 +249,8 @@ genAnimateSoftBlink({
 ### 延迟闪烁
 
 ```tsx
-{genAnimateSoftBlink({
-  delay: 1.5  // 延迟 1.5 秒后开始
+{animateSoftBlink({
+  begin: '1.5s'  // 延迟 1.5 秒后开始
 })}
 ```
 
@@ -244,44 +260,31 @@ genAnimateSoftBlink({
 <animate
   attributeName="opacity"
   values="1; 0.2; 1"
-  dur="1.2s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  keyTimes="0; 0.5; 1"
   keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+  dur="1.2s"
+  calcMode="spline"
   begin="1.5s"
+  repeatCount="indefinite"
+  fill="remove"
 />
 ```
 
 ---
 
-## 预设效果
+## 常用配方
 
-### softBlinkPresets
+`animateSoftBlink` 没有预设对象，直接用参数组合出常用效果：
 
-```tsx
-import { softBlinkPresets } from '@svg-anim/blink';
-
-// 轻柔淡入淡出
-softBlinkPresets.gentle()
-
-// 标准淡入淡出
-softBlinkPresets.normal()
-
-// 深度淡化
-softBlinkPresets.deep()
-
-// 快速闪烁
-softBlinkPresets.fast()
-
-// 慢速淡化
-softBlinkPresets.slow()
-
-// 微弱淡化
-softBlinkPresets.subtle()
-
-// 闪烁效果（完全消失）
-softBlinkPresets.blink()
-```
+| 效果 | 配方 |
+|------|------|
+| 轻柔淡入淡出 | `animateSoftBlink({ minOpacity: 0.5, onceBlinkDurationSeconds: 2 })` |
+| 标准淡入淡出 | `animateSoftBlink()` |
+| 深度淡化 | `animateSoftBlink({ minOpacity: 0.1, onceBlinkDurationSeconds: 2.5 })` |
+| 快速闪烁 | `animateSoftBlink({ minOpacity: 0.3, onceBlinkDurationSeconds: 0.8 })` |
+| 慢速淡化 | `animateSoftBlink({ onceBlinkDurationSeconds: 3 })` |
+| 微弱淡化 | `animateSoftBlink({ minOpacity: 0.7, onceBlinkDurationSeconds: 2 })` |
+| 完全消失再出现 | `animateSoftBlink({ minOpacity: 0, onceBlinkDurationSeconds: 1 })` |
 
 ---
 
@@ -304,7 +307,7 @@ softBlinkPresets.blink()
 ## 完整示例：闪烁的星星
 
 ```tsx
-import { genAnimateSoftBlink } from '@svg-anim/blink';
+import { animateSoftBlink } from '@guohub8080/expub-tool/behaviors';
 
 const BlinkingStar = () => {
   return (
@@ -313,7 +316,7 @@ const BlinkingStar = () => {
         d="M100 20 L120 80 L180 80 L130 120 L150 180 L100 140 L50 180 L70 120 L20 80 L80 80 Z"
         fill="yellow"
       >
-        {genAnimateSoftBlink({
+        {animateSoftBlink({
           maxOpacity: 1,
           minOpacity: 0.3,
           onceBlinkDurationSeconds: 1.5
@@ -330,9 +333,11 @@ const BlinkingStar = () => {
 <animate
   attributeName="opacity"
   values="1; 0.3; 1"
-  dur="1.5s"
-  repeatCount="indefinite"
-  calcMode="spline"
+  keyTimes="0; 0.5; 1"
   keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"
+  dur="1.5s"
+  calcMode="spline"
+  repeatCount="indefinite"
+  fill="remove"
 />
 ```

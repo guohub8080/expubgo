@@ -1,6 +1,6 @@
 import SectionEx from "@pub-html/basicEx/SectionEx";
-import CoverIn from "@pub-svg/C3_MultiDisplay/CoverIn"
-import { getEaseBezier, getPowerBezier, getLinearBezier } from "@pub-utils/getBezier/index.ts"
+import { CoverIn } from "@guohub8080/expub-tool/svg"
+import { getEaseBezier, getPowerBezier, getLinearBezier } from "@guohub8080/expub-tool/smil"
 import pic1 from "@book-svg-tool/data/assets/300x300/1.jpg"
 import pic2 from "@book-svg-tool/data/assets/300x300/2.jpg"
 import pic3 from "@book-svg-tool/data/assets/300x300/3.jpg"
@@ -21,36 +21,40 @@ export const GridExample = () => {
             }}>
                 {/* 左上 - 3张图 */}
                 <CoverIn
-                    pics={[
-                        { url: pic1, direction: "B", coverInDuration: 0.5, stayDuration: 0.8, keySplines: getLinearBezier() },
-                        { url: pic2, direction: "R", coverInDuration: 0.7, stayDuration: 1.1, keySplines: getEaseBezier({ isIn: true, isOut: false }) },
-                        { url: pic3, direction: "T", coverInDuration: 0.4, stayDuration: 0.9, keySplines: getPowerBezier({ power: 2, isIn: false, isOut: true }) },
+                    canvasSize={{ w: 300, h: 300 }}
+                    childItems={[
+                        { url: pic1, direction: "B", switchDuration: 0.5, stayDuration: 0.8, keySplines: getLinearBezier() },
+                        { url: pic2, direction: "R", switchDuration: 0.7, stayDuration: 1.1, keySplines: getEaseBezier({ isIn: true, isOut: false }) },
+                        { url: pic3, direction: "T", switchDuration: 0.4, stayDuration: 0.9, keySplines: getPowerBezier({ power: 2, isIn: false, isOut: true }) },
                     ]}
                 />
                 {/* 右上 - 4张图 */}
                 <CoverIn
-                    pics={[
-                        { url: pic4, direction: "L", coverInDuration: 0.6, stayDuration: 1.2, keySplines: getEaseBezier({ isIn: true, isOut: true }) },
-                        { url: pic5, direction: "B", coverInDuration: 0.9, stayDuration: 0.7, keySplines: getLinearBezier() },
-                        { url: pic6, direction: "R", coverInDuration: 0.5, stayDuration: 1.4, keySplines: getPowerBezier({ power: 3, isIn: true, isOut: false }) },
-                        { url: pic1, direction: "T", coverInDuration: 0.8, stayDuration: 1.0, keySplines: getEaseBezier({ isIn: false, isOut: true }) },
+                    canvasSize={{ w: 300, h: 300 }}
+                    childItems={[
+                        { url: pic4, direction: "L", switchDuration: 0.6, stayDuration: 1.2, keySplines: getEaseBezier({ isIn: true, isOut: true }) },
+                        { url: pic5, direction: "B", switchDuration: 0.9, stayDuration: 0.7, keySplines: getLinearBezier() },
+                        { url: pic6, direction: "R", switchDuration: 0.5, stayDuration: 1.4, keySplines: getPowerBezier({ power: 3, isIn: true, isOut: false }) },
+                        { url: pic1, direction: "T", switchDuration: 0.8, stayDuration: 1.0, keySplines: getEaseBezier({ isIn: false, isOut: true }) },
                     ]}
                 />
                 {/* 左下 - 2张图 */}
                 <CoverIn
-                    pics={[
-                        { url: pic2, direction: "R", coverInDuration: 1.0, stayDuration: 0.6, keySplines: getPowerBezier({ power: 4, isIn: true, isOut: true }) },
-                        { url: pic3, direction: "B", coverInDuration: 0.4, stayDuration: 1.5, keySplines: getLinearBezier() },
+                    canvasSize={{ w: 300, h: 300 }}
+                    childItems={[
+                        { url: pic2, direction: "R", switchDuration: 1.0, stayDuration: 0.6, keySplines: getPowerBezier({ power: 4, isIn: true, isOut: true }) },
+                        { url: pic3, direction: "B", switchDuration: 0.4, stayDuration: 1.5, keySplines: getLinearBezier() },
                     ]}
                 />
                 {/* 右下 - 5张图 */}
                 <CoverIn
-                    pics={[
-                        { url: pic4, direction: "T", coverInDuration: 0.3, stayDuration: 1.3, keySplines: getEaseBezier({ isIn: true, isOut: false }) },
-                        { url: pic5, direction: "L", coverInDuration: 0.8, stayDuration: 0.9, keySplines: getPowerBezier({ power: 2, isIn: false, isOut: true }) },
-                        { url: pic6, direction: "B", coverInDuration: 0.6, stayDuration: 1.1, keySplines: getLinearBezier() },
-                        { url: pic1, direction: "R", coverInDuration: 0.9, stayDuration: 0.7, keySplines: getEaseBezier({ isIn: true, isOut: true }) },
-                        { url: pic2, direction: "T", coverInDuration: 0.5, stayDuration: 1.2, keySplines: getEaseBezier({ isIn: false, isOut: true }) },
+                    canvasSize={{ w: 300, h: 300 }}
+                    childItems={[
+                        { url: pic4, direction: "T", switchDuration: 0.3, stayDuration: 1.3, keySplines: getEaseBezier({ isIn: true, isOut: false }) },
+                        { url: pic5, direction: "L", switchDuration: 0.8, stayDuration: 0.9, keySplines: getPowerBezier({ power: 2, isIn: false, isOut: true }) },
+                        { url: pic6, direction: "B", switchDuration: 0.6, stayDuration: 1.1, keySplines: getLinearBezier() },
+                        { url: pic1, direction: "R", switchDuration: 0.9, stayDuration: 0.7, keySplines: getEaseBezier({ isIn: true, isOut: true }) },
+                        { url: pic2, direction: "T", switchDuration: 0.5, stayDuration: 1.2, keySplines: getEaseBezier({ isIn: false, isOut: true }) },
                     ]}
                 />
             </div>

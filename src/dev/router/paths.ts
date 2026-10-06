@@ -9,6 +9,9 @@ const routerPaths = {
   // 设置页面
   settings: "settings",
 
+  // 内容源一键连接（网络连接制度：/#/connect?source=<源地址>）
+  connect: "connect",
+
   // SVG 文档
   userDoc: "user_doc",
   svgToolFunctions: "svg-tool-functions",
@@ -19,6 +22,7 @@ const routerPaths = {
   // 工具
   shadowTool: "shadow-tool",
   rotate3d: "rotate3d",
+  wechatCoverMaker: "wechat-cover-maker",
 
   // 前端相关
   articleviewer: "view",

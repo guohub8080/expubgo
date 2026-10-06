@@ -1,6 +1,6 @@
 import React from "react";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
-import { genAnimateSoftBlink } from "@svg-anim/blink";
+import { animateSoftBlink } from "@guohub8080/expub-tool/behaviors";
 
 // ============================================ FastBlink Component ============================================
 
@@ -12,7 +12,7 @@ export const FastBlink = () => {
                     d="M100 20 L120 80 L180 80 L130 120 L150 180 L100 140 L50 180 L70 120 L20 80 L80 80 Z"
                     fill="yellow"
                 >
-                    {genAnimateSoftBlink({
+                    {animateSoftBlink({
                         minOpacity: 0.3,
                         onceBlinkDurationSeconds: 0.8
                     })}

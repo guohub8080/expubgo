@@ -1,41 +1,40 @@
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper"
-import { genAnimateSkewY } from "@svg-anim/skewY"
-import { genAnimateScale } from "@svg-anim/scale"
-import { genAnimateRotate } from "@svg-anim/rotate"
-import { genAnimateTranslate } from "@svg-anim/translate"
+import { transformSkewY, transformScale, transformRotate, transformTranslate } from "@guohub8080/expub-tool/smil"
 
 export const FullTransformCombo = () => {
     return (
         <SvgWrapper showReplayButton={true}>
             <svg width="100%" height="200" viewBox="0 0 280 200">
                 <g transform="translate(140, 100)">
-                    {genAnimateSkewY({
+                    {transformSkewY({
                         timeline: [
-                            { toValue: 10, durationSeconds: 2 },
-                            { toValue: -10, durationSeconds: 2 }
+                            { toAbs: 10, durationSeconds: 2 },
+                            { toAbs: -10, durationSeconds: 2 }
                         ],
                         loopCount: 0,
                         isAdditive: true
                     })}
-                    {genAnimateScale({
+                    {transformScale({
+                        initValue: 1,
                         timeline: [
-                            { toValue: { x: 1.15, y: 0.85 }, durationSeconds: 2 },
-                            { toValue: { x: 0.85, y: 1.15 }, durationSeconds: 2 }
+                            { toAbs: 1.15, durationSeconds: 2 },
+                            { toAbs: 0.85, durationSeconds: 2 }
+                        ],
+                        pivot: [0, 0],
+                        loopCount: 0,
+                        isAdditive: true
+                    })}
+                    {transformRotate({
+                        timeline: [
+                            { toAbs: 180, durationSeconds: 4 }
                         ],
                         loopCount: 0,
                         isAdditive: true
                     })}
-                    {genAnimateRotate({
+                    {transformTranslate({
                         timeline: [
-                            { toValue: 180, durationSeconds: 4 }
-                        ],
-                        loopCount: 0,
-                        isAdditive: true
-                    })}
-                    {genAnimateTranslate({
-                        timeline: [
-                            { toValue: { x: 12, y: 0 }, durationSeconds: 2 },
-                            { toValue: { x: -12, y: 0 }, durationSeconds: 2 }
+                            { toAbs: { x: 12, y: 0 }, durationSeconds: 2 },
+                            { toAbs: { x: -12, y: 0 }, durationSeconds: 2 }
                         ],
                         loopCount: 0,
                         isAdditive: true

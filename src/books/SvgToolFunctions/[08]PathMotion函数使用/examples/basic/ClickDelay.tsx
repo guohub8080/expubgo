@@ -1,5 +1,5 @@
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
-import { genAnimatePathMotion } from "@svg-anim/pathMotion";
+import { animateMotion } from "@guohub8080/expub-tool/smil";
 
 export const ClickDelay = () => {
     return (
@@ -16,11 +16,10 @@ export const ClickDelay = () => {
                 {/* 点击触发 + 延迟 */}
                 <g transform="translate(50, 100)">
                     <circle r="12" fill="#f59e0b" />
-                    {genAnimatePathMotion({
+                    {animateMotion({
                         path: "m 0 0 c 50 -50, 100 -50, 150 0 s 100 50, 150 0",
                         durationSeconds: 3,
-                        delay: 1,
-                        beginType: 'click',
+                        begin: "click+1s",
                         rotate: 0
                     })}
                 </g>

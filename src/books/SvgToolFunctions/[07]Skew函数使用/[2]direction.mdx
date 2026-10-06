@@ -46,7 +46,7 @@ skewX(-30°)
 **代码：**
 
 ```tsx
-import { genAnimateSkewX } from "@svg-anim/skewX";
+import { transformSkewX } from "@guohub8080/expub-tool/smil";
 
 <SkewXDirection />
 ```
@@ -95,7 +95,7 @@ skewY(-30°)
 **代码：**
 
 ```tsx
-import { genAnimateSkewY } from "@svg-anim/skewY";
+import { transformSkewY } from "@guohub8080/expub-tool/smil";
 
 <SkewYDirection />
 ```
@@ -162,11 +162,11 @@ import { genAnimateSkewY } from "@svg-anim/skewY";
 
 ```tsx
 // 摇摆动画
-genAnimateSkewX({
+transformSkewX({
   timeline: [
-    { toValue: 15, durationSeconds: 0.5 },
-    { toValue: -15, durationSeconds: 1 },
-    { toValue: 15, durationSeconds: 1 }
+    { toAbs: 15, durationSeconds: 0.5 },
+    { toAbs: -15, durationSeconds: 1 },
+    { toAbs: 15, durationSeconds: 1 }
   ],
   loopCount: 0
 })
@@ -178,9 +178,9 @@ genAnimateSkewX({
 
 ```tsx
 // 极端倾斜
-genAnimateSkewY({
+transformSkewY({
   timeline: [
-    { toValue: 60, durationSeconds: 2 }
+    { toAbs: 60, durationSeconds: 2 }
   ]
 })
 ```

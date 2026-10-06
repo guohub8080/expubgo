@@ -212,7 +212,9 @@ function groupAndSortDocuments(): DocumentCategory[] {
     }
 
     // 处理不同文件类型的内容和标题
-    const { title, jsxContent } = processDocumentContent(document, fileType, fileName);
+    // 签名是 (module, document, fileType, fileName)——此前漏传 module 且整体错位一位，
+    // tsx 分支的 document 形参收到的是 fileType 字符串，jsx 恒为 undefined（正文空白根因）
+    const { title, jsxContent } = processDocumentContent(module, document, fileType, fileName);
 
     // 读取该分类的 info.tsx 以获取 slug 覆盖（如果提供）
     const categoryInfoPath = Object.keys(categoryInfoModules).find(p => p.includes(`/${categoryFolder}/info.tsx`));

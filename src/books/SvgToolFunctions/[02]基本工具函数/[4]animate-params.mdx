@@ -3,14 +3,14 @@ export const icon = "BookOpen"
 
 # {title}
 
-介绍通用参数 additive、freeze、动画如何重播，以及各 gen 函数的推荐设置。
+介绍通用参数 additive、freeze、动画如何重播，以及各动画函数的推荐设置。所有动画函数从 `@guohub8080/expub-tool/smil` 导入。
 
 ## additive（叠加）
 
 控制该动画是否与元素现有的 transform/属性动画进行叠加。
 
 - **sum**：与现有变换叠加（推荐用于 transform 类动画的组合，例如多段 translate/scale/rotate 同时进行）
-- **默认建议**：库内部在需要组合变换时会启用 `additive="sum"`。调用方通常无需显式设置
+- **默认建议**：transform 类函数（transformTranslate/transformScale/transformRotate 等）的 `isAdditive` 默认为 `true`，即默认叠加。调用方通常无需显式设置
 
 ```xml
 <!-- 多段变换组合时使用 additive="sum" -->
@@ -25,47 +25,87 @@ export const icon = "BookOpen"
 
 可用元素：`animate`、`animateTransform`、`animateMotion`、`set` 均支持 `fill` 属性（`freeze`/`remove`）。
 
-- **false**（默认）：动画结束后回到原始状态，适合循环或往返动效
-- **true**：动画结束后停留在最后一帧，适合一次性入场或状态切换
+- **false**（默认，`isFreeze: false`）：动画结束后回到原始状态，适合循环或往返动效
+- **true**（`isFreeze: true`）：动画结束后停留在最后一帧，适合一次性入场或状态切换
 
 **与 loopCount 的关系**：
 
-- 当 `loopCount: 0`（无限循环）时，动画不会结束，`freeze` 自然也不会生效
-- 想定格需使用有限播放（通常 1 次）+ `freeze: true`
+- 当 `loopCount: 0`（无限循环）时，动画不会结束，`isFreeze` 自然也不会生效
+- 想定格需使用有限播放（通常 1 次）+ `isFreeze: true`
 
 **本库取舍**：
 
-- 入场/状态切换推荐：`loopCount: 1, freeze: true`
-- 呼吸/闪烁/旋转等循环推荐：`loopCount: 0`（无需 `freeze`）
+- 入场/状态切换推荐：`loopCount: 1, isFreeze: true`
+- 呼吸/闪烁/旋转等循环推荐：`loopCount: 0`（无需 `isFreeze`）
 
 ```typescript
 // 一次性入场后保持
-{genAnimateScale({
-  timeline: [{ durationSeconds: 0.6, toValue: 1.2 }],
-  freeze: true
+{transformScale({
+  pivot: [187, 60],
+  timeline: [{ durationSeconds: 0.6, toAbs: 1.2 }],
+  isFreeze: true
 })}
 ```
+
+## native：覆盖/透传原生属性
+
+每个动画函数都有 `native` 参数——传入原生 SMIL 元素的任意 JSX 属性，展开在函数生成的属性**之后**，同名属性直接覆盖生成值：
+
+```typescript
+import { transformScale } from '@guohub8080/expub-tool/smil'
+
+// 例：补 id 供脚本 beginElement 触发
+{transformScale({
+  pivot: [187, 60],
+  timeline: [{ toAbs: 2, durationSeconds: 1 }],
+  native: { id: 'myScaleAnim' },
+})}
+// <animateTransform id="myScaleAnim" ... />
+```
+
+- 类型即原生元素属性：`T_NativeAnimate`（animate）、`T_NativeAnimateTransform`（animateTransform）、`T_NativeAnimateMotion`（animateMotion）
+- 典型用途：补 `id`、`restart` 之外的辅助属性、微信特殊属性
+- ⚠️ 不要用它覆盖 `values` / `keyTimes` / `dur` / `calcMode` 等由 timeline 编译出的属性——会破坏编译结果与 timeline 的一致性；这些请通过 config 字段（`timeline`/`calcMode`/`loopCount`…）控制
 
 ## 动画如何重新开始播放
 
 常见的三种重播方式：
 
 1. **React 重新挂载**：给包含动画的节点设置随参数变化的 `key`，变更时强制重新渲染，动画从头开始
-2. **事件触发**：设置 `begin="click"` 或库参数 `beginType: 'click'`，点击后重播
+2. **事件触发**：设置 `begin: 'click'`，点击后播放/重播
 3. **脚本触发**：给动画元素设置 `id` 并在脚本中调用 `document.getElementById(id).beginElement()`
 
 ```typescript
 // 方式1：React key 变更
 <g key={[dur, easing, loopCount].join('-')}>
-  {genAnimateTranslate({...})}
+  {transformTranslate({...})}
 </g>
 
 // 方式2：点击触发
-{genAnimateScale({ timeline: [...], beginType: 'click' })}
+{transformScale({ pivot: [187, 60], timeline: [...], begin: 'click' })}
 
 // 方式3：脚本触发（需要 id）
 <animateTransform id="scaleAnim" begin="indefinite" ... />
 // 脚本：document.getElementById('scaleAnim')?.beginElement();
+```
+
+## begin 字符串：事件 + 延迟的统一写法
+
+新 API 不再有「事件类型 + 延迟」两个独立参数，统一写 `begin` 字符串（直接透传给 SMIL 的 `begin` 属性）：
+
+| 需求 | begin 写法 | 说明 |
+|------|-----------|------|
+| 立即播放 | 不传（或 `begin: '0s'`） | 默认行为 |
+| 延迟 N 秒自动开始 | `begin: '2s'` | 延迟自动开始 |
+| 点击后播放 | `begin: 'click'` | 事件型 |
+| 点击后延迟 N 秒 | `begin: 'click+0.5s'` | 事件 + 偏移 |
+
+```typescript
+// 延迟 2s 自动开始
+{animateOpacity({ timeline: [{ durationSeconds: 0.6, toAbs: 1 }], begin: '2s' })}
+
+// 点击后延迟 0.5s 播放
+{transformRotate({ pivot: [187, 60], timeline: [{ durationSeconds: 3, toAbs: 360 }], begin: 'click+0.5s' })}
 ```
 
 ## 微信公众号编辑器环境（不支持 id）
@@ -73,53 +113,56 @@ export const icon = "BookOpen"
 在部分平台（如公众号编辑器）中无法使用 `id` 和脚本重播，推荐以下两种方式：
 
 - **变更 key 重新挂载**：通过 React 的 `key` 强制重新渲染，动画从头开始；无需 `id` 或脚本权限
-- **点击触发**：使用 `beginType: 'click'`，用户点击目标元素即可播放/重播
+- **点击触发**：使用 `begin: 'click'`，用户点击目标元素即可播放/重播
 
 ```typescript
 // 无 id 环境：推荐 1）变更 key 重播
 <g key={[dur, easing, loopCount, version].join('-')}>
-  {genAnimateScale({ timeline: [...], loopCount: 1, freeze: true })}
+  {transformScale({ pivot: [187, 60], timeline: [...], loopCount: 1, isFreeze: true })}
 </g>
 // 变更 version 触发重播
 
 // 或 2）点击触发（无需 id）
-{genAnimateScale({ timeline: [...], beginType: 'click', loopCount: 1 })}
+{transformScale({ pivot: [187, 60], timeline: [...], begin: 'click', loopCount: 1 })}
 ```
 
-## 推荐设置（各 gen* 函数）
+## 推荐设置（各动画函数）
 
-### genAnimateTranslate
+### transformTranslate
 
 - 循环动效：`loopCount: 0`；过渡动效：`loopCount: 1`
-- 与其他变换组合：内部已处理叠加；调用方一般不必设置 `additive`
-- 需要停在终点：`freeze: true`
+- 与其他变换组合：`isAdditive` 默认开启，调用方一般不必显式设置
+- 需要停在终点：`isFreeze: true`
 
-### genAnimateScale
+### transformScale
 
-- 任意原点缩放：无需额外样式；库内部以 translate-scale-translate 组合保证原点正确
-- 简单中心缩放：也可用 `getCenterScaleStyle()` 辅助 CSS 原点
-- 呼吸/脉动：`loopCount: 0`；一次性放大入场：`freeze: true`
+- **`pivot: [x, y]` 必填**：显式指定缩放支点（通常写元素中心坐标），无需任何 CSS 辅助
+- 呼吸/脉动：`loopCount: 0`；一次性放大入场：`isFreeze: true`
+- 初值用 `initValue`（默认 1），目标值用 `toAbs`
 
-### genAnimateRotate
+### transformRotate
 
-- 围绕任意点旋转：与缩放类似，优先传入 `elementBounds` 或使用相应 origin 方案
+- 围绕任意点旋转：传 `pivot: [x, y]`（缺省绕原点）；多支点路径式旋转用 `pivots` 数组
 - 无缝旋转（转圈）：通常 `loopCount: 0` + 线性缓动
+- 初值用 `initValue`（度数），目标用 `toAbs`（绝对角度）/ `toRel`（相对角度）
 
-### genAnimateOpacity
+### animateOpacity
 
-- 淡入后保持：`freeze: true`
+- 淡入后保持：`isFreeze: true`
 - 循环闪烁：`loopCount: 0`
+- 值域 0~1，初值 `initValue`（默认 1），目标 `toAbs`
 
 ## 常见模板示例
 
 ### 呼吸缩放
 
 ```typescript
-{genAnimateScale({
-  initScale: 1,
+{transformScale({
+  initValue: 1,
+  pivot: [187, 60],
   timeline: [
-    { durationSeconds: 1.2, toValue: 1.15, keySplines: getEaseBezier({ isIn: true, isOut: true }) },
-    { durationSeconds: 1.2, toValue: 1 }
+    { durationSeconds: 1.2, toAbs: 1.15, keySplines: getEaseBezier({ isIn: true, isOut: true }) },
+    { durationSeconds: 1.2, toAbs: 1 }
   ],
   loopCount: 0
 })}
@@ -128,24 +171,24 @@ export const icon = "BookOpen"
 ### 一次性放大入场
 
 ```typescript
-{genAnimateScale({
-  initScale: 0,
+{transformScale({
+  initValue: 0,
+  pivot: [187, 60],
   timeline: [
-    { durationSeconds: 0.6, toValue: 1, keySplines: getEaseBezier({ isIn: true, isOut: true }) }
+    { durationSeconds: 0.6, toAbs: 1, keySplines: getEaseBezier({ isIn: true, isOut: true }) }
   ],
   loopCount: 1,
-  freeze: true
+  isFreeze: true
 })}
 ```
 
 ### 持续旋转
 
 ```typescript
-{genAnimateRotate({
-  origin: 'center',
-  elementBounds: { x: 50, y: 50, w: 100, h: 100 },
+{transformRotate({
+  pivot: [100, 100],
   timeline: [
-    { durationSeconds: 3, toValue: 360, keySplines: getLinearBezier() }
+    { durationSeconds: 3, toAbs: 360, keySplines: getLinearBezier() }
   ],
   loopCount: 0
 })}

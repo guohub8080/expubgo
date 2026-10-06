@@ -1,6 +1,6 @@
 import SectionEx from "@pub-html/basicEx/SectionEx";
 import { ReplayButton } from "../ReplayButton";
-import { genAnimateTranslate } from "@svg-anim/translate";
+import { transformTranslate } from "@guohub8080/expub-tool/smil";
 
 export const RectanglePath = () => {
     return (
@@ -22,13 +22,13 @@ export const RectanglePath = () => {
                         <text x="110" y="155" fontSize="12" fill="#999" textAnchor="middle">左边</text>
                         {/* 移动的矩形 - 从左上角开始 */}
                         <rect x="125" y="100" width="50" height="50" fill="#8B4513" rx="4">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 100, y: 0 }, durationSeconds: 0.8 },   // 右：沿上边移动 100
-                                    { toValue: { x: 0, y: 50 }, durationSeconds: 0.8 },    // 下：沿右边移动 50
-                                    { toValue: { x: -100, y: 0 }, durationSeconds: 0.8 },  // 左：沿下边移动 100
-                                    { toValue: { x: 0, y: -50 }, durationSeconds: 0.8 }     // 上：沿左边回到起点
+                                    { toRel: { x: 100, y: 0 }, durationSeconds: 0.8 },   // 右：沿上边移动 100
+                                    { toRel: { x: 0, y: 50 }, durationSeconds: 0.8 },    // 下：沿右边移动 50
+                                    { toRel: { x: -100, y: 0 }, durationSeconds: 0.8 },  // 左：沿下边移动 100
+                                    { toRel: { x: 0, y: -50 }, durationSeconds: 0.8 }     // 上：沿左边回到起点
                                 ]
                             })}
                         </rect>

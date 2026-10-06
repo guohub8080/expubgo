@@ -13,6 +13,15 @@ export const icon = "BookOpen"
 
 ## 基础缓动类型
 
+以下缓动函数全部从 `@guohub8080/expub-tool/smil` 导入，直接返回曲线字符串：
+
+```typescript
+import {
+  getLinearBezier, getEaseBezier, getPowerBezier,
+  getCircleBezier, getExpoBezier, getSineBezier
+} from '@guohub8080/expub-tool/smil';
+```
+
 ### Linear - 线性（匀速）
 
 最简单的缓动方式，动画以恒定速度执行。
@@ -38,8 +47,8 @@ getLinearBezier() // 返回 "0 0 1 1"
 - 两者都为 true - Ease In Out（先加速后减速）
 
 ```typescript
-getEaseBezier({ isIn: false, isOut: true })  // "0.42 0 1 1" (ease-out)
-getEaseBezier({ isIn: true, isOut: false })   // "0 0 0.58 1" (ease-in)
+getEaseBezier({ isIn: false, isOut: true })  // "0 0 0.58 1" (ease-out)
+getEaseBezier({ isIn: true, isOut: false })   // "0.42 0 1 1" (ease-in)
 getEaseBezier({ isIn: true, isOut: true })    // "0.42 0 0.58 1" (ease-in-out)
 ```
 

@@ -4,37 +4,40 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 
 # {title}
 
-`genAnimateBreathe` 提供了丰富的时序控制选项，包括延迟启动、循环次数控制、点击触发等，让你能够精确控制呼吸动画的时机和次数。
+`transformBreathe` 提供了丰富的时序控制选项，包括延迟启动、循环次数控制、点击触发等，让你能够精确控制呼吸动画的时机和次数。
 
 ---
 
 ## 延迟启动
 
-使用 `delay` 参数让动画在指定时间后自动开始。
+使用 `begin` 字符串让动画在指定时间后自动开始（如 `begin: '2s'`）。
 
 ### 基础延迟
 
 **代码示例：**
 
 ```tsx
-{genAnimateBreathe({
-  delay: 2,  // 延迟 2 秒后开始
-  onceBreatheDurationSeconds: 2
+{transformBreathe({
+  begin: '2s',  // 延迟 2 秒后开始
+  onceBreatheDurationSeconds: 2,
+  pivot: [100, 100]
 })}
 ```
 
-**生成的 SVG 代码：**
+**生成的 SVG 代码（以缩放段为例，另有前后两个 translate 包裹段，见第一章）：**
 
 ```xml
 <animateTransform
   attributeName="transform"
   type="scale"
   values="1;1.1;1"
+  keyTimes="0;0.5;1"
   dur="2s"
   begin="2s"
   repeatCount="indefinite"
   calcMode="spline"
   keySplines="0.42 0 0.58 1;0.42 0 0.58 1"
+  additive="sum"
 />
 ```
 
@@ -48,16 +51,17 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 
 ## 循环次数控制
 
-使用 `repeatCount` 参数控制动画重复次数。
+使用 `loopCount` 参数控制动画重复次数。
 
 ### 有限次数循环
 
 **代码示例：**
 
 ```tsx
-{genAnimateBreathe({
-  repeatCount: 3,  // 呼吸 3 次后停止
-  onceBreatheDurationSeconds: 2
+{transformBreathe({
+  loopCount: 3,  // 呼吸 3 次后停止
+  onceBreatheDurationSeconds: 2,
+  pivot: [100, 100]
 })}
 ```
 
@@ -68,8 +72,10 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
   attributeName="transform"
   type="scale"
   values="1;1.1;1"
+  keyTimes="0;0.5;1"
   dur="2s"
   repeatCount="3"
+  additive="sum"
 />
 ```
 
@@ -86,9 +92,10 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 **代码示例：**
 
 ```tsx
-{genAnimateBreathe({
-  repeatCount: 0,  // 0 表示无限循环
-  onceBreatheDurationSeconds: 2
+{transformBreathe({
+  loopCount: 0,  // 0 表示无限循环
+  onceBreatheDurationSeconds: 2,
+  pivot: [100, 100]
 })}
 ```
 
@@ -110,16 +117,17 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 
 ## 点击触发
 
-使用 `beginType: 'click'` 参数让动画在点击时开始。
+使用 `begin: 'click'` 让动画在点击时开始。
 
 ### 基础点击触发
 
 **代码示例：**
 
 ```tsx
-{genAnimateBreathe({
-  beginType: 'click',
-  onceBreatheDurationSeconds: 2
+{transformBreathe({
+  begin: 'click',
+  onceBreatheDurationSeconds: 2,
+  pivot: [100, 100]
 })}
 ```
 
@@ -151,10 +159,10 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 **代码示例：**
 
 ```tsx
-{genAnimateBreathe({
-  beginType: 'click',
-  delay: 0.5,  // 点击后延迟 0.5 秒开始
-  onceBreatheDurationSeconds: 2
+{transformBreathe({
+  begin: 'click+0.5s',  // 点击后延迟 0.5 秒开始
+  onceBreatheDurationSeconds: 2,
+  pivot: [100, 100]
 })}
 ```
 
@@ -182,10 +190,11 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 **代码示例：**
 
 ```tsx
-{genAnimateBreathe({
-  repeatCount: 3,
+{transformBreathe({
+  loopCount: 3,
   onceBreatheDurationSeconds: 1.5,
-  toScale: 1.15
+  toScale: 1.15,
+  pivot: [100, 100]
 })}
 ```
 
@@ -198,11 +207,12 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 **代码示例：**
 
 ```tsx
-{genAnimateBreathe({
-  delay: 1,
-  repeatCount: 5,
+{transformBreathe({
+  begin: '1s',
+  loopCount: 5,
   onceBreatheDurationSeconds: 2,
-  toScale: 1.1
+  toScale: 1.1,
+  pivot: [100, 100]
 })}
 ```
 
@@ -215,11 +225,12 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 **代码示例：**
 
 ```tsx
-{genAnimateBreathe({
-  beginType: 'click',
-  repeatCount: 2,
+{transformBreathe({
+  begin: 'click',
+  loopCount: 2,
   onceBreatheDurationSeconds: 2.5,
-  toScale: 1.12
+  toScale: 1.12,
+  pivot: [100, 100]
 })}
 ```
 
@@ -236,10 +247,11 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 **推荐参数：**
 
 ```tsx
-{genAnimateBreathe({
-  repeatCount: 0,  // 无限循环
+{transformBreathe({
+  loopCount: 0,  // 无限循环
   onceBreatheDurationSeconds: 2,
-  toScale: 1.1
+  toScale: 1.1,
+  pivot: [100, 100]
 })}
 ```
 
@@ -252,11 +264,12 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 **推荐参数：**
 
 ```tsx
-{genAnimateBreathe({
-  delay: 2,
-  repeatCount: 3,
+{transformBreathe({
+  begin: '2s',
+  loopCount: 3,
   onceBreatheDurationSeconds: 1.5,
-  toScale: 1.15
+  toScale: 1.15,
+  pivot: [100, 100]
 })}
 ```
 
@@ -269,11 +282,12 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 **推荐参数：**
 
 ```tsx
-{genAnimateBreathe({
-  beginType: 'click',
-  repeatCount: 2,
+{transformBreathe({
+  begin: 'click',
+  loopCount: 2,
   onceBreatheDurationSeconds: 2,
-  toScale: 1.12
+  toScale: 1.12,
+  pivot: [100, 100]
 })}
 ```
 
@@ -286,11 +300,12 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 **推荐参数：**
 
 ```tsx
-{genAnimateBreathe({
-  delay: 1,
-  repeatCount: 0,
+{transformBreathe({
+  begin: '1s',
+  loopCount: 0,
   onceBreatheDurationSeconds: 3,
-  toScale: 1.05
+  toScale: 1.05,
+  pivot: [100, 100]
 })}
 ```
 
@@ -310,13 +325,14 @@ import { DelayBreathe, LimitedBreathe, ClickBreathe } from "./examples"
 
 ```tsx
 <svg viewBox="0 0 200 200">
-  <g style={{ cursor: 'pointer', transformOrigin: 'center', transformBox: 'fill-box' }}>
+  <g style={{ cursor: 'pointer' }}>
     <rect width="200" height="200" fill="transparent" />
     <circle cx="100" cy="100" r="50" fill="blue">
-      {genAnimateBreathe({
-        beginType: 'click',
-        repeatCount: 3,
-        onceBreatheDurationSeconds: 1.5
+      {transformBreathe({
+        begin: 'click',
+        loopCount: 3,
+        onceBreatheDurationSeconds: 1.5,
+        pivot: [100, 100]
       })}
     </circle>
   </g>

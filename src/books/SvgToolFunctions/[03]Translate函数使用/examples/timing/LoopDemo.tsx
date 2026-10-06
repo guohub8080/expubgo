@@ -1,6 +1,6 @@
 import SectionEx from "@pub-html/basicEx/SectionEx";
 import { ReplayButton } from "../ReplayButton";
-import { genAnimateTranslate } from "@svg-anim/translate";
+import { transformTranslate } from "@guohub8080/expub-tool/smil";
 
 export const LoopDemo = () => {
     return (
@@ -16,10 +16,10 @@ export const LoopDemo = () => {
                         {/* 第一行：播放 1 次 */}
                         <text x="20" y="55" fontSize="14" fill="#333" dominantBaseline="middle">播放 1 次</text>
                         <circle cx="120" cy="50" r="15" fill="#3498db">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 450, y: 0 }, durationSeconds: 2 }
+                                    { toRel: { x: 450, y: 0 }, durationSeconds: 2 }
                                 ],
                                 loopCount: 1
                             })}
@@ -28,10 +28,10 @@ export const LoopDemo = () => {
                         {/* 第二行：播放 3 次 */}
                         <text x="20" y="115" fontSize="14" fill="#333" dominantBaseline="middle">播放 3 次</text>
                         <circle cx="120" cy="110" r="15" fill="#e74c3c">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 450, y: 0 }, durationSeconds: 2 }
+                                    { toRel: { x: 450, y: 0 }, durationSeconds: 2 }
                                 ],
                                 loopCount: 3
                             })}
@@ -40,11 +40,11 @@ export const LoopDemo = () => {
                         {/* 第三行：无限循环 */}
                         <text x="20" y="175" fontSize="14" fill="#333" dominantBaseline="middle">无限循环</text>
                         <circle cx="120" cy="170" r="15" fill="#2ecc71">
-                            {genAnimateTranslate({
+                            {transformTranslate({
                                 initValue: { x: 0, y: 0 },
                                 timeline: [
-                                    { toValue: { x: 450, y: 0 }, durationSeconds: 2 },
-                                    { toValue: { x: 0, y: 0 }, durationSeconds: 0.5 }
+                                    { toRel: { x: 450, y: 0 }, durationSeconds: 2 },
+                                    { toRel: { x: 0, y: 0 }, durationSeconds: 0.5 }
                                 ],
                                 loopCount: 0
                             })}

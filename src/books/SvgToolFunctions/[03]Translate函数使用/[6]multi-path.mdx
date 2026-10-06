@@ -19,13 +19,13 @@ import {
 **代码示例：**
 
 ```tsx
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 100, y: 0 }, durationSeconds: 0.8 },   // 右：沿上边移动 100
-    { toValue: { x: 0, y: 50 }, durationSeconds: 0.8 },    // 下：沿右边移动 50
-    { toValue: { x: -100, y: 0 }, durationSeconds: 0.8 },  // 左：沿下边移动 100
-    { toValue: { x: 0, y: -50 }, durationSeconds: 0.8 }     // 上：沿左边回到起点
+    { toRel: { x: 100, y: 0 }, durationSeconds: 0.8 },   // 右：沿上边移动 100
+    { toRel: { x: 0, y: 50 }, durationSeconds: 0.8 },    // 下：沿右边移动 50
+    { toRel: { x: -100, y: 0 }, durationSeconds: 0.8 },  // 左：沿下边移动 100
+    { toRel: { x: 0, y: -50 }, durationSeconds: 0.8 }     // 上：沿左边回到起点
   ]
 })
 ```
@@ -45,11 +45,11 @@ genAnimateTranslate({
 **代码示例：**
 
 ```tsx
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 200, y: 90 }, durationSeconds: 1.5 },   // 向右下移动
-    { toValue: { x: -200, y: -90 }, durationSeconds: 1.5 }  // 返回左上
+    { toRel: { x: 200, y: 90 }, durationSeconds: 1.5 },   // 向右下移动
+    { toRel: { x: -200, y: -90 }, durationSeconds: 1.5 }  // 返回左上
   ],
   loopCount: 0
 })
@@ -70,13 +70,13 @@ genAnimateTranslate({
 **代码示例：**
 
 ```tsx
-genAnimateTranslate({
+transformTranslate({
   initValue: { x: 0, y: 0 },
   timeline: [
-    { toValue: { x: 110, y: 0 }, durationSeconds: 1 },   // 向右移动 110
-    { toValue: { x: 0, y: 60 }, durationSeconds: 1 }     // 向下移动 60
+    { toRel: { x: 110, y: 0 }, durationSeconds: 1 },   // 向右移动 110
+    { toRel: { x: 0, y: 60 }, durationSeconds: 1 }     // 向下移动 60
   ],
-  freeze: true
+  isFreeze: true
 })
 ```
 

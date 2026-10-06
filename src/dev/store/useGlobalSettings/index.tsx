@@ -62,7 +62,7 @@ export const articleLineHeightAtom = st<number>('articleLineHeight', DEFAULT_VAL
 export const bookSideWidthAtom = st<number>('bookSideWidth', DEFAULT_VALUES.bookSideWidth);
 export const bookContentWidthAtom = st<number>('bookContentWidth', DEFAULT_VALUES.bookContentWidth);
 export const bookContentPaddingAtom = st<number>('bookContentPadding', DEFAULT_VALUES.bookContentPadding);
-export const bookSideContentGapAtom = st<number>('bookSideContentGap', DEFAULT_VALUES.bookSideContentGap);
+export const bookUniMarginAtom = st<number>('bookUniMargin', DEFAULT_VALUES.bookUniMargin);
 export const isBookTocShowAtom = st<boolean>('isBookTocShow', DEFAULT_VALUES.isBookTocShow);
 
 // 纯内存字段（不持久化）
@@ -103,7 +103,7 @@ export default function useGlobalSettings() {
 	const bookSideWidth = useAtomValue(bookSideWidthAtom)
 	const bookContentWidth = useAtomValue(bookContentWidthAtom)
 	const bookContentPadding = useAtomValue(bookContentPaddingAtom)
-	const bookSideContentGap = useAtomValue(bookSideContentGapAtom)
+	const bookUniMargin = useAtomValue(bookUniMarginAtom)
 	const isBookTocShow = useAtomValue(isBookTocShowAtom)
 	const isBookPage = useAtomValue(isBookPageAtom)
 	const lastVisitedUrl = useAtomValue(lastVisitedUrlAtom)
@@ -118,7 +118,7 @@ export default function useGlobalSettings() {
 		chineseFontFamily, englishFontFamily, codeFontFamily, japaneseFontFamily,
 		fontWeightLight, fontWeightNormal, fontWeightMedium, fontWeightSemibold, fontWeightBold,
 		articleLineHeight,
-		bookSideWidth, bookContentWidth, bookContentPadding, bookSideContentGap,
+		bookSideWidth, bookContentWidth, bookContentPadding, bookUniMargin,
 		isBookTocShow, isBookPage, lastVisitedUrl, isNavigationPanelOpen,
 
 		setTheme: (t: ThemeMode) => { applyTheme(t); setupSystemThemeListener(t); setAtom(themeAtom, t) },
@@ -143,7 +143,7 @@ export default function useGlobalSettings() {
 		setBookSideWidth: (w: number) => setAtom(bookSideWidthAtom, w),
 		setBookContentWidth: (w: number) => setAtom(bookContentWidthAtom, w),
 		setBookContentPadding: (p: number) => setAtom(bookContentPaddingAtom, p),
-		setBookSideContentGap: (g: number) => setAtom(bookSideContentGapAtom, g),
+		setBookUniMargin: (g: number) => setAtom(bookUniMarginAtom, g),
 		setIsBookTocShow: (s: boolean) => setAtom(isBookTocShowAtom, s),
 		toggleBookTocShow: () => { const st = getDefaultStore(); st.set(isBookTocShowAtom, !st.get(isBookTocShowAtom)) },
 		setIsBookPage: (b: boolean) => setAtom(isBookPageAtom, b),
@@ -168,7 +168,7 @@ export default function useGlobalSettings() {
 			s.set(bookSideWidthAtom, DEFAULT_VALUES.bookSideWidth)
 			s.set(bookContentWidthAtom, DEFAULT_VALUES.bookContentWidth)
 			s.set(bookContentPaddingAtom, DEFAULT_VALUES.bookContentPadding)
-			s.set(bookSideContentGapAtom, DEFAULT_VALUES.bookSideContentGap)
+			s.set(bookUniMarginAtom, DEFAULT_VALUES.bookUniMargin)
 			s.set(isBookTocShowAtom, DEFAULT_VALUES.isBookTocShow)
 		},
 		resetFontSettings: () => {
@@ -189,7 +189,7 @@ export default function useGlobalSettings() {
 			s.set(bookSideWidthAtom, DEFAULT_VALUES.bookSideWidth)
 			s.set(bookContentWidthAtom, DEFAULT_VALUES.bookContentWidth)
 			s.set(bookContentPaddingAtom, DEFAULT_VALUES.bookContentPadding)
-			s.set(bookSideContentGapAtom, DEFAULT_VALUES.bookSideContentGap)
+			s.set(bookUniMarginAtom, DEFAULT_VALUES.bookUniMargin)
 			s.set(isBookTocShowAtom, DEFAULT_VALUES.isBookTocShow)
 		},
 	}

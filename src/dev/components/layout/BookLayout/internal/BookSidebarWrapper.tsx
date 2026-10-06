@@ -4,14 +4,15 @@
  */
 
 import * as React from "react"
-import { cn } from "../../../../shadcn/lib/utils.ts"
+import { cn } from "@shadcn/lib/utils.ts"
+import useGlobalSettings from "@dev/store/useGlobalSettings"
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "../../../../shadcn/components/ui/sheet.tsx"
+} from "@shadcn/components/ui/sheet.tsx"
 import { useBookSidebar } from "./BookSidebarProvider.tsx"
 
 const SIDEBAR_WIDTH_MOBILE = "18rem"
@@ -31,18 +32,35 @@ export function BookSidebarWrapper({
   containerStyle?: React.CSSProperties
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useBookSidebar()
+  const { bookUniMargin } = useGlobalSettings()
 
   if (collapsible === "none") {
     return (
       <div
         data-slot="sidebar"
+        data-variant={variant}
+        data-side={side}
+        // group + data-variant 供 inner 的 group-data-[variant=floating] 卡片样式（圆角/边框/阴影）继续生效；
+        // 外层无背景（透明）——浮动卡片自己的 bg-sidebar 在 inner 上，padding 呼吸区透出页面背景
         className={cn(
-          "bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col",
+          "group text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col",
           className
         )}
         {...props}
+        // 统一边距作上下呼吸（水平为零：内容满宽贴侧栏边界）；保留外部传入的 style 项
+        style={{
+          paddingTop: bookUniMargin,
+          paddingBottom: bookUniMargin,
+          ...(props.style as React.CSSProperties),
+        }}
       >
-        {children}
+        <div
+          data-sidebar="sidebar"
+          data-slot="sidebar-inner"
+          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+        >
+          {children}
+        </div>
       </div>
     )
   }

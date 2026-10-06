@@ -1,4 +1,4 @@
-import { genAnimateRotate } from "@svg-anim/rotate";
+import { transformRotate } from "@guohub8080/expub-tool/smil";
 import { SvgWrapper } from "@book-svg-tool/data/SvgWrapper";
 
 export const BasicRotate = () => {
@@ -6,9 +6,10 @@ export const BasicRotate = () => {
         <SvgWrapper showReplayButton={true}>
             <svg width="200" height="200" viewBox="0 0 200 200">
                 <rect x="75" y="75" width="50" height="50" fill="blue">
-                    {genAnimateRotate({
+                    {transformRotate({
+                        pivot: [100, 100],
                         timeline: [
-                            { toValue: 360, durationSeconds: 2 }
+                            { toAbs: 360, durationSeconds: 2 }
                         ],
                         loopCount: 0
                     })}

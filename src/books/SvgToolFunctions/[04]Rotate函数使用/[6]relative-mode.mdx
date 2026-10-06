@@ -4,30 +4,30 @@ import { RelativeMode, AbsoluteMode, ModeComparison } from "./examples"
 
 # {title}
 
-`isRelativeRotate` 参数控制角度的计算方式，有两种模式：相对旋转（增量）和绝对旋转。理解这个参数对于创建复杂的旋转动画至关重要。
+timeline 每一段的目标角度用 `toRel`（相对）或 `toAbs`（绝对）指定，两种写法表达不同的角度语义。理解它们的区别对于创建复杂的旋转动画至关重要。
 
 ---
 
-## 相对旋转模式（isRelativeRotate: true，默认值）
+## 相对旋转（toRel）
 
-每个阶段的 `toValue` 是**相对于上一阶段终点**的增量角度。
+每段的 `toRel` 是**相对于上一阶段终点**的增量角度。
 
 ### 工作原理
 
 ```
-当前角度 = 上一阶段角度 + toValue
+当前角度 = 上一阶段角度 + toRel
 ```
 
 **示例：**
 
 ```tsx
-genAnimateRotate({
-  initAngle: 0,
-  isRelativeRotate: true,  // 默认值
+transformRotate({
+  initValue: 0,
+  pivot: [100, 100],
   timeline: [
-    { toValue: 90, durationSeconds: 1 },    // 0 + 90 = 90°
-    { toValue: 0, durationSeconds: 1 },     // 90 + 0 = 90°（保持）
-    { toValue: 90, durationSeconds: 1 }     // 90 + 90 = 180°
+    { toRel: 90, durationSeconds: 1 },    // 0 + 90 = 90°
+    { toRel: 0, durationSeconds: 1 },     // 90 + 0 = 90°（保持）
+    { toRel: 90, durationSeconds: 1 }     // 90 + 90 = 180°
   ]
 })
 ```
@@ -40,26 +40,26 @@ genAnimateRotate({
 
 ---
 
-## 绝对旋转模式（isRelativeRotate: false）
+## 绝对旋转（toAbs）
 
-每个阶段的 `toValue` 是**相对于初始位置**的绝对角度。
+每段的 `toAbs` 是**相对于初始角度**的绝对角度。
 
 ### 工作原理
 
 ```
-当前角度 = toValue（绝对坐标）
+当前角度 = toAbs（绝对角度）
 ```
 
 **示例：**
 
 ```tsx
-genAnimateRotate({
-  initAngle: 0,
-  isRelativeRotate: false,
+transformRotate({
+  initValue: 0,
+  pivot: [100, 100],
   timeline: [
-    { toValue: 90, durationSeconds: 1 },    // 旋转到 90°
-    { toValue: 90, durationSeconds: 1 },    // 保持在 90°
-    { toValue: 180, durationSeconds: 1 }    // 旋转到 180°
+    { toAbs: 90, durationSeconds: 1 },    // 旋转到 90°
+    { toAbs: 90, durationSeconds: 1 },    // 保持在 90°
+    { toAbs: 180, durationSeconds: 1 }    // 旋转到 180°
   ]
 })
 ```
@@ -76,8 +76,8 @@ genAnimateRotate({
 
 虽然两个示例最终效果相同，但参数写法不同：
 
-| 阶段 | 相对模式 `toValue` | 实际角度 | 绝对模式 `toValue` |
-|------|-------------------|---------|-------------------|
+| 阶段 | 相对 `toRel` | 实际角度 | 绝对 `toAbs` |
+|------|-------------|---------|-------------|
 | 初始 | - | 0° | - |
 | 第1段 | `90` | 0° + 90° = **90°** | `90` → **90°** |
 | 第2段 | `0` | 90° + 0° = **90°** | `90` → **90°** |
@@ -87,22 +87,24 @@ genAnimateRotate({
 
 <ModeComparison />
 
+`toRel` 与 `toAbs` 还可以在同一条 timeline 里混用，每段独立选择最顺手的写法。
+
 ---
 
 ## 关键区别
 
-### 相对模式（推荐）
+### 相对写法（推荐）
 
 ```tsx
 // ✅ 保持不动很简单
-{ toValue: 0 }  // 相对于上一阶段，增量是 0
+{ toRel: 0 }  // 相对于上一阶段，增量是 0
 ```
 
-### 绝对模式
+### 绝对写法
 
 ```tsx
 // ❌ 保持不动需要重复上一个角度
-{ toValue: 90 }  // 必须写绝对角度 90
+{ toAbs: 90 }  // 必须写绝对角度 90
 ```
 
 ---
@@ -111,26 +113,27 @@ genAnimateRotate({
 
 ### 场景 1：单次旋转
 
-两种模式都可以，推荐相对模式（默认）：
+两种写法都可以：
 
 ```tsx
-genAnimateRotate({
+transformRotate({
   timeline: [
-    { toValue: 360, durationSeconds: 2 }
+    { toAbs: 360, durationSeconds: 2 }
   ]
 })
 ```
 
 ### 场景 2：往返摆动
 
-相对模式更直观：
+相对写法更直观：
 
 ```tsx
-genAnimateRotate({
-  initAngle: -30,
+transformRotate({
+  initValue: -30,
+  pivot: [100, 100],
   timeline: [
-    { toValue: 60, durationSeconds: 1 },    // -30 + 60 = 30°
-    { toValue: -60, durationSeconds: 1 }    // 30 + (-60) = -30°
+    { toRel: 60, durationSeconds: 1 },    // -30 + 60 = 30°
+    { toRel: -60, durationSeconds: 1 }    // 30 + (-60) = -30°
   ],
   loopCount: 0
 })
@@ -138,16 +141,16 @@ genAnimateRotate({
 
 ### 场景 3：复杂路径
 
-相对模式更容易理解增量：
+相对写法更容易理解增量：
 
 ```tsx
-genAnimateRotate({
-  initAngle: 0,
+transformRotate({
+  initValue: 0,
   timeline: [
-    { toValue: 45, durationSeconds: 1 },   // 向右转 45°
-    { toValue: 0, durationSeconds: 1 },    // 返回 45°
-    { toValue: -45, durationSeconds: 1 },  // 向左转 45°
-    { toValue: 0, durationSeconds: 1 }     // 返回中心
+    { toRel: 45, durationSeconds: 1 },    // 向右转 45°
+    { toRel: 0, durationSeconds: 1 },     // 返回 45°
+    { toRel: -45, durationSeconds: 1 },   // 向左转 45°
+    { toRel: 0, durationSeconds: 1 }      // 返回中心
   ]
 })
 ```
@@ -156,11 +159,11 @@ genAnimateRotate({
 
 ## 总结
 
-| 特性 | 相对模式 | 绝对模式 |
+| 特性 | 相对写法 | 绝对写法 |
 |------|---------|---------|
-| **默认值** | ✅ `true` | `false` |
-| **toValue 含义** | 增量角度 | 绝对角度 |
-| **保持不动** | `{ toValue: 0 }` | 需重复上一角度 |
+| **字段** | `toRel: 90` | `toAbs: 90` |
+| **含义** | 增量角度 | 绝对角度 |
+| **保持不动** | `{ toRel: 0 }` | 需重复上一角度 |
 | **适用场景** | 大多数情况 | 需要精确控制绝对角度 |
 
-**推荐**：使用相对模式（默认），更符合直觉，代码更简洁。
+**推荐**：增量思维时用 `toRel`，更符合直觉；目标角度明确时用 `toAbs`，直接了当。

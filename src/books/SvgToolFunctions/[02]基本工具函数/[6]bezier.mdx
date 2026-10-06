@@ -217,12 +217,18 @@ getBackBezier0_1()  // 基础回拉
 
 ## 参数说明
 
-所有缓动函数都支持两个参数：
+基础缓动函数（Linear/Ease/Power/Circle/Expo/Sine）支持两个参数：
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | `isIn` | boolean | 是否为缓入（开始慢） |
 | `isOut` | boolean | 是否为缓出（结束慢） |
+
+弹性类函数（`getElasticBezier0_1` / `getBounceBezier0_1` / `getBackBezier0_1`，命名中的 `0_1` 表示 intensity 取值范围）额外支持：
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `intensity` | number | 剧烈程度 0-1，默认 0.55（如温和 0.3 / 强烈 0.8） |
 
 **组合效果：**
 
@@ -235,10 +241,12 @@ getBackBezier0_1()  // 基础回拉
 
 ## 使用示例
 
+所有缓动函数从 `@guohub8080/expub-tool/smil` 导入。**函数直接返回曲线字符串**（如 `"0.42 0 0.58 1"`），没有单独的曲线常量导出——需要常量时调用函数取返回值即可。
+
 ### 在 SVG 中使用
 
 ```tsx
-import { getEaseBezier } from '@pub-utils/getBezier';
+import { getEaseBezier } from '@guohub8080/expub-tool/smil';
 
 <animate
   attributeName="x"
@@ -258,18 +266,17 @@ import { getEaseBezier } from '@pub-utils/getBezier';
 }
 ```
 
-### 与 genSvgKeySplines 配合使用
+### 与 buildTimeline 配合使用
 
 ```tsx
-import { genSvgKeySplines } from '@pub-utils/genSvgKeySplines';
-import { getEaseBezier } from '@pub-utils/getBezier';
+import { buildTimeline, getEaseBezier } from '@guohub8080/expub-tool/smil';
 
-const keys = genSvgKeySplines({
+const keys = buildTimeline({
   initValue: 0,
   timeline: [
     {
       keySplines: getEaseBezier({ isIn: false, isOut: true }),
-      toValue: 100,
+      toAbs: 100,
       durationSeconds: 2
     }
   ]

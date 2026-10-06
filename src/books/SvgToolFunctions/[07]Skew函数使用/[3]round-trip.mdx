@@ -15,14 +15,14 @@ import { SkewXRoundTrip, SkewYRoundTrip } from "./examples"
 **代码示例：**
 
 ```tsx
-import { genAnimateSkewX } from "@svg-anim/skewX";
+import { transformSkewX } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="150" viewBox="0 0 200 150">
   <rect x="50" y="25" width="100" height="100" fill="blue">
-    {genAnimateSkewX({
+    {transformSkewX({
       timeline: [
-        { toValue: 30, durationSeconds: 1 },   // 向右倾斜
-        { toValue: 0, durationSeconds: 1 },    // 返回直立
+        { toAbs: 30, durationSeconds: 1 },   // 向右倾斜
+        { toAbs: 0, durationSeconds: 1 },    // 返回直立
       ],
       loopCount: 0
     })}
@@ -43,14 +43,14 @@ import { genAnimateSkewX } from "@svg-anim/skewX";
 **代码示例：**
 
 ```tsx
-import { genAnimateSkewY } from "@svg-anim/skewY";
+import { transformSkewY } from "@guohub8080/expub-tool/smil";
 
 <svg width="200" height="150" viewBox="0 0 200 150">
   <rect x="50" y="25" width="100" height="100" fill="green">
-    {genAnimateSkewY({
+    {transformSkewY({
       timeline: [
-        { toValue: 30, durationSeconds: 1 },   // 向下倾斜
-        { toValue: 0, durationSeconds: 1 },    // 返回直立
+        { toAbs: 30, durationSeconds: 1 },   // 向下倾斜
+        { toAbs: 0, durationSeconds: 1 },    // 返回直立
       ],
       loopCount: 0
     })}
@@ -75,14 +75,14 @@ import { genAnimateSkewY } from "@svg-anim/skewY";
 **代码示例：**
 
 ```tsx
-import { genAnimateSkewX } from "@svg-anim/skewX";
+import { transformSkewX } from "@guohub8080/expub-tool/smil";
 
-genAnimateSkewX({
+transformSkewX({
   timeline: [
-    { toValue: 20, durationSeconds: 0.8, keySplines: "0.42 0 0.58 1" },   // 向右
-    { toValue: -20, durationSeconds: 1.6, keySplines: "0.42 0 0.58 1" },  // 向左
-    { toValue: 20, durationSeconds: 1.6, keySplines: "0.42 0 0.58 1" },   // 向右
-    { toValue: 0, durationSeconds: 0.8, keySplines: "0.42 0 0.58 1" }     // 返回
+    { toAbs: 20, durationSeconds: 0.8, keySplines: "0.42 0 0.58 1" },   // 向右
+    { toAbs: -20, durationSeconds: 1.6, keySplines: "0.42 0 0.58 1" },  // 向左
+    { toAbs: 20, durationSeconds: 1.6, keySplines: "0.42 0 0.58 1" },   // 向右
+    { toAbs: 0, durationSeconds: 0.8, keySplines: "0.42 0 0.58 1" }     // 返回
   ],
   loopCount: 0
 })
@@ -103,14 +103,14 @@ genAnimateSkewX({
 使用 `loopCount: 0` 创建无限循环：
 
 ```tsx
-genAnimateSkewX({
-  initAngle: -15,  // 从向左倾斜开始
+transformSkewX({
+  initValue: -15,  // 从向左倾斜开始
   timeline: [
-    { toValue: 15, durationSeconds: 2, keySplines: "0.42 0 1 1" },    // 缓动到右倾斜
-    { toValue: -15, durationSeconds: 2, keySplines: "0.42 0 1 1" }    // 缓动到左倾斜
+    { toAbs: 15, durationSeconds: 2, keySplines: "0.42 0 1 1" },    // 缓动到右倾斜
+    { toAbs: -15, durationSeconds: 2, keySplines: "0.42 0 1 1" }    // 缓动到左倾斜
   ],
   loopCount: 0,  // 无限循环
-  freeze: true
+  isFreeze: true
 })
 ```
 
@@ -133,29 +133,28 @@ genAnimateSkewX({
 ### 同时使用 SkewX 和 SkewY
 
 ```tsx
-import { genAnimateSkewX } from "@svg-anim/skewX";
-import { genAnimateSkewY } from "@svg-anim/skewY";
+import { transformSkewX, transformSkewY } from "@guohub8080/expub-tool/smil";
 
 <g>
   {/* SkewX 动画 */}
-  {genAnimateSkewX({
+  {transformSkewX({
     timeline: [
-      { toValue: 30, durationSeconds: 1.5 },
-      { toValue: -30, durationSeconds: 3 },
-      { toValue: 30, durationSeconds: 1.5 }
+      { toAbs: 30, durationSeconds: 1.5 },
+      { toAbs: -30, durationSeconds: 3 },
+      { toAbs: 30, durationSeconds: 1.5 }
     ],
     loopCount: 0
   })}
 
   {/* SkewY 动画叠加 */}
-  {genAnimateSkewY({
+  {transformSkewY({
     timeline: [
-      { toValue: 30, durationSeconds: 1.5 },
-      { toValue: -30, durationSeconds: 3 },
-      { toValue: 30, durationSeconds: 1.5 }
+      { toAbs: 30, durationSeconds: 1.5 },
+      { toAbs: -30, durationSeconds: 3 },
+      { toAbs: 30, durationSeconds: 1.5 }
     ],
     loopCount: 0,
-    additive: true  // 累加变换
+    isAdditive: true  // 累加变换
   })}
 </g>
 ```
@@ -172,20 +171,20 @@ import { genAnimateSkewY } from "@svg-anim/skewY";
 
 ```tsx
 // ease-in-out 效果
-genAnimateSkewX({
+transformSkewX({
   timeline: [
     {
-      toValue: 25,
+      toAbs: 25,
       durationSeconds: 1.5,
       keySplines: "0.42 0 0.58 1"  // ease-in-out
     },
     {
-      toValue: -25,
+      toAbs: -25,
       durationSeconds: 3,
       keySplines: "0.42 0 0.58 1"  // ease-in-out
     },
     {
-      toValue: 25,
+      toAbs: 25,
       durationSeconds: 1.5,
       keySplines: "0.42 0 0.58 1"  // ease-in-out
     }
@@ -212,11 +211,11 @@ genAnimateSkewX({
 使用往返倾斜模拟钟摆的运动轨迹：
 
 ```tsx
-genAnimateSkewX({
+transformSkewX({
   timeline: [
-    { toValue: 15, durationSeconds: 1, keySplines: "0.42 0 1 1" },
-    { toValue: -15, durationSeconds: 2, keySplines: "0.42 0 1 1" },
-    { toValue: 15, durationSeconds: 2, keySplines: "0.42 0 1 1" }
+    { toAbs: 15, durationSeconds: 1, keySplines: "0.42 0 1 1" },
+    { toAbs: -15, durationSeconds: 2, keySplines: "0.42 0 1 1" },
+    { toAbs: 15, durationSeconds: 2, keySplines: "0.42 0 1 1" }
   ],
   loopCount: 0
 })
@@ -227,11 +226,11 @@ genAnimateSkewX({
 使用 SkewY 模拟书页翻动的透视变化：
 
 ```tsx
-genAnimateSkewY({
-  initAngle: -30,
+transformSkewY({
+  initValue: -30,
   timeline: [
-    { toValue: 30, durationSeconds: 1.5, keySplines: "0.25 0.1 0.25 1" },
-    { toValue: -30, durationSeconds: 0.5, keySplines: "0.25 0.1 0.25 1" }
+    { toAbs: 30, durationSeconds: 1.5, keySplines: "0.25 0.1 0.25 1" },
+    { toAbs: -30, durationSeconds: 0.5, keySplines: "0.25 0.1 0.25 1" }
   ],
   loopCount: 0
 })
