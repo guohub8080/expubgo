@@ -2,12 +2,11 @@
 /**
  * CI 认证预置（preinstall）——安装私有包 @guohub8080/expub-tool 的前置条件。
  *
- * 背景：pnpm 出于防投毒考虑，不展开项目级 .npmrc 里的 ${ENV} 凭据；而
- * Netlify/Cloudflare 的构建命令保持 `pnpm build` 原样（自动安装阶段无钩子可配），
- * GitHub Actions 亦同。本脚本挂在 package.json 的 preinstall：任何 pnpm install
- * 前运行，检测到 NODE_AUTH_TOKEN 环境变量即幂等写入用户级 ~/.npmrc。
- *
- * 本地无 NODE_AUTH_TOKEN 时为 no-op，零影响。
+ * 背景：pnpm 出于防投毒考虑，不展开项目级 .npmrc 里的 ${ENV} 凭据；且 pnpm 的
+ * fetch（下载 tarball，私有包 401 在此发生）**先于** preinstall 等生命周期脚本，
+ * 所以本脚本必须被显式前置到安装命令：`node scripts/ci-auth.mjs && pnpm install`
+ * （GH 工作流、Vercel vercel.json 的 installCommand、CF/Netlify 的安装命令均已如此）。
+ * package.json 里保留的 preinstall 挂钩是兜底无害项：无 NODE_AUTH_TOKEN 时 no-op。
  */
 import fs from 'node:fs'
 import os from 'node:os'

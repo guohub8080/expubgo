@@ -31,7 +31,7 @@ jobs:
         with:
           node-version: 20
 
-      # 3. 安装依赖并构建（私有包认证：preinstall 钩子 scripts/ci-auth.mjs 读 NODE_AUTH_TOKEN）
+      # 3. 安装依赖并构建（私有包认证：ci-auth 显式前置，preinstall 晚于 fetch 救不了下载）
       - name: Install and Build
         run: |
           rm -rf node_modules package-lock.json
@@ -39,7 +39,7 @@ jobs:
           npm install -g pnpm@12.10.0
           pnpm config set strict-peer-dependencies false
           pnpm config set auto-install-peers true
-          pnpm install  --no-frozen-lockfile
+          pnpm install:ci
           pnpm  gh
         env:
           # 强制 Vite 使用生产环境配置

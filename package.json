@@ -9,6 +9,8 @@
     "gen:pub": "node scripts/generate-publisher-branches.cjs",
     "dev": "lsof -ti:6768 | xargs kill -9 2>/dev/null; node scripts/sync-publisher-tsconfig.cjs && node scripts/generate-publisher-branches.cjs && vite",
     "build": "node scripts/sync-publisher-tsconfig.cjs && node scripts/generate-publisher-branches.cjs && tsc && vite build && node scripts/prerender.mjs",
+    "install:ci": "node scripts/ci-auth.mjs && pnpm install --no-frozen-lockfile",
+    "build:cf": "pnpm install:ci && pnpm build",
     "build:single": "node scripts/sync-publisher-tsconfig.cjs && node scripts/generate-publisher-branches.cjs && SINGLE_FILE=true vite build",
     "gh": "GITHUB_PAGES=true pnpm build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

@@ -34,9 +34,9 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      # 私有包认证：preinstall 钩子（scripts/ci-auth.mjs）从本 env 读 token 写入用户级 npmrc
+      # 私有包认证：install:ci = ci-auth 前置 + install（preinstall 晚于 fetch 救不了下载）
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install:ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
 

@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "pnpm install:ci",
   "rewrites": [
     { "source": "/view/(.*)", "destination": "/index.html" },
     { "source": "/(.*)", "destination": "/404.html" }
