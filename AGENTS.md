@@ -4,14 +4,16 @@
 
 ## 命令
 
-包管理器：**pnpm**。**没有配置测试框架**。
+包管理器：**pnpm**（本机 12.10.0，2026-10-07 实测 typecheck/build/预渲染全绿）。**没有配置测试框架**。
+
+**版本策略**：刻意**不设 `packageManager` 字段**——pnpm 12 入口是原生二进制（install 脚本编译），corepack 架构上不兼容，而四镜像平台（GH Actions/Cloudflare/Vercel/Netlify）读该字段走 corepack 路径会崩；lockfile 是 9.0 格式，任何 pnpm ≥10 都能装，各平台自带版本即可。CI 统一 `npm install -g pnpm@12.10.0`（npm 会执行 install 脚本，已验证通道）。本机升级：`npm install -g pnpm@<版本>`（**不要** corepack）。
 
 ```bash
 pnpm dev                  # 启动 Vite 开发服务器（固定端口 6768，自动清理占用进程）
-pnpm build                # sync-publisher-tsconfig + tsc + vite build（产物 → docs/）
+pnpm build                # sync + tsc + vite build + 预渲染 pass（产物 → docs/，见下）
 pnpm gh                   # 以 GITHUB_PAGES=true 构建（base: /expubgo/，产物 → docs/）
 pnpm lint                 # ESLint（--max-warnings 0）
-PUBLISHERS=<name> pnpm pkg  # 选择性构建：只打包指定 publisher 的单文件产物（dist-pkg/）
+PUBLISHERS=<name> pnpm pkg  # 选择性构建：只打包指定 publisher 的单文件产物（dist-pkg/，不走预渲染）
 ```
 
 构建产物输出到 `docs/`，**多镜像部署**：
@@ -19,11 +21,27 @@ PUBLISHERS=<name> pnpm pkg  # 选择性构建：只打包指定 publisher 的单
 | 平台 | 构建 | base | 地址 |
 |---|---|---|---|
 | GitHub Pages | `pnpm gh`（push 自动触发） | `/expubgo/` | guohub8080.github.io/expubgo/ |
-| Vercel | `pnpm build` | `./` | expubgo-xxx.vercel.app |
-| Cloudflare Pages | `pnpm build` | `./` | expubgo.pages.dev |
-| Netlify | `pnpm build` | `./` | expubgo.netlify.app |
+| Vercel | `pnpm build` | `/` | expubgo.vercel.app |
+| Cloudflare Pages | `pnpm build` | `/` | expubgo.pages.dev |
+| Netlify | `pnpm build` | `/` | expubgo.netlify.app |
 
-作为静态文件服务必须使用 hash 路由 + 相对 `base`（GH Pages 构建时为 `/expubgo/`，其余镜像根路径 `./`）—— 切换到 `BrowserRouter` 或绝对资源路径时，必须同时更新 `vite.config.ts` 和各平台部署配置。Vercel 等非 GH Pages 平台的 Framework Preset 保持 **Other**（不要选 Vite——其默认输出目录 `dist` 会找不到产物），Build Command 填 `pnpm build`、Output Directory 填 `docs`。
+路由是 **BrowserRouter 真路径**（无井号，`/home` 即地址），资源 base 根域镜像为绝对 `/`（预渲染产生嵌套目录页，`./` 相对基准会在深层路径错层；单文件模式独占 `./`）。**单文件 pkg 产物保留 hash 路由**（file:// 双击直开无服务器，真路径无文件可命中；`__SINGLE_FILE__` 构建期常量分流，见 `router/index.tsx`）。
+
+**未知路径/深链回退**（四镜像各异）：GH Pages / Cloudflare 以 `docs/404.html`（预渲染 404 设计）应答未知路径，浏览器路由在**原 URL** 水合——未匹配渲染 NotFound 404 页（apps/NotFound.tsx，含回首页/返回上页按钮，不自动跳转），`/view/:netPublisher/:netArticle` 动态参数路由直接渲染文章；CF/Netlify 经 `_redirects`、Vercel 经 `vercel.json` 将 `/view/*` 分流到壳（200）。**hash 时代的外部分享链接**（`/#/x`）由各页注入的遗留重定向脚本折算成 `/x`（见 prerender.mjs 的 legacyHashRedirect）。
+
+## 预渲染水合管线（pnpm build 尾段）
+
+`vite build` 之后 `scripts/prerender.mjs` 追加一个 SSG pass，**无新依赖**（react-router v7 官方 SSR API + react-dom/server）：
+
+- **共享路由树**：`src/dev/router/routes.tsx` 导出 `mainRoutes`（纯数据）——浏览器侧 `router/index.tsx` 用 `createHashRouter` 消费，预渲染侧 `scripts/prerender/entry.server.tsx` 用 `createStaticHandler/createStaticRouter/StaticRouterProvider` 消费。同树保证水合结构对齐
+- **逐路径产出**：`listPrerenderPaths()` 从路由树静态枚举叶子路径（跳过参数段/通配/index 重定向），每条渲染成 `docs/<path>/index.html`（模板=构建壳，`#root` 带 `data-prerendered="true"`，加载屏标记被替换）。`main.tsx` 据此分流：`hydrateRoot`（预渲染页）或 `createRoot`（壳页/404）
+- **hash 桥已退役**：真路径路由下不需要；改为注入遗留 hash 重定向（老分享链接 `#/x` → `/x`，GH Pages 变体拼回 `/expubgo` 前缀）
+- **404 兜底**：`docs/404.html` = 纯壳，宿主以它应答未知路径 → 浏览器路由在原 URL 水合（动态参数路由直渲染，未匹配渲染 NotFound 404 页——404.html 只是引导壳，404 界面本体是水合后的 React 组件）；Vercel/Netlify 另有 200 回退配置（vercel.json / _redirects）
+- **优雅回落**：单页渲染失败只跳过该路径（回落 SPA 行为），`prerender.mjs` 里的 `EXCLUDE` 收录已知不可渲染页
+- **SSR 构建**（`vite.prerender.config.ts`）：别名/define 与浏览器构建共享（`vite.config.ts` 导出），`dedupe: ['react','react-dom']` 必抄（link 包双 React 实例坑），`ssr.noExternal: true`（前端 ESM 包的无扩展名导入 Node 解析不了）
+- **Node 垫片**（`scripts/prerender/shims.node.ts`）：window/document/navigator 等最小桩（es-toolkit 规范：defaultTo/isNil），必须保持 entry.server 的第一条 import
+
+**组件约定**：`createPortal` 在 SSR 里直接抛错——portal 组件必须挂载守卫（`useState(false)` + `useEffect` 置位，SSR 渲染 null），参照 `BookSide.tsx` / `Navigation/index.tsx` 的 `portalMounted` 模式；**不要**用 `!isUndefined(document)` 判断（预渲染 Node 有 DOM 垫片，判断会误判）。
 
 ## 架构
 
@@ -35,8 +53,8 @@ PUBLISHERS=<name> pnpm pkg  # 选择性构建：只打包指定 publisher 的单
 - `src/dev/articles/` —— 文章系统核心（articlesLoader、publisher 注册）
 
 > 微信交互组件/SMIL 生成器另有独立工具库 `@guohub8080/expub-tool`（私有，仓在 `/Users/guo/WebstormProjects/expub-tool`）。
-> - **本地敏捷开发（现行）**：package.json 以 `"@guohub8080/expub-tool": "link:../expub-tool"` 链接；在 expub-tool 改代码后必须 `corepack pnpm run build` 刷新 dist，本仓才可见
-> - **正式消费（发布后）**：`.npmrc` 已预置 `@guohub8080:registry=https://npm.pkg.github.com` + 注释的 PAT 行（classic token 勾 read:packages），届时把依赖从 `link:` 改成版本号即可，详见该仓 AGENTS.md
+> - **正式消费（现行）**：package.json 依赖 `^0.2.0`，走 `.npmrc` 的 GitHub Packages 注册表；认证经环境变量 `NODE_AUTH_TOKEN`（classic PAT 勾 read:packages）——CI 工作流已引用 `secrets.NODE_AUTH_TOKEN`（需在仓库 Settings → Secrets and variables → Actions 配置），Cloudflare Pages 在项目环境变量配置；本地安装前 `export NODE_AUTH_TOKEN=<PAT>`。**禁止把 `link:` 写回 package.json**（CI 无隔壁仓库，链接悬空必炸）
+> - **本地敏捷开发**：临时叠加用 global link——expub-tool 仓内 `corepack pnpm link --global`，本仓 `pnpm link --global @guohub8080/expub-tool`（只改 node_modules 软链，不落 package.json）；expub-tool 改代码后 `corepack pnpm run build` 刷新 dist 本仓才可见；用完 `pnpm unlink --global` 恢复。详见该仓 AGENTS.md
 > - 新代码优先从包导入（如 `@guohub8080/expub-tool/smil` 的 getEaseBezier）；`src/dev/pubUtils/getBezier` 是同源历史副本，存量引用不改
 > - **XRay 数据通道库体在 `@guohub8080/expub-tool/xray`**（useDevXRay/devLayoutStore/词典/解值器，2026-10-04 迁入）：`src/dev/pubUtils/devLayout` 是宿主薄包装（`setXRayEnabled(import.meta.env.DEV)` 门控 + re-export），五个调用点 import 路径不变；库内不做 dev 门控（import.meta.env 烤进 dist 会带死生产值）
 > - link 走 realpath：若从包里引入 **React 组件** 出现 hooks 双实例报错，需在 vite.config.ts 加 `resolve.dedupe: ['react', 'react-dom']`（xray 迁入起包首次带 React 代码，dedupe 已常驻 vite.config）
@@ -204,27 +222,6 @@ PUBLISHERS_MODE=include|exclude
 
 微信公众号 SVG 属性有严格白名单（《中华人民共和国融媒体SVG交互设计技术规范》，参考 fudan.design/svg.html）。白名单数据在 `src/dev/pubUtils/genSvgKeySplines/svgAttrWhiteList.ts`。
 
-### SVG 交互动画的实测教训（强制）
-
-来自升国旗文章的连环翻车，写死在这里防止重蹈：
-
-- **SMIL 运行中改动画属性不会重建动画**：对已启动的 animate/animateTransform 改 keySplines/values/keyTimes/dur，Chrome 沿用启动时的 timing 模型，属性改了也白改（XRay 面板调缓动「看不到效果」的根因；普通几何属性 x/y/width/transform 不受影响，实时生效）。活值化动画参数必须配套：动画元素挂**含全部参数的 key**，参数变 = React 重挂载 = 全新动画；生产参数静态 key 恒定，零成本
-- **给层加 opacity 动画前先查它的子树**——收尾/彩蛋层常嵌在提示层 g 里，给提示层加淡出会把里面的收尾内容一起冻成透明（连坐）。淡出效果必须给目标图单独包一层只含自己的 g
-- **事件型 SMIL（begin="touchstart…"）不能用 setCurrentTime 跳帧测**——跳帧不会激活事件型 begin，会漏测出"看起来好"的假象；必须真实派发事件 + 真实等待时长
-- **触摸热区**：参考类文章 svg 根是 `pointer-events:none`，只有内部透明 rect（`pointer-events: painted`）接收触摸。点其他位置无任何反应是原版设计，不是 bug；桌面测试必须用浏览器设备模拟的触摸模式
-- **一个 tap 触发多动画的重灾区**（微信剥 id，无法用 begin="xxx.begin" 链式引用）：全篇只保留**一个精确 `begin="touchstart"` 监听**（原版如此，通常放在首个入场动画上），其余动画一律用时间偏移（touchstart+0.05 / +1.3 / +N）排队
-- **测试触摸事件必须派发到热区 rect 或其后代**（事件沿祖先冒泡触发各动画的事件基）；派发到背景层节点会导致背景组动、前景组不动，画面撕开
-- **dev 预览禁止做任何鼠标→触摸的事件桥**：预览需与微信行为一致；桥曾因选错目标节点反向搅乱用户的真实触摸测试
-- **微信音频播放键会 stopPropagation 掉 touchstart 和 click，但 touchend/pointerdown/pointerup 正常冒泡**（2026-09-29 CDP 实测 mp-common-mpaudio 的 shadow DOM）：想让「点音频键=放歌+SVG 动画」一次点击双触发，动画事件基必须用 touchend——用 touchstart 会只出声不动画。音频卡 UI 挂在 shadow root 里，普通 querySelectorAll 量不到，需 `a.shadowRoot.querySelectorAll`；「公众号网页调试」的 Console 可量自然布局（卡 ~343×150，播放键 23×23 在右下 (304,103)-(327,126)，标题行 y≤91 是 role=link 弹全屏播放器，须用 fo 裁剪/盾遮挡隔在点击区外）。派发 shadow 内事件须加 `composed:true`，否则死在 shadow root 边界
-
-
-
-**还原 = 原样还原。** 参考文章用什么方法、什么事件，就用什么方法、什么事件，不做"优化"或"现代化"替换：
-
-- 参考用 `begin="touchstart+1.3"` 就用 `touchstart`——**不要**换成 `pointerdown`/`click` 等桌面也触发的事件。这类交互本来就只在手机微信里生效，属预期行为
-- 桌面预览验证这类移动端事件：用浏览器派发**合成事件**（`el.dispatchEvent(new TouchEvent('touchstart', {bubbles:true}))` 或 `new PointerEvent('pointerdown',…)`）触发后截图，而不是改实现迁就桌面
-- 结构、参数（时长/位移/缓动）、层级同样照抄参考数值，确有充分理由偏离时先说明
-
 ### 预览页纯度原则（强制）
 
 **预览页面必须原样呈现文章内容（尤其 mmbiz 原始直链）。** 用户的「复制」按钮逻辑 = 页面有什么就复制什么，直接粘贴进微信编辑器发布：
@@ -242,9 +239,10 @@ PUBLISHERS_MODE=include|exclude
 ## 工作流
 
 - 每次对话结束后，**自动 commit 当前所有未提交的改动**（`git add -A`）。提交信息遵循 **Conventional Commits**（如 `feat(...)`、`refactor(...)`）。
-- **暂时只 commit、不 push**：绝对禁止 `git push`（除非用户明确要求）。
-- **不要每次改动后都跑 `pnpm build`**：轻量验证用 `npx tsc --noEmit -p tsconfig.app.json`；全量 `pnpm build` 仅在大范围重构、依赖变更、或用户明确要求时才跑。
-- pre-commit hook 会 lint **暂存文件**（warning 放行、error 拦截）——首次触碰有预存 lint error 的旧文件时需顺带修复它们。
+- **commit 与类型检查是两回事**：commit 就直接 commit，**不做类型检查**；类型检查是专门动作，需要验证时单独跑 `npx tsc --noEmit -p tsconfig.app.json`（发版前、怀疑类型问题时）。
+- **暂时只 commit、不 push**：绝对禁止 `git push`（除非用户当次明确授权）。
+- **不要每次改动后都跑 `pnpm build`**：全量 `pnpm build` 仅在大范围重构、依赖变更、或用户明确要求时才跑。
+- **commit 与检查彻底分离**：本地 pre-commit 钩子已移除（2026-10-07，每次提交都被 eslint+依赖校验拖慢数秒，收益不匹配）。commit 直接提交；lint / tsc 是独立动作，推送或发版前自行跑一次 `pnpm lint` 和 `npx tsc --noEmit -p tsconfig.app.json`。若误留预存 lint error 的旧文件，`pnpm lint` 全量跑时再修。
 
 ### 已知坑（实测踩过）
 

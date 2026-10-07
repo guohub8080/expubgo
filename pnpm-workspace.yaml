@@ -3,3 +3,5 @@ allowBuilds:
   esbuild: true
   koffi: true
   protobufjs: true
+minimumReleaseAgeExclude:
+  - '@guohub8080/expub-tool@0.2.0'

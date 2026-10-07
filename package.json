@@ -4,10 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "preinstall": "node scripts/ci-auth.mjs",
     "sync:paths": "node scripts/sync-publisher-tsconfig.cjs",
     "gen:pub": "node scripts/generate-publisher-branches.cjs",
     "dev": "lsof -ti:6768 | xargs kill -9 2>/dev/null; node scripts/sync-publisher-tsconfig.cjs && node scripts/generate-publisher-branches.cjs && vite",
-    "build": "node scripts/sync-publisher-tsconfig.cjs && node scripts/generate-publisher-branches.cjs && tsc && vite build",
+    "build": "node scripts/sync-publisher-tsconfig.cjs && node scripts/generate-publisher-branches.cjs && tsc && vite build && node scripts/prerender.mjs",
     "build:single": "node scripts/sync-publisher-tsconfig.cjs && node scripts/generate-publisher-branches.cjs && SINGLE_FILE=true vite build",
     "gh": "GITHUB_PAGES=true pnpm build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -41,7 +42,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@emotion/react": "^11.14.0",
-    "@guohub8080/expub-tool": "link:../expub-tool",
+    "@guohub8080/expub-tool": "^0.2.0",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@icons-pack/react-simple-icons": "^13.8.0",
@@ -106,7 +107,6 @@
     "lucide-react": "^0.545.0",
     "monaco-editor": "^0.54.0",
     "motion": "^12.23.24",
-    "pnpm": "^8.15.9",
     "prettier": "^3.7.4",
     "prism-react-renderer": "^2.4.1",
     "qrcode.react": "^4.2.0",
@@ -137,7 +137,6 @@
     "use-url-search-params": "^2.5.1",
     "usehooks-ts": "^2.16.0",
     "uuid": "^13.0.0",
-    "vite-plugin-mdx": "^3.6.1",
     "webmidi": "^3.1.14"
   },
   "devDependencies": {

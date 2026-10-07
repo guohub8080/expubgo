@@ -23,10 +23,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # pnpm 12 入口为原生二进制（install 脚本编译），corepack/action-setup 均不可靠；
+      # npm -g 会执行 install 脚本，是已验证的安装通道
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
+        run: npm install -g pnpm@12.10.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,8 +34,11 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
+      # 私有包认证：preinstall 钩子（scripts/ci-auth.mjs）从本 env 读 token 写入用户级 npmrc
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
 
       - name: Build
         run: pnpm gh

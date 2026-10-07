@@ -1,6 +1,6 @@
 # ExPubGo
 
-现代化 SVG 动画编辑和发布工具，基于 React + TypeScript + Vite 构建。架构与 [logiguo](https://github.com/guohub8080/logiguo) 同源。
+现代化 SVG 动画编辑和发布工具，基于 React + TypeScript + Vite 构建。
 
 ## 特性
 

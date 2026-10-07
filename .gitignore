@@ -281,7 +281,6 @@ src/dev/articles/publisherBranches.generated.tsx
 
 # Claude Code 本地配置与 skills（全部不提交）
 .claude/
-CLAUDE.md
 
 # 历史误提交的临时错误输出
 err.txt

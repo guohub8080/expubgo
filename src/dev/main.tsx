@@ -32,9 +32,15 @@ restoreNetworkSources();
 // 注意:不做任何鼠标→触摸的事件桥——预览需与微信行为一致(touchstart 只来自真实触摸)。
 // 桌面测试请用浏览器开发者工具的设备模拟(触摸模式),与手机微信同路径。
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-    <App/>
-)
+// 水合分支：预渲染页（构建期已把路由渲染进 HTML，root 带 data-prerendered）
+// 走 hydrateRoot 复用静态标记；普通 SPA 壳（root 内是加载屏占位）走 createRoot 整体替换
+const rootEl = document.getElementById('root')!
+
+if (rootEl.dataset.prerendered === 'true') {
+    ReactDOM.hydrateRoot(rootEl, <App/>)
+} else {
+    ReactDOM.createRoot(rootEl).render(<App/>)
+}
 
 // web 字体不再在此处加载：默认系统字体栈零流量，
 // 启用了 web 字体时由 GlobalSettingsEffects 按族懒注入（见 webfontLoader.ts）

@@ -5,7 +5,6 @@ import { useWindowScroll } from "@uidotdev/usehooks"
 import { useWindowSize } from "react-use"
 import { BookText, BookOpen, PanelLeftOpen, PanelLeftClose, PanelRightOpen, PanelRightClose, X } from "lucide-react"
 import { IoLogoGithub } from "react-icons/io5"
-import { isUndefined } from "es-toolkit/predicate"
 import logoUrl from "@assets/svgs/logoSvg/favicon.svg"
 import PureText from "@assets/svgs/logoSvg/PureText.tsx"
 import useGlobalSettings from "@dev/store/useGlobalSettings"
@@ -116,6 +115,11 @@ export default function Navigation() {
   const [pillHidden, setPillHidden] = useState(false)
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // portal 挂载守卫：SSR/预渲染期渲染 null（modal 初始即闭合不可见，视觉无差），
+  // 水合后 effect 置位再挂 portal——勿用 document 存在性判断（Node 预渲染有 DOM 垫片会误判）
+  const [portalMounted, setPortalMounted] = useState(false)
+  useEffect(() => { setPortalMounted(true) }, [])
+
   // 宽屏打开序列：先藏胶囊，再开 modal（由胶囊 onClick 调用）
   const openNavModal = () => {
     if (isNavigationPanelOpen) return
@@ -183,7 +187,7 @@ export default function Navigation() {
         <div className="flex w-full items-center px-4 max-lg:gap-4 sm:px-6 lg:px-8">
           {/* Logo 区域 */}
           <div className="flex-shrink-0">
-            <a href="/" onClick={(e) => { e.preventDefault(); navigate('/home/'); }}>
+            <a href={import.meta.env.BASE_URL} onClick={(e) => { e.preventDefault(); navigate('/home/'); }}>
               <div className={cn(
                 "flex items-center gap-4 hover:scale-105 transition-all duration-300 cursor-pointer",
                 isHomePage && !isScrolled && "opacity-0 pointer-events-none hover:scale-100 cursor-default"
@@ -259,7 +263,7 @@ export default function Navigation() {
                     <div className="h-5 flex items-center justify-center">{pageTitle}</div>
                   </div>
                   {/* 居中 modal（iOS 风格）：全屏毛玻璃遮罩 + 居中卡片，常驻 DOM 用 opacity/scale 过渡 */}
-                  {!isUndefined(document) && createPortal(
+                  {!portalMounted ? null : createPortal(
                     <>
                       <div
                         className="fixed inset-0 z-40 bg-black/25 backdrop-blur-xl transition-opacity duration-300"

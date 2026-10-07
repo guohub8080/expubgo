@@ -350,22 +350,67 @@ function generatePublisherAliases(): Record<string, string> {
   return aliases
 }
 
+// ══════════════════════════════ 共享构建语义 ══════════════════════════════
+// 以下三块被浏览器构建（本文件）与预渲染 SSR 构建（vite.prerender.config.ts）共同
+// 消费——别名/define/扩展名必须同源，否则预渲染产物与浏览器树分叉
+
+// 构建期常量：每个 publisher 一个布尔字面量（配合 glob 守卫做 tree-shake，见文件头注释）
+export const publisherDefines: Record<string, string> = Object.fromEntries(
+  ALL_PUBLISHERS.map(name => [
+    `__PUB_${name.toUpperCase()}__`,
+    JSON.stringify(enabledPublishers.includes(name)),
+  ])
+)
+
+// 路径别名总表（静态别名 + publisher 动态扫描别名）
+export const resolveAliasMap: Record<string, string> = {
+  "@": path.resolve(import.meta.dirname, "./src"),
+  "@dev": path.resolve(import.meta.dirname, "./src/dev"),
+  "@comps": path.resolve(import.meta.dirname, "./src/dev/components"),
+  "@apps": path.resolve(import.meta.dirname, "./src/dev/apps"),
+  "@styles": path.resolve(import.meta.dirname, "./src/dev/styles"),
+  "@assets": path.resolve(import.meta.dirname, "./src/dev/assets"),
+  "@utils": path.resolve(import.meta.dirname, "./src/dev/utils"),
+  "@vite-dev": path.resolve(import.meta.dirname, "./src/dev/utils/vite-dev"),
+  "@api": path.resolve(import.meta.dirname, "./src/dev/api"),
+  "@pub-html": path.resolve(import.meta.dirname, "./src/dev/pubComponents/PureHTML"),
+  "@pub-svg": path.resolve(import.meta.dirname, "./src/dev/pubComponents/SVG"),
+  "@sns": path.resolve(import.meta.dirname, "./src/dev/pubComponents/SnsTemplate"),
+  "@pub-utils": path.resolve(import.meta.dirname, "./src/dev/pubUtils"),
+  "@svg-anim": path.resolve(import.meta.dirname, "./src/dev/pubUtils/genSvgAnimate"),
+  "@svg-set": path.resolve(import.meta.dirname, "./src/dev/pubUtils/genSvgAnimate/set"),
+  "@book-svg-tool": path.resolve(import.meta.dirname, "./src/books/SvgToolFunctions"),
+  "@shadcn": path.resolve(import.meta.dirname, "./src/dev/shadcn"),
+  "@books": path.resolve(import.meta.dirname, "./src/books"),
+  "@articles": path.resolve(import.meta.dirname, "./src/articles"),
+  "@publishers": path.resolve(import.meta.dirname, "./publishers"),
+  "@mdx": path.resolve(import.meta.dirname, "./src/dev/components/mdx"),
+  "@book-comps": path.resolve(import.meta.dirname, "./src/dev/components/bookComponents"),
+  // 动态扫描 publishers 目录生成 @短路径 别名
+  ...generatePublisherAliases(),
+  path: "path-browserify",
+}
+
+// 模块解析扩展名（books 内容含 .md/.mdx）
+export const moduleExtensions = [".ts", ".tsx", ".js", ".jsx", ".mdx", ".md"]
+
 // https://vitejs.dev/config/
-export default defineConfig({
+const mainConfig = defineConfig({
   // 统一使用相对路径，兼容所有部署平台（GitHub Pages、Cloudflare、Netlify、Vercel）
   // 无论部署到子路径还是根域名，资源引用都能正确解析
   // GitHub Pages 子路径模式用绝对路径（站点部署在 guohub8080.github.io/expubgo/）
-  base: isGitHubPages ? '/expubgo/' : './',
+  // 注意：根域镜像用绝对 '/'（预渲染产生的嵌套目录页在 './' 相对基准下资源会解析错层；
+  // 仅单文件模式保留 './'，它离线 file:// 直开且不产生嵌套页）
+  base: isGitHubPages ? '/expubgo/' : (isSingleFile ? './' : '/'),
   // 注入构建期常量：为每个 publisher 注入独立的布尔字面量 __PUB_<NAME>__。
   // 关键：必须用「布尔常量直接判断」，不能用 Array.includes()——
   // rollup/terser 会把 `false ? glob : {}` 整支消除（tree-shake），
   // 但不会折叠 `["p1"].includes("p2")` 这种运行时方法调用。
-  define: Object.fromEntries(
-    ALL_PUBLISHERS.map(name => [
-      `__PUB_${name.toUpperCase()}__`,
-      JSON.stringify(enabledPublishers.includes(name)),
-    ])
-  ),
+  // __SINGLE_FILE__：路由器协议开关（真路径 vs hash，见 src/dev/router/index.tsx）
+  define: {
+    ...publisherDefines,
+    __SINGLE_FILE__: JSON.stringify(isSingleFile),
+  },
   plugins: [
     isSingleFile && removeFontFacesPlugin(),
     isSingleFile && inlineSvgPlugin(),
@@ -396,34 +441,8 @@ export default defineConfig({
     // node_modules（第二实例 → hooks 报错）；dedupe 强制整树单实例
     // （@guohub8080/expub-tool/xray 起，包首次带 React 代码）
     dedupe: ["react", "react-dom"],
-    alias: {
-      "@": path.resolve(import.meta.dirname, "./src"),
-      "@dev": path.resolve(import.meta.dirname, "./src/dev"),
-      "@comps": path.resolve(import.meta.dirname, "./src/dev/components"),
-      "@apps": path.resolve(import.meta.dirname, "./src/dev/apps"),
-      "@styles": path.resolve(import.meta.dirname, "./src/dev/styles"),
-      "@assets": path.resolve(import.meta.dirname, "./src/dev/assets"),
-      "@utils": path.resolve(import.meta.dirname, "./src/dev/utils"),
-      "@vite-dev": path.resolve(import.meta.dirname, "./src/dev/utils/vite-dev"),
-      "@api": path.resolve(import.meta.dirname, "./src/dev/api"),
-      "@pub-html": path.resolve(import.meta.dirname, "./src/dev/pubComponents/PureHTML"),
-      "@pub-svg": path.resolve(import.meta.dirname, "./src/dev/pubComponents/SVG"),
-      "@sns": path.resolve(import.meta.dirname, "./src/dev/pubComponents/SnsTemplate"),
-      "@pub-utils": path.resolve(import.meta.dirname, "./src/dev/pubUtils"),
-      "@svg-anim": path.resolve(import.meta.dirname, "./src/dev/pubUtils/genSvgAnimate"),
-      "@svg-set": path.resolve(import.meta.dirname, "./src/dev/pubUtils/genSvgAnimate/set"),
-      "@book-svg-tool": path.resolve(import.meta.dirname, "./src/books/SvgToolFunctions"),
-      "@shadcn": path.resolve(import.meta.dirname, "./src/dev/shadcn"),
-      "@books": path.resolve(import.meta.dirname, "./src/books"),
-      "@articles": path.resolve(import.meta.dirname, "./src/articles"),
-      "@publishers": path.resolve(import.meta.dirname, "./publishers"),
-      "@mdx": path.resolve(import.meta.dirname, "./src/dev/components/mdx"),
-      "@book-comps": path.resolve(import.meta.dirname, "./src/dev/components/bookComponents"),
-      // 动态扫描 publishers 目录生成 @短路径 别名
-      ...generatePublisherAliases(),
-      path: "path-browserify",
-    },
-    extensions: [".ts", ".tsx", ".js", ".jsx", ".mdx", ".md"]
+    alias: resolveAliasMap,
+    extensions: moduleExtensions
   },
 
   // 开发环境配置
@@ -490,3 +509,5 @@ export default defineConfig({
     },
   }
 })
+
+export default mainConfig

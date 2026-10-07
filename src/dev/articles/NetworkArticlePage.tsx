@@ -10,7 +10,7 @@
  */
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Unplug, Settings, RefreshCw } from 'lucide-react'
 import { isNotNil, isNumber, isPlainObject } from 'es-toolkit/predicate'
 import {
   useNetworkManifests,
@@ -77,14 +77,40 @@ export default function NetworkArticlePage() {
 
   if (!url) {
     return (
-      <div className="py-16 text-center space-y-2">
-        <p className="text-muted-foreground">
-          找不到网络文章 <code className="px-1 rounded bg-muted">{netPublisher}/{netArticle}</code>
-          ——源可能已离线或文章已被移除
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+        {/* 断连图标 + 标题（与 404 页同一视觉语言） */}
+        <div className="flex size-14 items-center justify-center rounded-2xl border border-border/60 bg-muted/50">
+          <Unplug className="size-7 text-primary/70" />
+        </div>
+        <h2 className="mt-5 text-lg font-medium text-foreground/90">无法获取文章</h2>
+        <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+            远程网络可能已断开或文章已被移除。
         </p>
-        <p className="text-sm">
-          到 <Link to="/settings/" className="text-primary underline">设置 · 网页连接</Link> 检查源状态
-        </p>
+        {/* 文章标识胶囊：核对/复制用 */}
+        <code className="mt-4 rounded-md border border-border/60 bg-muted/60 px-3 py-1.5 text-xs text-muted-foreground break-all">
+          {netPublisher}/{netArticle}
+        </code>
+        <div className="mt-8 flex items-center gap-3">
+          <Link
+            to="/settings/"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:scale-[1.03] active:scale-[0.98]"
+          >
+            <Settings className="size-4" />
+            跳转设置
+          </Link>
+          <button
+            onClick={() => {
+              if (reconnecting) return
+              setReconnecting(true)
+              refreshNetworkSources(sources).finally(() => setReconnecting(false))
+            }}
+            disabled={reconnecting}
+            className="inline-flex items-center gap-2 rounded-lg border border-border/70 bg-background/60 px-4 py-2 text-sm font-medium text-foreground/80 shadow-sm transition-all hover:bg-muted/80 hover:scale-[1.03] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+          >
+            <RefreshCw className={reconnecting ? 'size-4 animate-spin' : 'size-4'} />
+            重新连接
+          </button>
+        </div>
       </div>
     )
   }

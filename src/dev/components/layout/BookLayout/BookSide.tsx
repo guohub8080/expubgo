@@ -34,6 +34,12 @@ interface BookSideProps {
 const BookSide = ({ loader }: BookSideProps) => {
   const { isBookTocShow, bookSideWidth, bookUniMargin, navigationHeight } = useGlobalSettings();
 
+  // portal 挂载守卫：SSR/预渲染期渲染 null（侧栏常驻 DOM、opacity 显隐，初始即隐藏，
+  // 视觉无差），水合后 effect 置位再挂——renderToString 不支持 createPortal
+  const [portalMounted, setPortalMounted] = React.useState(false);
+  React.useEffect(() => { setPortalMounted(true); }, []);
+  if (!portalMounted) return null;
+
   return createPortal(
     <div
       style={{
