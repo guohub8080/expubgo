@@ -38,7 +38,7 @@ jobs:
           npm cache clean --force
           npm install -g pnpm@10.23.0
           pnpm install:ci
-          pnpm  gh
+          pnpm  build:github-pages
         env:
           # 强制 Vite 使用生产环境配置
           NODE_ENV: production
@@ -50,7 +50,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'docs'  # 必须与 vite.config.js 中的 outDir 一致
+          path: 'github-pages'  # 与 build:github-pages 的产物目录一致
 
       # 5. 部署到 GitHub Pages
       - name: Deploy to GitHub Pages
