@@ -1,7 +1,12 @@
-allowBuilds:
-  cn-font-split: true
-  esbuild: true
-  koffi: true
-  protobufjs: true
-minimumReleaseAgeExclude:
-  - '@guohub8080/expub-tool@0.2.0'
+# pnpm 工作区配置（单包项目）
+# - packages：显式声明根为唯一包（pnpm 10 系要求，缺失会在 Vercel 等环境报
+#   ERR_PNPM_INVALID_WORKSPACE_CONFIGURATION）
+# - onlyBuiltDependencies：批准执行安装脚本的依赖（pnpm 10/12 双版本通用键；
+#   未批准的依赖其构建脚本被跳过，不影响本仓构建）
+packages:
+  - '.'
+onlyBuiltDependencies:
+  - cn-font-split
+  - esbuild
+  - koffi
+  - protobufjs

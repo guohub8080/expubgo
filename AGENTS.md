@@ -4,9 +4,9 @@
 
 ## 命令
 
-包管理器：**pnpm**（本机 12.10.0，2026-10-07 实测 typecheck/build/预渲染全绿）。**没有配置测试框架**。
+包管理器：**pnpm**（本机 10.23.0，2026-10-07 回归定版，实测 install/build/预渲染全绿）。**没有配置测试框架**。
 
-**版本策略**：刻意**不设 `packageManager` 字段**——pnpm 12 入口是原生二进制（install 脚本编译），corepack 架构上不兼容，而四镜像平台（GH Actions/Cloudflare/Vercel/Netlify）读该字段走 corepack 路径会崩；lockfile 是 9.0 格式，任何 pnpm ≥10 都能装，各平台自带版本即可。CI 统一 `npm install -g pnpm@12.10.0`（npm 会执行 install 脚本，已验证通道）。本机升级：`npm install -g pnpm@<版本>`（**不要** corepack）。
+**版本策略（10.23.0，勿升 11/12）**：刻意**不设 `packageManager` 字段**——四镜像平台读它会走 corepack 路径，而各平台 corepack 兼容性不可控；CI 统一 `npm install -g pnpm@10.23.0`。**12 系禁用**：其供应链检查（minimumReleaseAge/trustPolicy）查包元数据不携带 npmrc 凭据，对私有 GitHub Packages 必 401；10.30.3 纯 JS 版另有 Node 启动死循环。lockfile 9.0 格式任何 pnpm ≥10 可读。本机版本自管理已写死关闭（`~/Library/Preferences/pnpm/rc` 的 `manage-package-manager-versions=false`）。升级/换版本：`npm install -g pnpm@<版本> --registry=https://registry.npmmirror.com`（npmjs 直连慢）。
 
 ```bash
 pnpm dev                  # 启动 Vite 开发服务器（固定端口 6768，自动清理占用进程）

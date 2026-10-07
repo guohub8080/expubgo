@@ -31,14 +31,12 @@ jobs:
         with:
           node-version: 20
 
-      # 3. 安装依赖并构建（私有包认证：ci-auth 显式前置，preinstall 晚于 fetch 救不了下载）
+      # 3. 安装依赖并构建（私有包认证：install:ci 前置 ci-auth；supply-chain 豁免见 pnpm-workspace.yaml）
       - name: Install and Build
         run: |
           rm -rf node_modules package-lock.json
           npm cache clean --force
-          npm install -g pnpm@12.10.0
-          pnpm config set strict-peer-dependencies false
-          pnpm config set auto-install-peers true
+          npm install -g pnpm@10.23.0
           pnpm install:ci
           pnpm  gh
         env:
