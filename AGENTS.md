@@ -23,7 +23,7 @@ PUBLISHERS=<name> pnpm pkg  # 选择性构建：只打包指定 publisher 的单
 | GitHub Pages | `pnpm build:github-pages`（别名 `pnpm gh`） | `github-pages/` | `/expubgo/` | deploy.yml（push 自动触发，Pages 工作流） | guohub8080.github.io/expubgo/ |
 | Cloudflare Pages | `pnpm build:cloudflare-pages` | `cloudflare-pages/` | `/` | deploy-mirrors.yml（CI 构建后 wrangler 推送） | expubgo.pages.dev |
 | Netlify | `pnpm build:netlify-pages` | `netlify-pages/` | `/` | deploy-mirrors.yml（CI 构建后 netlify-cli 推送） | expubgo.netlify.app |
-| Vercel | `pnpm build:vercel-pages` | `vercel-pages/` | `/` | Vercel Git 集成面板自建（vercel.json 指定命令与产物目录） | expubgo.vercel.app |
+| Vercel | `pnpm build:vercel-pages` | `vercel-pages/` | `/` | deploy-mirrors.yml（CI 构建后 vercel CLI 推送；Git 已断开转纯推送模式） | expubgo.vercel.app |
 
 本地默认 `pnpm build` → `dist/`（日常调试用）。CF/Netlify 转 CI 推送的原因：其 Git 自动构建的 auto-install 先于一切用户配置，无法注入私有包认证（pnpm 不展开项目级凭据）。当前四份产物中仅 GitHub 的 base 不同，其余三份相同——结构上先分开，各平台可独立演化（如注入 VITE_* 镜像标识）。产物目录均已 gitignore，仓库永远只有源码。
 
