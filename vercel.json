@@ -1,6 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install:ci",
+  "buildCommand": "pnpm build:vercel",
+  "outputDirectory": "vercel-pages",
   "rewrites": [
     { "source": "/view/(.*)", "destination": "/index.html" },
     { "source": "/(.*)", "destination": "/404.html" }

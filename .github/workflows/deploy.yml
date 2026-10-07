@@ -41,14 +41,14 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
 
       - name: Build
-        run: pnpm gh
+        run: pnpm build:github-pages
         env:
           NODE_ENV: production
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs
+          path: ./github-pages
 
   deploy:
     environment:

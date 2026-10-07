@@ -67,7 +67,7 @@ function postInlineAssetsPlugin(): Plugin {
     enforce: 'post',
     apply: 'build',
     closeBundle() {
-      const distDir = path.resolve(import.meta.dirname, 'dist-pkg')
+      const distDir = path.resolve(import.meta.dirname, 'dist-single-html')
       const htmlPath = path.join(distDir, 'index.html')
       if (!fs.existsSync(htmlPath)) return
 
@@ -472,7 +472,10 @@ const mainConfig = defineConfig({
   },
 
   build: {
-    outDir: isSingleFile ? "dist-pkg" : "docs",
+    // 产物目录：构建命令经 BUILD_OUT_DIR 注入平台专属目录（github-pages/
+    // cloudflare-pages/netlify/vercel，见 package.json 的 build:* 系列）；
+    // 缺省 dist（本地调试用中性目录），单文件模式独占 dist-single-html
+    outDir: process.env.BUILD_OUT_DIR ?? (isSingleFile ? "dist-single-html" : "dist"),
     minify: isProduction,
     // 单文件模式：用函数强制内联所有资源（包括 SVG，覆盖 Vite 默认排除 SVG 的行为）
     assetsInlineLimit: isSingleFile

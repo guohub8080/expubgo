@@ -6,9 +6,13 @@ node_modules/
 # Production build
 dist/
 build/
-docs/
 single-html-dist/
-dist-pkg/
+dist-single-html/
+# 平台专属构建产物（build:github-pages / build:cloudflare-pages / build:netlify / build:vercel）
+github-pages/
+cloudflare-pages/
+netlify-pages/
+vercel-pages/
 
 # 本地临时文件（草稿图片、docx 提取产物、ZCode plans 缓存）
 dev_temp/

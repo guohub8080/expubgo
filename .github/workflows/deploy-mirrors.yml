@@ -1,0 +1,51 @@
+name: Deploy Mirrors (Cloudflare + Netlify)
+
+# CI 统一构建推送：CF/Netlify 的 Git 自动构建无法在 auto-install 前注入
+# 私有包认证（面板 Build command 显式安装链实测仍被抢跑），改由本工作流
+# 按平台专属命令构建（build:cloudflare-pages / build:netlify）并直推产物。
+# Pages 主工作流成功后自动触发；secrets 未配置的平台自动跳过（配好即生效）。
+# Vercel 不在此列：其 Git 集成可装私有包（vercel.json installCommand），面板自建。
+
+on:
+  workflow_run:
+    workflows: ['Deploy to GitHub Pages']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-mirrors:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        run: npm install -g pnpm@10.23.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install:ci --registry=https://registry.npmmirror.com
+
+      - name: Build & Deploy to Cloudflare Pages
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: |
+          pnpm build:cloudflare-pages
+          npx --yes wrangler@4 pages deploy cloudflare-pages --project-name=expubgo --branch=main --commit-dirty=true
+
+      - name: Build & Deploy to Netlify
+        if: ${{ env.NETLIFY_AUTH_TOKEN != '' && env.NETLIFY_SITE_ID != '' }}
+        run: |
+          pnpm build:netlify-pages
+          npx --yes netlify-cli@22 deploy --dir=netlify-pages --prod

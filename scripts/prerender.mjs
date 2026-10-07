@@ -18,7 +18,8 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const ROOT = process.cwd()
-const DOCS = path.join(ROOT, 'docs')
+// 产物目录与 vite 的 BUILD_OUT_DIR 同源（平台专属目录），缺省 dist
+const DOCS = path.join(ROOT, process.env.BUILD_OUT_DIR ?? 'dist')
 // 部署子路径（GH Pages = /expubgo，根域镜像 = 空）：遗留 hash 链接重定向要拼回
 const BASE = process.env.GITHUB_PAGES === 'true' ? '/expubgo' : ''
 const ROOT_OPEN = '<div id="root">'

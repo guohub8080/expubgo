@@ -4,39 +4,41 @@
 
 ## 命令
 
-包管理器：**pnpm**（本机 10.23.0，2026-10-07 回归定版，实测 install/build/预渲染全绿）。**没有配置测试框架**。
+包管理器：**pnpm**（本机 10.23.0，回归定版，实测 install/build/预渲染全绿）。**没有配置测试框架**。
 
 **版本策略（10.23.0，勿升 11/12）**：刻意**不设 `packageManager` 字段**——四镜像平台读它会走 corepack 路径，而各平台 corepack 兼容性不可控；CI 统一 `npm install -g pnpm@10.23.0`。**12 系禁用**：其供应链检查（minimumReleaseAge/trustPolicy）查包元数据不携带 npmrc 凭据，对私有 GitHub Packages 必 401；10.30.3 纯 JS 版另有 Node 启动死循环。lockfile 9.0 格式任何 pnpm ≥10 可读。本机版本自管理已写死关闭（`~/Library/Preferences/pnpm/rc` 的 `manage-package-manager-versions=false`）。升级/换版本：`npm install -g pnpm@<版本> --registry=https://registry.npmmirror.com`（npmjs 直连慢）。
 
 ```bash
 pnpm dev                  # 启动 Vite 开发服务器（固定端口 6768，自动清理占用进程）
-pnpm build                # sync + tsc + vite build + 预渲染 pass（产物 → docs/，见下）
-pnpm gh                   # 以 GITHUB_PAGES=true 构建（base: /expubgo/，产物 → docs/）
+pnpm build                # 本地调试构建（产物 → dist/）
+pnpm build:github-pages   # GitHub Pages 专属（base: /expubgo/，产物 → github-pages/）
 pnpm lint                 # ESLint（--max-warnings 0）
-PUBLISHERS=<name> pnpm pkg  # 选择性构建：只打包指定 publisher 的单文件产物（dist-pkg/，不走预渲染）
+PUBLISHERS=<name> pnpm pkg  # 选择性构建：只打包指定 publisher 的单文件产物（dist-single-html/，不走预渲染）
 ```
 
-构建产物输出到 `docs/`，**多镜像部署**：
+构建产物按平台各建各出（`BUILD_OUT_DIR` 注入产物目录，命令/目录同名一一对应）：
 
-| 平台 | 构建 | base | 地址 |
-|---|---|---|---|
-| GitHub Pages | `pnpm gh`（push 自动触发） | `/expubgo/` | guohub8080.github.io/expubgo/ |
-| Vercel | `pnpm build` | `/` | expubgo.vercel.app |
-| Cloudflare Pages | `pnpm build` | `/` | expubgo.pages.dev |
-| Netlify | `pnpm build` | `/` | expubgo.netlify.app |
+| 平台 | 构建命令 | 产物目录 | base | 部署机制 | 地址 |
+|---|---|---|---|---|---|
+| GitHub Pages | `pnpm build:github-pages`（别名 `pnpm gh`） | `github-pages/` | `/expubgo/` | deploy.yml（push 自动触发，Pages 工作流） | guohub8080.github.io/expubgo/ |
+| Cloudflare Pages | `pnpm build:cloudflare-pages` | `cloudflare-pages/` | `/` | deploy-mirrors.yml（CI 构建后 wrangler 推送） | expubgo.pages.dev |
+| Netlify | `pnpm build:netlify-pages` | `netlify-pages/` | `/` | deploy-mirrors.yml（CI 构建后 netlify-cli 推送） | expubgo.netlify.app |
+| Vercel | `pnpm build:vercel-pages` | `vercel-pages/` | `/` | Vercel Git 集成面板自建（vercel.json 指定命令与产物目录） | expubgo.vercel.app |
+
+本地默认 `pnpm build` → `dist/`（日常调试用）。CF/Netlify 转 CI 推送的原因：其 Git 自动构建的 auto-install 先于一切用户配置，无法注入私有包认证（pnpm 不展开项目级凭据）。当前四份产物中仅 GitHub 的 base 不同，其余三份相同——结构上先分开，各平台可独立演化（如注入 VITE_* 镜像标识）。产物目录均已 gitignore，仓库永远只有源码。
 
 路由是 **BrowserRouter 真路径**（无井号，`/home` 即地址），资源 base 根域镜像为绝对 `/`（预渲染产生嵌套目录页，`./` 相对基准会在深层路径错层；单文件模式独占 `./`）。**单文件 pkg 产物保留 hash 路由**（file:// 双击直开无服务器，真路径无文件可命中；`__SINGLE_FILE__` 构建期常量分流，见 `router/index.tsx`）。
 
-**未知路径/深链回退**（四镜像各异）：GH Pages / Cloudflare 以 `docs/404.html`（预渲染 404 设计）应答未知路径，浏览器路由在**原 URL** 水合——未匹配渲染 NotFound 404 页（apps/NotFound.tsx，含回首页/返回上页按钮，不自动跳转），`/view/:netPublisher/:netArticle` 动态参数路由直接渲染文章；CF/Netlify 经 `_redirects`、Vercel 经 `vercel.json` 将 `/view/*` 分流到壳（200）。**hash 时代的外部分享链接**（`/#/x`）由各页注入的遗留重定向脚本折算成 `/x`（见 prerender.mjs 的 legacyHashRedirect）。
+**未知路径/深链回退**（四镜像各异）：GH Pages / Cloudflare 以 各产物目录的 `404.html`（预渲染 404 设计）应答未知路径，浏览器路由在**原 URL** 水合——未匹配渲染 NotFound 404 页（apps/NotFound.tsx，含回首页/返回上页按钮，不自动跳转），`/view/:netPublisher/:netArticle` 动态参数路由直接渲染文章；CF/Netlify 经 `_redirects`、Vercel 经 `vercel.json` 将 `/view/*` 分流到壳（200）。**hash 时代的外部分享链接**（`/#/x`）由各页注入的遗留重定向脚本折算成 `/x`（见 prerender.mjs 的 legacyHashRedirect）。
 
 ## 预渲染水合管线（pnpm build 尾段）
 
 `vite build` 之后 `scripts/prerender.mjs` 追加一个 SSG pass，**无新依赖**（react-router v7 官方 SSR API + react-dom/server）：
 
 - **共享路由树**：`src/dev/router/routes.tsx` 导出 `mainRoutes`（纯数据）——浏览器侧 `router/index.tsx` 用 `createHashRouter` 消费，预渲染侧 `scripts/prerender/entry.server.tsx` 用 `createStaticHandler/createStaticRouter/StaticRouterProvider` 消费。同树保证水合结构对齐
-- **逐路径产出**：`listPrerenderPaths()` 从路由树静态枚举叶子路径（跳过参数段/通配/index 重定向），每条渲染成 `docs/<path>/index.html`（模板=构建壳，`#root` 带 `data-prerendered="true"`，加载屏标记被替换）。`main.tsx` 据此分流：`hydrateRoot`（预渲染页）或 `createRoot`（壳页/404）
+- **逐路径产出**：`listPrerenderPaths()` 从路由树静态枚举叶子路径（跳过参数段/通配/index 重定向），每条渲染成 `<产物目录>/<path>/index.html`（模板=构建壳，`#root` 带 `data-prerendered="true"`，加载屏标记被替换）。`main.tsx` 据此分流：`hydrateRoot`（预渲染页）或 `createRoot`（壳页/404）
 - **hash 桥已退役**：真路径路由下不需要；改为注入遗留 hash 重定向（老分享链接 `#/x` → `/x`，GH Pages 变体拼回 `/expubgo` 前缀）
-- **404 兜底**：`docs/404.html` = 纯壳，宿主以它应答未知路径 → 浏览器路由在原 URL 水合（动态参数路由直渲染，未匹配渲染 NotFound 404 页——404.html 只是引导壳，404 界面本体是水合后的 React 组件）；Vercel/Netlify 另有 200 回退配置（vercel.json / _redirects）
+- **404 兜底**：`<产物目录>/404.html` = 纯壳，宿主以它应答未知路径 → 浏览器路由在原 URL 水合（动态参数路由直渲染，未匹配渲染 NotFound 404 页——404.html 只是引导壳，404 界面本体是水合后的 React 组件）；Vercel/Netlify 另有 200 回退配置（vercel.json / _redirects）
 - **优雅回落**：单页渲染失败只跳过该路径（回落 SPA 行为），`prerender.mjs` 里的 `EXCLUDE` 收录已知不可渲染页
 - **SSR 构建**（`vite.prerender.config.ts`）：别名/define 与浏览器构建共享（`vite.config.ts` 导出），`dedupe: ['react','react-dom']` 必抄（link 包双 React 实例坑），`ssr.noExternal: true`（前端 ESM 包的无扩展名导入 Node 解析不了）
 - **Node 垫片**（`scripts/prerender/shims.node.ts`）：window/document/navigator 等最小桩（es-toolkit 规范：defaultTo/isNil），必须保持 entry.server 的第一条 import
@@ -56,7 +58,7 @@ PUBLISHERS=<name> pnpm pkg  # 选择性构建：只打包指定 publisher 的单
 > - **正式消费（现行）**：package.json 依赖 `^0.2.0`，走 `.npmrc` 的 GitHub Packages 注册表；认证经环境变量 `NODE_AUTH_TOKEN`（classic PAT 勾 read:packages）——CI 工作流已引用 `secrets.NODE_AUTH_TOKEN`（需在仓库 Settings → Secrets and variables → Actions 配置），Cloudflare Pages 在项目环境变量配置；本地安装前 `export NODE_AUTH_TOKEN=<PAT>`。**禁止把 `link:` 写回 package.json**（CI 无隔壁仓库，链接悬空必炸）
 > - **本地敏捷开发**：临时叠加用 global link——expub-tool 仓内 `corepack pnpm link --global`，本仓 `pnpm link --global @guohub8080/expub-tool`（只改 node_modules 软链，不落 package.json）；expub-tool 改代码后 `corepack pnpm run build` 刷新 dist 本仓才可见；用完 `pnpm unlink --global` 恢复。详见该仓 AGENTS.md
 > - 新代码优先从包导入（如 `@guohub8080/expub-tool/smil` 的 getEaseBezier）；`src/dev/pubUtils/getBezier` 是同源历史副本，存量引用不改
-> - **XRay 数据通道库体在 `@guohub8080/expub-tool/xray`**（useDevXRay/devLayoutStore/词典/解值器，2026-10-04 迁入）：`src/dev/pubUtils/devLayout` 是宿主薄包装（`setXRayEnabled(import.meta.env.DEV)` 门控 + re-export），五个调用点 import 路径不变；库内不做 dev 门控（import.meta.env 烤进 dist 会带死生产值）
+> - **XRay 数据通道库体在 `@guohub8080/expub-tool/xray`**（useDevXRay/devLayoutStore/词典/解值器，迁入）：`src/dev/pubUtils/devLayout` 是宿主薄包装（`setXRayEnabled(import.meta.env.DEV)` 门控 + re-export），五个调用点 import 路径不变；库内不做 dev 门控（import.meta.env 烤进 dist 会带死生产值）
 > - link 走 realpath：若从包里引入 **React 组件** 出现 hooks 双实例报错，需在 vite.config.ts 加 `resolve.dedupe: ['react', 'react-dom']`（xray 迁入起包首次带 React 代码，dedupe 已常驻 vite.config）
 
 ### 路由
@@ -242,7 +244,7 @@ PUBLISHERS_MODE=include|exclude
 - **commit 与类型检查是两回事**：commit 就直接 commit，**不做类型检查**；类型检查是专门动作，需要验证时单独跑 `npx tsc --noEmit -p tsconfig.app.json`（发版前、怀疑类型问题时）。
 - **暂时只 commit、不 push**：绝对禁止 `git push`（除非用户当次明确授权）。
 - **不要每次改动后都跑 `pnpm build`**：全量 `pnpm build` 仅在大范围重构、依赖变更、或用户明确要求时才跑。
-- **commit 与检查彻底分离**：本地 pre-commit 钩子已移除（2026-10-07，每次提交都被 eslint+依赖校验拖慢数秒，收益不匹配）。commit 直接提交；lint / tsc 是独立动作，推送或发版前自行跑一次 `pnpm lint` 和 `npx tsc --noEmit -p tsconfig.app.json`。若误留预存 lint error 的旧文件，`pnpm lint` 全量跑时再修。
+- **commit 与检查彻底分离**：本地 pre-commit 钩子已移除（每次提交都被 eslint+依赖校验拖慢数秒，收益不匹配）。commit 直接提交；lint / tsc 是独立动作，推送或发版前自行跑一次 `pnpm lint` 和 `npx tsc --noEmit -p tsconfig.app.json`。若误留预存 lint error 的旧文件，`pnpm lint` 全量跑时再修。
 
 ### 已知坑（实测踩过）
 
@@ -251,10 +253,10 @@ PUBLISHERS_MODE=include|exclude
 - **预存类型错误尾巴**：src 下有约 158 个预存 tsc 错误（PropsSettings 的防御性字段、书籍示例与当前 lib API 的偏差等）。验证标准是**不新增**，顺手修复欢迎。
 - **`getImgSizeAsync`/`getImgSizeByDefault` 在普通函数里调 hook**（渲染期无条件调用的既有模式），带 eslint-disable 注释，重构时注意保持调用时序。
 - 改 `package.json`/`vite.config.ts` 等配置文件用 Write/Edit 工具，Bash 直接写会被 Mimosa PreToolUse 拦截；**Bash sed 改 *.ts/tsx 也会被拦**，源码改动一律走 Edit 工具。
-- **vite 8 dev 下 define 不做静态替换**（2026-10-04 实测 + 源码确认）：`__PUB_*__` 等自定义常量在 dev 由 clientInjections 插件以**全局变量**注入 `/@vite/client` 引的 env.mjs（`const defines = {...}` 挂 globalThis），build 才是静态替换。**curl 拉模块看到裸标识符是预期行为不是失效**——验证 define 要看浏览器 `window.__PUB_*` 或 env.mjs 内容；用 curl 判断 define 会误诊（曾因此白查一场"define 回归"）。
+- **vite 8 dev 下 define 不做静态替换**（实测 + 源码确认）：`__PUB_*__` 等自定义常量在 dev 由 clientInjections 插件以**全局变量**注入 `/@vite/client` 引的 env.mjs（`const defines = {...}` 挂 globalThis），build 才是静态替换。**curl 拉模块看到裸标识符是预期行为不是失效**——验证 define 要看浏览器 `window.__PUB_*` 或 env.mjs 内容；用 curl 判断 define 会误诊（曾因此白查一场"define 回归"）。
 - **文章路由用文章自声明的 `meta.id`（哈希式大写 ID），不是中文目录名**：`/view/aieco/NATIONALDAY2026…` 才是合法 URL，`/view/aieco/国庆` 会**静默**落到网络兜底页显示"找不到网络文章"——排查"文章打不开"先 `getAllArticleIds()` 对 ID，别怀疑路由/define。另注意 dev server 重启可能吃到 node_modules/.vite 的陈旧转换缓存（vite 7 时代 define 静态替换的旧产物），表现为"旧 URL 能开、新 URL 不能"的假回归，重启无效时删缓存目录再起。
-- **自定义 `@keyframes` 禁止占用 Tailwind 默认动画名（`spin`/`ping`/`pulse`/`bounce`）**（2026-10-05 实测）：keyframes 同名是**全局覆盖**——SideList 内联 `<style>` 曾为选中卡片光晕定义 `@keyframes spin` 带 `translate(-50%,-50%)`（绝对定位居中写法），把 Tailwind 的纯 rotate `spin` 整个篡名，全应用 `animate-spin` 的 flex 行内图标（Loader2/RefreshCw）被拽偏半身，症状「转圈图标飘到上边」。已改名 `spin-glow` 修复。自建关键帧一律起专名（`spin-glow`/`spin-xxx`），要默认行为就直接用 `animate-spin` 别重定义。
-- **publisher id 不得与网络源撞车**（2026-10-06 实测）：本地 `publishers/guohub/` 的 `publisherId` 原为 `"fkg"`，与网络源（fkg-wechat manifest）的 publisher id 同名——统一 articleMap 同 id 合并后，Home 点进「方块郭的想象工厂」路由解析错乱、中栏空白。已把本地 id 改为 `"guohub"`（对齐文件夹名；网络侧 `fkg` 是 URL/书签锚不能动）。**已建自动检测**（`networkSources.collectPublisherIdCollisions` + `articlesLoader.getLocalPublisherIds`）：添加源时撞车直接拒绝接入（NetworkSourceError 报人话），刷新/重连时 console.error + toast 强提醒（不硬拒，免把已存源卡死）；新增本地 publisher 仍需自查 id 不与已连网络源重名。
+- **自定义 `@keyframes` 禁止占用 Tailwind 默认动画名（`spin`/`ping`/`pulse`/`bounce`）**（实测）：keyframes 同名是**全局覆盖**——SideList 内联 `<style>` 曾为选中卡片光晕定义 `@keyframes spin` 带 `translate(-50%,-50%)`（绝对定位居中写法），把 Tailwind 的纯 rotate `spin` 整个篡名，全应用 `animate-spin` 的 flex 行内图标（Loader2/RefreshCw）被拽偏半身，症状「转圈图标飘到上边」。已改名 `spin-glow` 修复。自建关键帧一律起专名（`spin-glow`/`spin-xxx`），要默认行为就直接用 `animate-spin` 别重定义。
+- **publisher id 不得与网络源撞车**（实测）：本地 `publishers/guohub/` 的 `publisherId` 原为 `"fkg"`，与网络源（fkg-wechat manifest）的 publisher id 同名——统一 articleMap 同 id 合并后，Home 点进「方块郭的想象工厂」路由解析错乱、中栏空白。已把本地 id 改为 `"guohub"`（对齐文件夹名；网络侧 `fkg` 是 URL/书签锚不能动）。**已建自动检测**（`networkSources.collectPublisherIdCollisions` + `articlesLoader.getLocalPublisherIds`）：添加源时撞车直接拒绝接入（NetworkSourceError 报人话），刷新/重连时 console.error + toast 强提醒（不硬拒，免把已存源卡死）；新增本地 publisher 仍需自查 id 不与已连网络源重名。
 
 ## 联系方式
 
