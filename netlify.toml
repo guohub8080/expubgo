@@ -1,5 +1,0 @@
-# Netlify 构建配置——仅声明本地插件；Build command（pnpm build）/ Publish（docs）
-# 等其余设置沿用 UI 面板值。netlify-auth 在依赖安装前写入 GitHub Packages 认证。
-
-[[plugins]]
-  package = "./plugins/netlify-auth"
